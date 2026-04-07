@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it using the metadata below."
+title: "DeGiorgi"
+type: software
+authors:
+  - family-names: "Armstrong"
+    given-names: "Scott"
+  - family-names: "Kempe"
+    given-names: "Julia"
+abstract: >-
+  A Lean formalization of core elliptic De Giorgi-Nash-Moser theory,
+  including local boundedness, weak Harnack, Harnack, and Holder regularity
+  for uniformly elliptic divergence-form equations.
+license: "Apache-2.0"
+url: "https://github.com/scottnarmstrong/DeGiorgi"
+repository-code: "https://github.com/scottnarmstrong/DeGiorgi"

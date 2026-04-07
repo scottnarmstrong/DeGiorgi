@@ -1,0 +1,60 @@
+{
+  "chapters": [
+    {
+      "id": "pde-public-root",
+      "title": "Public De Giorgi Theory",
+      "lean_path": "DeGiorgi.lean",
+      "target_theorems": [
+        "linfty_subsolution_DeGiorgi_normalized",
+        "weak_harnack",
+        "weak_harnack_on_ball",
+        "harnack",
+        "harnack_of_homogeneousWeakSolution",
+        "holder_Moser",
+        "holder_Moser_of_homogeneousWeakSolution"
+      ]
+    },
+    {
+      "id": "pde-degiorgi-iteration",
+      "title": "De Giorgi Iteration",
+      "lean_path": "DeGiorgi/DeGiorgiIteration.lean",
+      "target_theorems": [
+        "linfty_subsolution_DeGiorgi_normalized"
+      ]
+    },
+    {
+      "id": "pde-weak-harnack",
+      "title": "Weak Harnack Chain",
+      "lean_path": "DeGiorgi/WeakHarnack.lean",
+      "target_theorems": [
+        "weak_harnack"
+      ]
+    },
+    {
+      "id": "pde-scaled-ball-estimates",
+      "title": "Scaled Ball Estimates",
+      "lean_path": "DeGiorgi/ScaledBallEstimates.lean",
+      "target_theorems": [
+        "weak_harnack_on_ball"
+      ]
+    },
+    {
+      "id": "pde-harnack",
+      "title": "Harnack Consequences",
+      "lean_path": "DeGiorgi/Harnack.lean",
+      "target_theorems": [
+        "harnack",
+        "harnack_of_homogeneousWeakSolution"
+      ]
+    },
+    {
+      "id": "pde-holder",
+      "title": "Moser Holder Consequences",
+      "lean_path": "DeGiorgi/Holder.lean",
+      "target_theorems": [
+        "holder_Moser",
+        "holder_Moser_of_homogeneousWeakSolution"
+      ]
+    }
+  ]
+}
