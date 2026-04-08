@@ -12,8 +12,8 @@ To our knowledge, this development represents the first proof-assistant formaliz
 
 **Authors:**
 
-- Scott Armstrong — CNRS & Laboratoire Jacques-Louis Lions, Sorbonne Université, and Courant Institute of Mathematical Sciences, New York University. (scottnarmstrong@gmail.com)
-- Julia Kempe — Center for Data Science and Courant Institute, New York University, USA. (kempe@nyu.edu)
+- Scott Armstrong — CNRS & Laboratoire Jacques-Louis Lions, Sorbonne Université and Courant Institute, School of Mathematics, Computing, and Data Science, New York University. (scottnarmstrong@gmail.com)
+- Julia Kempe — Courant Institute, School of Mathematics, Computing, and Data Science, New York University. (kempe@nyu.edu)
 
 ## Main import
 
@@ -82,4 +82,9 @@ J.K. thanks the Simons Foundation for support through the Collaborative Grant �
 
 ## Citation
 
-If you use this development, please cite it using the metadata in [`CITATION.cff`](CITATION.cff). An accompanying paper is in preparation.
+If you use this development, please cite the accompanying paper:  
+**Formalization of De Giorgi--Nash--Moser Theory in Lean**  
+Scott Armstrong and Julia Kempe  
+[arXiv:2604.05984](https://arxiv.org/abs/2604.05984)
+
+The software repository can be cited using the metadata in [`CITATION.cff`](CITATION.cff).

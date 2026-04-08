@@ -14,3 +14,15 @@ abstract: >-
 license: "Apache-2.0"
 url: "https://github.com/scottnarmstrong/DeGiorgi"
 repository-code: "https://github.com/scottnarmstrong/DeGiorgi"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Armstrong"
+      given-names: "Scott"
+    - family-names: "Kempe"
+      given-names: "Julia"
+  doi: "10.48550/arXiv.2604.05984"
+  journal: "arXiv"
+  title: "Formalization of De Giorgi--Nash--Moser Theory in Lean"
+  url: "https://arxiv.org/abs/2604.05984"
+  year: 2026
