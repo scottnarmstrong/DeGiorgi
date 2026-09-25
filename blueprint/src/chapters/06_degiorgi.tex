@@ -1,0 +1,1107 @@
+\chapter{De Giorgi Iteration and Local Boundedness}\label{sec:degiorgi}
+%% ========================================================================
+
+% !TEX root = DeGiorgi_Lean_to_Tex.tex
+
+This section is the formal core of the De Giorgi $L^2 \to L^\infty$
+argument for non-negative subsolutions of a divergence-form linear
+elliptic equation
+$\dv(A \nabla u) \le 0$
+on the unit ball $\Bz{1} \subset \R^d$, with $A$ measurable, symmetric,
+and uniformly elliptic with constants $0 < \lambda \le \Lambda$ (here
+$\lambda$ denotes always the global ellipticity constant, never a level
+threshold).  The Lean development is organised into six layers, each
+realised by a dedicated module:\\
+\leanname{DeGiorgiIteration.CutoffAdmissibility},
+\leanname{DeGiorgiIteration.Energy},\\
+\leanname{DeGiorgiIteration.PreIteration},
+\leanname{DeGiorgiIteration.Recurrence}, and
+\leanname{DeGiorgiIteration.Linfty},
+all reassembled into the public interface
+\leanname{DeGiorgiIteration} and reexported by
+\leanname{DeGiorgiTheory}.  We follow the same layering below.
+
+Throughout the section $E = \R^d$ with $d \ge 1$, $\Omega \subset E$ is
+an open set with finite Lebesgue measure, and $A$ is an elliptic
+coefficient field with constants $\lambda$, $\Lambda$ encoded in
+\leanname{EllipticCoeff}; we write $\mathrm{ellipticityRatio}(A) =
+\Lambda/\lambda$.
+
+\section{Positive-part truncation}
+
+\begin{definition}
+\label{def:positivePartSub}
+\lean{DeGiorgi.positivePartSub}
+\leanok
+For any function $u : \alpha \to \R$ and any level $\ell \in \R$ we
+define the positive-part truncation
+\begin{equation*}
+  (u-\ell)_+(x) := \max(u(x) - \ell, 0).
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:positivePartSub_nonneg}
+\lean{DeGiorgi.positivePartSub_nonneg}
+\leanok
+\uses{def:positivePartSub}
+$0 \le (u-\ell)_+(x)$ for every $x$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Immediate from $\max(\,\cdot\,, 0) \ge 0$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:positivePartSub_sq_ge_gap_sq_of_lt}
+\lean{DeGiorgi.positivePartSub_sq_ge_gap_sq_of_lt}
+\leanok
+\uses{def:positivePartSub}
+If $\theta < \ell$ and $\ell < u(x)$, then
+$(\ell - \theta)^2 \le |(u-\theta)_+(x)|^2$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Under the hypotheses $u(x) - \theta > 0$, hence
+$(u-\theta)_+(x) = u(x) - \theta \ge \ell - \theta > 0$.  Squaring this
+nonnegative inequality yields the claim.
+\end{proof}
+
+\begin{lemma}
+\label{lem:positivePartSub_antitone}
+\lean{DeGiorgi.positivePartSub_antitone}
+\leanok
+\uses{def:positivePartSub}
+If $\ell_1 \le \ell_2$, then
+$(u-\ell_2)_+ \le (u-\ell_1)_+$ pointwise.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+$\max(u-\ell_2, 0) \le \max(u-\ell_1, 0)$ since $u-\ell_2 \le u-\ell_1$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:positivePartSub_le_posPartZero}
+\lean{DeGiorgi.positivePartSub_le_posPartZero}
+\leanok
+\uses{def:positivePartSub}
+If $0 \le \ell$, then $(u-\ell)_+ \le u_+ = \max(u,0)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:positivePartSub_antitone}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:le_of_positivePartSub_eq_zero}
+\lean{DeGiorgi.le_of_positivePartSub_eq_zero}
+\leanok
+\uses{def:positivePartSub}
+If $(u-\ell)_+(x) = 0$, then $u(x) \le \ell$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+If $u(x) - \ell \ge 0$ then $(u-\ell)_+(x) = u(x) - \ell$, so the
+hypothesis forces $u(x) = \ell$.  Otherwise $u(x) < \ell$.
+\end{proof}
+
+\section{Cutoff admissibility}
+
+The De Giorgi test functions are obtained by multiplying the
+positive-part truncation by the square of a smooth scalar cutoff.
+
+\begin{definition}
+\label{def:deGiorgiCutoffTestGeneral}
+\lean{DeGiorgi.deGiorgiCutoffTestGeneral}
+\leanok
+\uses{def:positivePartSub}
+Given $\eta, u : E \to \R$ and a level $\ell$,
+\begin{equation*}
+  \varphi_{\eta, u, \ell}(x) := \eta(x) \cdot \bigl( \eta(x) \cdot
+  (u-\ell)_+(x) \bigr) = \eta(x)^2 \, (u-\ell)_+(x).
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:deGiorgiCutoffTestGeneral_nonneg}
+\lean{DeGiorgi.deGiorgiCutoffTestGeneral_nonneg}
+\leanok
+\uses{def:deGiorgiCutoffTestGeneral}
+If $\eta \ge 0$ pointwise, then $\varphi_{\eta, u, \ell} \ge 0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:positivePartSub, lem:positivePartSub_nonneg}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:deGiorgiCutoffTestGeneral_hasCompactSupport}
+\lean{DeGiorgi.deGiorgiCutoffTestGeneral_hasCompactSupport}
+\leanok
+\uses{def:deGiorgiCutoffTestGeneral}
+If $\eta$ has compact support, so does $\varphi_{\eta,u,\ell}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:positivePartSub}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:deGiorgiCutoffTestGeneral_tsupport_subset}
+\lean{DeGiorgi.deGiorgiCutoffTestGeneral_tsupport_subset}
+\leanok
+\uses{def:deGiorgiCutoffTestGeneral}
+If $\tsupp\,\eta \subseteq \Omega$, then $\tsupp\,\varphi_{\eta,u,\ell}
+\subseteq \Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:positivePartSub}
+See the Lean formalization.
+\end{proof}
+
+The technical core of this layer is a Sobolev membership statement: if
+$u \in W^{1,2}(\Omega)$ and the positive-part truncation
+$(u - \ell)_+$ is also in $W^{1,2}$, then for any smooth bounded
+cutoff $\eta$ with $\tsupp\,\eta \subseteq \Omega$, the test function
+$\varphi_{\eta,u,\ell}$ lies in $W^{1,2}_0(\Omega)$.  In Lean this is
+phrased through the witness type \leanname{MemW1pWitness} and the
+zero-trace structure \leanname{MemW01p}.
+
+\begin{theorem}
+\label{thm:deGiorgiCutoffTest_memW01p_of_truncWitness}
+\lean{DeGiorgi.deGiorgiCutoffTest_memW01p_of_truncWitness}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:positivePartSub, def:deGiorgiCutoffTestGeneral}
+Let $\Omega \subset E$ be open with finite measure.  Let $u$ be such
+that $(u-\ell)_+$ admits a $W^{1,2}(\Omega)$ witness.  Let $\eta \in
+C^\infty(E)$ satisfy $|\eta| \le C_0$, $\|\nabla \eta\| \le C_1$,
+$\eta$ has compact support, and $\tsupp\,\eta \subseteq \Omega$.
+Then $\varphi_{\eta,u,\ell} \in \Wop{2}(\Omega)$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, thm:memW01p_of_compactly_supported, lem:MemW1pWitness_mul_smooth_bounded, lem:deGiorgiCutoffTestGeneral_hasCompactSupport, lem:deGiorgiCutoffTestGeneral_tsupport_subset}
+
+By two successive applications of the closure of $W^{1,2}$-witnesses
+under multiplication by smooth bounded functions
+(\leanname{MemW1pWitness.mul\_smooth\_bounded}), starting from $(u-\ell)_+$
+and multiplying twice by $\eta$, one obtains a $W^{1,2}$ witness for
+$\eta^2 (u-\ell)_+$.  Since $\varphi_{\eta,u,\ell}$ is compactly
+supported with $\tsupp \subseteq \Omega$, the localisation lemma
+\leanname{memW01p\_of\_memW1p\_of\_tsupport\_subset} promotes the
+$W^{1,2}$-witness to a $W^{1,2}_0(\Omega)$ membership.
+\end{proof}
+
+\begin{theorem}
+\label{thm:deGiorgiCutoffTest_memW01p_of_posPart}
+\lean{DeGiorgi.deGiorgiCutoffTest_memW01p_of_posPart}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:deGiorgiCutoffTestGeneral}
+Same conclusion, but assuming a $W^{1,2}$-witness for $u$ together
+with a generic positive-part closure rule
+$\bigl(\, v \in W^{1,2}(\Omega) \implies (v)_+ \in W^{1,2}(\Omega)\,\bigr)$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:MemW1pWitness_sub_const, def:positivePartSub, thm:deGiorgiCutoffTest_memW01p_of_truncWitness}
+
+Apply the closure rule to $v = u-\ell$ to obtain a witness for
+$(u-\ell)_+$, then invoke the previous theorem.
+\end{proof}
+
+A concrete version, \leanname{deGiorgiCutoffTest\_memW01p\_of\_posPartApprox},
+is obtained by furnishing the $W^{1,2}$-witness for $(u-\ell)_+$ via the
+Chapter~02 smooth approximation package for $u-\ell$.  The
+ball-restricted variants
+\leanname{deGiorgiCutoffTest\_memW01p\_on\_ball\_of\_ballPosPart} and
+\leanname{deGiorgiCutoffTest\_memW01p\_on\_ball\_of\_ballPosPartApprox}
+specialise these statements to $\Omega = \Ball{s}{x_0}$ and supply
+finiteness of the restricted measure automatically.
+
+\begin{definition}
+\label{def:positivePartSub_memW1pWitness_on_ball}
+\lean{DeGiorgi.positivePartSub_memW1pWitness_on_ball}
+\leanok
+\uses{def:MemW1pWitness, lem:MemW1pWitness_sub_const, thm:MemW1pWitness_posPart, def:positivePartSub}
+On a ball $\Ball{s}{x_0}$, given a $W^{1,2}$-witness for $u$ and a
+smooth approximation package for $u - \ell$, the lemma constructs a
+$W^{1,2}$-witness for $(u - \ell)_+$ on the ball.
+\end{definition}
+
+\section{Weighted Caccioppoli inequality}
+
+We now turn to the analytical heart of the chapter: the weighted
+Caccioppoli inequality for truncations of subsolutions.  We use the
+abbreviation
+\begin{equation*}
+  \nabla \eta(x) := (\partial_1 \eta(x), \dots, \partial_d \eta(x))
+\end{equation*}
+identified with the inner-product representation of the Fréchet
+derivative; see \leanname{deGiorgiFderivVec}.  The norm
+$\|\nabla \eta(x)\|$ then equals the operator norm
+$\|D\eta(x)\|$, which is recorded as
+\leanname{deGiorgi\_norm\_fderivVec\_eq\_norm\_fderiv}.
+
+\begin{lemma}
+\label{lem:weighted_caccioppoli_pointwise}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.weighted\_caccioppoli\_pointwise}.)}\par
+Let $\Lambda > 0$, $\eta, \zeta, E, M, v \in \R$, and assume the
+pointwise coercivity condition $|M|^2 \le \Lambda E$. Then
+\begin{align*}
+  2 \eta |v| \zeta |M|
+   \le \tfrac{1}{2}\, \eta^2 E + 2\Lambda\, \zeta^2 |v|^2.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Apply Young's inequality $2ab \le a^2 + b^2$ with $a =
+\eta |M| / \sqrt{2\Lambda}$ and $b = \sqrt{2\Lambda}\, \zeta |v|$ to
+get
+\begin{equation*}
+  2 \eta |v| \zeta |M|
+   \le \frac{\eta^2 |M|^2}{2\Lambda} + 2\Lambda\, \zeta^2 |v|^2.
+\end{equation*}
+The hypothesis $|M|^2 \le \Lambda E$ then yields $\eta^2 |M|^2 /
+(2\Lambda) \le \tfrac{1}{2} \eta^2 E$, completing the proof.
+\end{proof}
+
+\begin{theorem}[Abstract absorption]
+\label{thm:weighted_caccioppoli_absorb}
+\lean{DeGiorgi.weighted_caccioppoli_absorb}
+\leanok
+Let $(\alpha, \mu)$ be a measure space and let $E, M, \eta, \zeta, v
+: \alpha \to \R$ be measurable functions with $\Lambda > 0$. Assume
+the integrability conditions and:
+\begin{enumerate}
+\item $\int \eta^2 E \, d\mu \le \int 2 \eta |v| \zeta |M| \, d\mu$,
+\item $|M|^2 \le \Lambda E$ almost everywhere.
+\end{enumerate}
+Then $\int \eta^2 E \, d\mu \le 4 \Lambda \int \zeta^2 |v|^2 \, d\mu$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weighted_caccioppoli_pointwise}
+
+Apply the pointwise Young inequality almost everywhere, integrate to
+get
+\begin{equation*}
+  \int 2\eta|v|\zeta|M|\, d\mu
+   \le \tfrac{1}{2}\int \eta^2 E\, d\mu
+        + 2\Lambda \int \zeta^2 |v|^2 \, d\mu,
+\end{equation*}
+combine with the assumed core estimate to obtain
+$\int \eta^2 E\, d\mu \le \tfrac12 \int \eta^2 E\, d\mu + 2\Lambda
+\int \zeta^2 |v|^2 \, d\mu$, and absorb to conclude.
+\end{proof}
+
+The PDE-facing weighted Caccioppoli inequality is the following
+statement, which is the analytical core of the De Giorgi argument.
+
+\begin{theorem}[Weighted Caccioppoli for subsolutions]
+\label{thm:caccioppoli_weighted_of_subsolution}
+\lean{DeGiorgi.caccioppoli_weighted_of_subsolution}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:ellipticityRatio, def:IsSubsolution, def:positivePartSub, def:deGiorgiCutoffTestGeneral}
+Let $\Omega \subset E$ be open with finite measure, $A$ an elliptic
+coefficient field on $\Omega$, $u$ a subsolution
+($\leanname{IsSubsolution}\, A\, u$), and $\eta$ a smooth bounded
+nonneg function with $|\eta| \le C_0$, $\|\nabla \eta\| \le C_1$,
+$\tsupp\,\eta \subseteq \Omega$.  Let $\ell \in \R$ and assume
+$(u - \ell)_+ \in W^{1,2}(\Omega)$ and that $\varphi_{\eta,u,\ell}$
+admits a $W^{1,2}_0(\Omega)$ structure.  Then
+\begin{multline*}
+  \int_\Omega \eta(x)^2 \, \bigl\| \nabla(u-\ell)_+(x) \bigr\|^2 \, dx
+   \le \\
+   4\, \frac{\Lambda}{\lambda}\,
+     \int_\Omega \|\nabla \eta(x)\|^2 \,
+       \bigl|(u-\ell)_+(x)\bigr|^2 \, dx.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:MemW1pWitness_sub_const, lem:MemW1pWitness_mul_smooth_bounded, lem:EllipticCoeff_ae_coercive_nonneg, lem:EllipticCoeff_mulVec_sq_le, lem:EllipticCoeff_quadratic_upper, def:bilinFormIntegrandOfCoeff, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff, lem:positivePartSub_nonneg, lem:deGiorgiCutoffTestGeneral_nonneg}
+
+Test the subsolution inequality against
+$\varphi := \varphi_{\eta,u,\ell} = \eta^2 (u-\ell)_+$, which is
+admissible by the cutoff admissibility theorem and is nonnegative.
+The subsolution condition gives
+$\int_\Omega \langle A\nabla u, \nabla \varphi\rangle \, dx \le 0$.
+Computing the gradient of $\varphi$,
+\begin{align*}
+  \nabla \varphi(x)
+   = \eta(x)^2 \, \nabla (u-\ell)_+(x)
+     + 2\, \eta(x)\, (u-\ell)_+(x) \, \nabla \eta(x),
+\end{align*}
+which is the content of
+\leanname{deGiorgiCutoffTestWitnessWeighted\_grad}. Combining with the
+identification $\nabla u = \nabla(u - \ell)_+$ on $\{u > \ell\}$ and
+$\nabla(u-\ell)_+ = 0$ on $\{u \le \ell\}$ (the lemmas
+\leanname{truncGrad\_eq\_on\_superlevel} and
+\leanname{truncGrad\_zero\_on\_sublevel}), we may rewrite
+\begin{multline*}
+  0 \ge
+   \int_\Omega \eta(x)^2 \,
+     \langle A(x) \nabla(u-\ell)_+(x), \nabla(u-\ell)_+(x)\rangle \, dx \\
+   + \int_\Omega 2 \eta(x) (u-\ell)_+(x)\,
+     \langle A(x) \nabla(u-\ell)_+(x), \nabla \eta(x)\rangle \, dx.
+\end{multline*}
+By the coercivity bound for $A$ (lemma
+$\Lambda$-coercive: $\langle Aw,w\rangle \ge \lambda \|w\|^2$) and the
+upper bound (lemma $\langle Aw,w\rangle \le \Lambda\|w\|^2$ together
+with $\|Aw\|^2 \le \Lambda \langle Aw,w\rangle$), the first term is
+bounded below by $\lambda \int \eta^2 \|\nabla(u-\ell)_+\|^2$, while
+the second is dominated in absolute value by
+\begin{equation*}
+  \int_\Omega 2\, \eta(x) (u-\ell)_+(x) \,
+    \|A(x)\nabla(u-\ell)_+(x)\|\,\|\nabla \eta(x)\| \, dx.
+\end{equation*}
+Setting $E := \langle A\nabla(u-\ell)_+, \nabla(u-\ell)_+\rangle$ and
+$M := \|A\nabla(u-\ell)_+\|$, we have $|M|^2 \le \Lambda E$, and
+applying the abstract absorption lemma above with these choices
+yields
+\begin{equation*}
+  \int_\Omega \eta(x)^2\, E(x)\, dx
+   \le 4\,\Lambda \int_\Omega \|\nabla \eta(x)\|^2\,
+     |(u-\ell)_+(x)|^2 \, dx.
+\end{equation*}
+Coercivity now bounds the left-hand side from below by
+$\lambda \int_\Omega \eta^2 \|\nabla(u-\ell)_+\|^2$, and dividing by
+$\lambda$ produces the announced inequality with constant
+$4 \Lambda/\lambda$.
+\end{proof}
+
+\begin{theorem}[Ball Caccioppoli]
+\label{thm:caccioppoli_weighted_on_ball_of_ballPosPart}
+\lean{DeGiorgi.caccioppoli_weighted_on_ball_of_ballPosPart}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:ellipticityRatio, def:IsSubsolution, def:positivePartSub}
+The same conclusion holds with $\Omega = \Ball{s}{x_0}$ and a witness
+for $(u-\ell)_+$ on the ball, provided $\eta$ is smooth, nonnegative,
+$|\eta| \le 1$, $\|\nabla \eta\| \le C_\eta$, and $\tsupp\,\eta
+\subseteq \Ball{s}{x_0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW01p, def:deGiorgiCutoffTestGeneral, thm:deGiorgiCutoffTest_memW01p_of_truncWitness, thm:caccioppoli_weighted_of_subsolution}
+See the Lean formalization.
+\end{proof}
+
+The approximation-based variant is
+\leanname{caccioppoli\_weighted\_on\_ball\_of\_posPartApprox}.
+
+\begin{theorem}[Localized energy estimate]
+\label{thm:deGiorgi_energy_estimate_on_concentricBalls_of_ballPosPart}
+\lean{DeGiorgi.deGiorgi_energy_estimate_on_concentricBalls_of_ballPosPart}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:ellipticityRatio, def:IsSubsolution, def:positivePartSub}
+(\leanname{deGiorgi\_energy\_estimate\_on\_concentricBalls\_of\_ballPosPart})\\
+Let $0 < r < s$, $A$ elliptic on $\Ball{s}{x_0}$, $u$ a subsolution.
+Let $\eta$ be smooth, $0 \le \eta \le 1$ on $E$, $\eta = 1$ on
+$\Ball{r}{x_0}$, $\tsupp\,\eta \subset \Ball{s}{x_0}$, and
+$\|\nabla \eta\| \le C_\eta$. Then
+\begin{multline*}
+  \int_{\Ball{r}{x_0}} \bigl\|\nabla(u-\ell)_+(x)\bigr\|^2 \, dx \\
+  \le 4\,\frac{\Lambda}{\lambda} \, C_\eta^2 \,
+    \int_{\Ball{s}{x_0}} \bigl|(u-\ell)_+(x)\bigr|^2 \, dx.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_lam_nonneg, thm:caccioppoli_weighted_on_ball_of_ballPosPart}
+
+Since $\eta = 1$ on $\Ball{r}{x_0}$, the integral on the left equals
+$\int_{\Ball{r}{x_0}} \eta^2 \|\nabla(u-\ell)_+\|^2$. Monotonicity in
+the integration set and the weighted Caccioppoli inequality bound
+this by $4(\Lambda/\lambda)\int_{\Ball{s}{x_0}} \|\nabla \eta\|^2
+|(u-\ell)_+|^2$. The pointwise bound $\|\nabla\eta\|^2 \le C_\eta^2$
+on $\Ball{s}{x_0}$ then gives the claim.
+\end{proof}
+
+\section{Chebyshev bound on superlevel sets}
+
+\begin{theorem}
+\label{thm:superlevel_measureReal_le_integral_posPart}
+\lean{DeGiorgi.superlevel_measureReal_le_integral_posPart}
+\leanok
+\uses{def:positivePartSub}
+Let $(\alpha, \mu)$ be a finite measure space, $u : \alpha \to \R$,
+and let $\theta < \ell$. If $|(u-\theta)_+|^2$ is integrable, then
+\begin{equation*}
+  \mu\bigl(\{x : \ell < u(x)\}\bigr)
+   \le \frac{1}{(\ell-\theta)^2}\,
+       \int |(u-\theta)_+(x)|^2 \, d\mu(x).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:positivePartSub_sq_ge_gap_sq_of_lt}
+
+Set $f(x) := |(u-\theta)_+(x)|^2$ and $\varepsilon := (\ell-\theta)^2$. The
+hypothesis $\theta < \ell$ ensures $\varepsilon > 0$. By
+\leanname{positivePartSub\_sq\_ge\_gap\_sq\_of\_lt}, on the superlevel set
+$\{x : \ell < u(x)\}$ the value of $f$ is at least
+$(\ell - \theta)^2 = \varepsilon$, so we have the set inclusion
+\begin{equation*}
+  \{x : \ell < u(x)\}
+    \subseteq \{x : \varepsilon \le f(x)\}.
+\end{equation*}
+By monotonicity of measure (\leanname{measureReal\_mono}) this gives
+$\mu\{\ell < u\} \le \mu\{\varepsilon \le f\}$.
+
+Markov's inequality for nonnegative integrable functions
+(\leanname{MeasureTheory.mul\_meas\_ge\_le\_integral\_of\_nonneg}) applied to
+$f$ at threshold $\varepsilon$ yields
+\begin{equation*}
+  \varepsilon \cdot \mu\{\varepsilon \le f\}
+   \le \int_{\alpha} f(x)\,d\mu(x).
+\end{equation*}
+Combining the set inclusion with monotone multiplication by $\varepsilon \ge 0$,
+\begin{equation*}
+  \varepsilon \cdot \mu\{\ell < u\}
+   \le \varepsilon \cdot \mu\{\varepsilon \le f\}
+   \le \int_{\alpha} f\,d\mu.
+\end{equation*}
+Dividing by the positive constant $\varepsilon$ produces the desired bound
+$\mu\{\ell < u\} \le ((\ell - \theta)^2)^{-1}\int |(u-\theta)_+|^2\,d\mu$.
+\end{proof}
+
+\section{Pre-iteration estimate}
+
+We now combine the energy estimate with a Sobolev/Holder
+interpolation step to obtain a single-step nonlinear inequality
+between truncation energies at two levels and on two concentric balls.
+
+\begin{theorem}[Abstract pre-iteration combination]
+\label{thm:deGiorgi_preiter_abstract}
+\lean{DeGiorgi.deGiorgi_preiter_abstract}
+\leanok
+Let $d > 0$ and let $C_{\mathrm{sob}}, C_{\mathrm{en}}, I_\theta, m,
+\theta < \ell$ all be nonneg numbers. Suppose
+\begin{align*}
+  I_\ell &\le C_{\mathrm{sob}} \cdot G \cdot m^{2/d}, \\
+  m &\le (\ell - \theta)^{-2}\, I_\theta, \\
+  G &\le C_{\mathrm{en}} \cdot I_\theta.
+\end{align*}
+Then
+\begin{equation*}
+  I_\ell \le C_{\mathrm{sob}}\, C_{\mathrm{en}}\,
+    \bigl((\ell-\theta)^{-2} I_\theta\bigr)^{2/d}\, I_\theta.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+Raise the second inequality to the power $2/d \ge 0$, multiply by
+$G$, then by $C_{\mathrm{sob}}$, using $C_{\mathrm{en}}$ to bound
+$G$.
+\end{proof}
+
+\begin{theorem}[Packaged pre-iteration]
+\label{thm:deGiorgi_preiter_of_energy}
+\lean{DeGiorgi.deGiorgi_preiter_of_energy}
+\leanok
+\uses{def:positivePartSub}
+With $\mu$ a finite measure and the same notation, if
+\begin{itemize}
+\item $I_\ell \le C_{\mathrm{sob}}\, G\, \mu(\{\ell < u\})^{2/d}$,
+\item $G \le C_{\mathrm{en}} \cdot I_\theta$,
+\item $\int |(u-\theta)_+|^2 \, d\mu \le I_\theta$,
+\end{itemize}
+then
+\(
+  I_\ell \le C_{\mathrm{sob}}\, C_{\mathrm{en}}\,
+    ((\ell-\theta)^{-2} I_\theta)^{2/d}\, I_\theta.
+\)
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:superlevel_measureReal_le_integral_posPart, thm:deGiorgi_preiter_abstract}
+
+By the Chebyshev bound, $\mu(\{\ell < u\}) \le (\ell-\theta)^{-2}\,
+\int|(u-\theta)_+|^2 \, d\mu \le (\ell-\theta)^{-2}\, I_\theta$. The
+abstract combination lemma now applies.
+\end{proof}
+
+The cutoff Sobolev step required to discharge the Sobolev hypothesis
+$I_\ell \le (C_{\mathrm{gns}})^2 \int \|\nabla \varphi\|^2\,
+\mu(\{\ell < u\})^{2/d}$ is
+
+\begin{theorem}
+\label{thm:deGiorgi_cutoffSobolev_on_concentricBalls_of_ballPosPart}
+\lean{DeGiorgi.deGiorgi_cutoffSobolev_on_concentricBalls_of_ballPosPart}
+\leanok
+\uses{def:MemW1pWitness, def:C_gns, def:positivePartSub, def:deGiorgiCutoffTestGeneral}
+Under the standing hypotheses ($d > 2$, $0 < r < s$, $u$ admitting a
+$W^{1,2}$ witness, $(u-\theta)_+$ admitting a $W^{1,2}$ witness on
+$\Ball{s}{x_0}$, $\theta < \ell$, $\eta$ smooth with $\eta = 1$ on
+$\Ball{r}{x_0}$, $|\eta| \le 1$, $\tsupp \eta \subseteq
+\Ball{s}{x_0}$), there exists a $W^{1,2}$-witness $w_{\eta,\theta}$
+for $\eta^2 (u-\theta)_+$ such that
+\begin{multline*}
+  \int_{\Ball{r}{x_0}} \bigl|(u-\ell)_+(x)\bigr|^2 \, dx
+  \le (C_{\mathrm{gns}}(d,2))^2 \cdot \\
+   \Bigl(\int_{\Ball{s}{x_0}} \|\nabla w_{\eta,\theta}(x)\|^2 \, dx
+   \Bigr) \cdot
+    \mu_s\bigl(\{\ell < u\}\bigr)^{2/d},
+\end{multline*}
+where $\mu_s$ denotes Lebesgue measure restricted to $\Ball{s}{x_0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW01p, lem:weak_grad_norm_memLp, lem:zero_outside_tsupport, thm:zero_extend, thm:weak_grad_unique, cor:sobolev_W01p, lem:MemW1pWitness_sub_const, lem:positivePartSub_nonneg, lem:deGiorgiCutoffTestGeneral_hasCompactSupport, lem:deGiorgiCutoffTestGeneral_tsupport_subset, thm:deGiorgiCutoffTest_memW01p_of_truncWitness}
+
+The cutoff $\varphi := \eta^2 (u-\theta)_+$ has compact support inside
+$\Ball{s}{x_0}$ and lies in $\Wop{2}(\Ball{s}{x_0})$ by
+the cutoff admissibility theorem, hence its zero extension to $\R^d$
+lies in $W^{1,2}(\R^d)$. The Gagliardo--Nirenberg--Sobolev embedding
+gives the global $L^{2^*}$ estimate
+$\|\varphi\|_{L^{2^*}} \le C_{\mathrm{gns}}(d,2) \|\nabla
+\varphi\|_{L^2}$, where $2^* = 2d/(d-2)$. On $\Ball{r}{x_0}$ one has
+$\eta = 1$ and $u > \ell > \theta$ implies $\varphi(x) = (u(x) -
+\theta) > \ell - \theta$, so $|(u-\ell)_+|^2 \le |\varphi|^2$ on
+$\{\ell < u\}$. Restricting the $L^{2^*}$ estimate to $\Ball{r}{x_0}$
+and applying Holder's inequality with exponents $2^*/2$ and its dual
+gives the announced bound, where the volume factor reduces to
+$\mu_s(\{\ell < u\})^{2/d}$.
+\end{proof}
+
+\begin{theorem}[PDE pre-iteration on concentric balls]
+\label{thm:deGiorgi_preiter_on_concentricBalls_of_ballPosPart}
+\lean{DeGiorgi.deGiorgi_preiter_on_concentricBalls_of_ballPosPart}
+\leanok
+\uses{def:MemW1pWitness, def:C_gns, def:EllipticCoeff, def:ellipticityRatio, def:IsSubsolution, def:positivePartSub}
+Under the same hypotheses ($d > 2$, $0 < r < s$, $\theta < \ell$,
+$\eta$ as above), one has
+\begin{multline*}
+  \int_{\Ball{r}{x_0}} |(u-\ell)_+(x)|^2 \, dx
+  \le (C_{\mathrm{gns}}(d,2))^2
+    \cdot \bigl(8(\Lambda/\lambda + 1)\, C_\eta^2\bigr) \cdot \\
+    \bigl((\ell - \theta)^{-2}
+       \int_{\Ball{s}{x_0}} |(u-\theta)_+|^2 \, dx\bigr)^{2/d}
+    \cdot \int_{\Ball{s}{x_0}} |(u-\theta)_+|^2 \, dx.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:weak_grad_unique, lem:MemW1pWitness_mul_smooth_bounded, lem:EllipticCoeff_lam_nonneg, lem:positivePartSub_nonneg, def:deGiorgiCutoffTestGeneral, thm:caccioppoli_weighted_on_ball_of_ballPosPart, thm:deGiorgi_preiter_of_energy, thm:deGiorgi_cutoffSobolev_on_concentricBalls_of_ballPosPart}
+
+Apply the cutoff Sobolev step with witness $w_{\eta,\theta}$, the
+energy estimate $\int_{\Ball{s}{x_0}} \|\nabla w_{\eta,\theta}\|^2 \le
+8(\Lambda/\lambda+1) C_\eta^2 \int_{\Ball{s}{x_0}} |(u-\theta)_+|^2$
+(coming from the gradient identity for $\varphi$ together with the
+weighted Caccioppoli inequality and the elementary bound
+$(a+b)^2 \le 2a^2 + 2b^2$), and the packaged pre-iteration. The
+identification of the gradient bound coefficient is recorded as
+\leanname{deGiorgi\_cutoff\_gradient\_bound\_of\_weighted}.
+\end{proof}
+
+\section{De Giorgi iteration sequences}
+
+We now fix the canonical scales of the iteration.
+
+\begin{definition}
+\label{def:deGiorgiTail}
+\lean{DeGiorgi.deGiorgiTail, DeGiorgi.deGiorgiRadius, DeGiorgi.deGiorgiLevel, DeGiorgi.deGiorgiRecurrenceBase, DeGiorgi.deGiorgiRecurrenceCoeff}
+\leanok
+For $n \in \N$, $\ell^* > 0$, and $K > 0$, set
+\begin{align*}
+  \tau_n &:= (1/2)^{n+1}, \\
+  r_n &:= (1 + \tau_n)/2, \\
+  \ell_n(\ell^*) &:= \ell^* (1 - \tau_n), \\
+  B_d &:= 2^{2 + 4/d}, \\
+  C_d(K, \ell^*) &:= K \cdot 2^{6 + 8/d} \cdot (\ell^*)^{-4/d}.
+\end{align*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:deGiorgiRadius_gap}
+\lean{DeGiorgi.deGiorgiRadius_gap, DeGiorgi.deGiorgiLevel_gap}
+\leanok
+\uses{def:deGiorgiTail}
+The radii $r_n$ satisfy $1/2 < r_n < 1$ and decrease to $1/2$, the
+levels increase from $\ell_0 < \ell^*$ to $\ell^*$, and one has
+the gap identities (\leanname{deGiorgiRadius\_gap},
+\leanname{deGiorgiLevel\_gap})
+\begin{equation*}
+  r_n - r_{n+1} = (1/2)^{n+3}, \qquad
+  \ell_{n+1}(\ell^*) - \ell_n(\ell^*) = \ell^* (1/2)^{n+2}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+See the Lean formalization.
+\end{proof}
+
+\begin{definition}
+\label{def:deGiorgiEnergySeq}
+\lean{DeGiorgi.deGiorgiEnergySeq}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail}
+For a function $u$, base point $x_0$, and threshold $\ell^* > 0$, set
+\begin{equation*}
+  A_n(u, x_0, \ell^*) := \int_{\Ball{r_n}{x_0}}
+     \bigl|(u - \ell_n(\ell^*))_+(x)\bigr|^2 \, dx.
+\end{equation*}
+\end{definition}
+
+\section{Recurrence and abstract closeout}
+
+\begin{theorem}[Geometric closeout for nonlinear recurrences]
+\label{thm:deGiorgi_recurrence_closeout}
+\lean{DeGiorgi.deGiorgi_recurrence_closeout}
+\leanok
+Let $Y_n \ge 0$, $C > 0$, $B > 1$, $\alpha > 0$, and assume
+\begin{equation*}
+  Y_{n+1} \le C\, B^n\, Y_n^{1+\alpha}, \qquad
+  Y_0 \le C^{-1/\alpha}\, B^{-1/\alpha^2}.
+\end{equation*}
+Then $Y_n \to 0$ as $n \to \infty$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+Set $X := C B^{1/\alpha}$, $D := X^{1/\alpha}$, $q :=
+B^{-1/\alpha} < 1$, and define $W_n := B^{n/\alpha} Y_n$ and $Z_n :=
+D W_n$. The hypothesis on $Y_0$ is equivalent to $Y_0 \le D^{-1}$, so
+$Z_0 \le 1$. From the recurrence
+\begin{equation*}
+  W_{n+1} \le X \, W_n^{1+\alpha},
+\end{equation*}
+multiply by $D$ and use $D X = D^{1+\alpha}$ to get $Z_{n+1} \le
+Z_n^{1+\alpha}$, hence by induction $Z_n \le 1$ for all $n$. This
+yields $W_n \le D^{-1}$ and consequently
+$Y_n \le D^{-1} q^n$, which tends to $0$ as $n \to \infty$.
+\end{proof}
+
+\begin{theorem}[Recurrence rewriting]
+\label{thm:deGiorgi_preiter_to_recurrence}
+\lean{DeGiorgi.deGiorgi_preiter_to_recurrence}
+\leanok
+\uses{def:deGiorgiTail}
+If a sequence $A_n$ satisfies, for all $n$,
+\begin{multline*}
+  A_{n+1} \le
+   \frac{K}{(r_n - r_{n+1})^2 (\ell_{n+1} - \ell_n)^{4/d}}
+   \cdot A_n^{1 + 2/d},
+\end{multline*}
+then with $C_d(K,\ell^*)$ and $B_d$ as above one has
+\begin{equation*}
+  A_{n+1} \le C_d(K, \ell^*)\, B_d^n\, A_n^{1 + 2/d}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:deGiorgiRadius_gap}
+
+By the gap identities,
+$(r_n - r_{n+1})^2 = 2^{-(2n+6)}$ and
+$(\ell_{n+1}-\ell_n)^{4/d} = (\ell^*)^{4/d}\, 2^{-(n+2)\cdot 4/d}$,
+so the denominator equals
+$(\ell^*)^{4/d}\, 2^{-(6+8/d + n(2+4/d))}$. Inverting and rearranging
+yields the claimed form.
+\end{proof}
+
+\begin{theorem}[Vanishing of the canonical recurrence]
+\label{thm:deGiorgi_preiter_vanishing}
+\lean{DeGiorgi.deGiorgi_preiter_vanishing}
+\leanok
+\uses{def:deGiorgiTail}
+Under $d > 2$, $K > 0$, $\ell^* > 0$, the canonical recurrence above,
+and the smallness condition
+\begin{equation*}
+  A_0 \le C_d(K,\ell^*)^{-d/2}\, B_d^{-(d/2)^2 / 2},
+\end{equation*}
+the sequence $A_n$ tends to zero.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:deGiorgi_recurrence_closeout, thm:deGiorgi_preiter_to_recurrence}
+
+The pre-iteration recurrence is rewritten using
+\leanname{deGiorgi\_preiter\_to\_recurrence} into the standard form with
+$B := B_d$, $C := C_d(K,\ell^*)$, $\alpha := 2/d$. The smallness
+hypothesis is exactly the threshold required by
+\leanname{deGiorgi\_recurrence\_closeout}, so $A_n \to 0$.
+\end{proof}
+
+\section{The De Giorgi $L^\infty$ bound}
+
+The next layer assembles the $L^\infty$ bound on the half-ball from
+the recurrence machinery.
+
+\begin{lemma}
+\label{lem:ae_eq_zero_of_forall_setIntegral_sq_le_of_tendsto_zero}
+\lean{DeGiorgi.ae_eq_zero_of_forall_setIntegral_sq_le_of_tendsto_zero}
+\leanok
+Let $f : E \to \R$ with $|f|^2 \in L^1(s)$ and let $Y_n \to 0$ be a
+sequence of upper bounds for $\int_s |f|^2$. Then $f = 0$ a.e. on
+$s$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:integral_sq_halfBall_le_deGiorgiEnergySeq}
+\lean{DeGiorgi.integral_sq_halfBall_le_deGiorgiEnergySeq}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq}
+For $\ell^* > 0$, the half-ball energy is monotone in the iteration:
+\begin{equation*}
+  \int_{\Ball{1/2}{x_0}} |(u-\ell^*)_+|^2 \, dx
+   \le A_n(u, x_0, \ell^*),
+\qquad \forall n.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:positivePartSub_nonneg, lem:positivePartSub_antitone}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:deGiorgiEnergySeq_zero_le_integral_sq_posPartZero_on_unitBal}
+\lean{DeGiorgi.deGiorgiEnergySeq_zero_le_integral_sq_posPartZero_on_unitBall}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq}
+The first term satisfies
+$A_0 \le \int_{\Bz{1}} (u_+)^2 \, dx$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:positivePartSub_nonneg, lem:positivePartSub_le_posPartZero}
+See the Lean formalization.
+\end{proof}
+
+\begin{definition}
+\label{def:C_DeGiorgiSmallness}
+\lean{DeGiorgi.C_DeGiorgiSmallness}
+\leanok
+\uses{def:deGiorgiTail}
+For $K > 0$ and $d \ge 1$, set
+\begin{equation*}
+  C_{\mathrm{small}}(d, K) :=
+   \bigl(K \cdot 2^{6 + 8/d}\bigr)^{d/4}
+   \cdot B_d^{d^2/8}.
+\end{equation*}
+\end{definition}
+
+This is the height constant required to convert a unit-ball $L^2$
+smallness assumption into the abstract initial recurrence threshold.
+We collect three monotonicity/scaling identities used later:
+\leanname{C\_DeGiorgiSmallness\_pos},
+\leanname{C\_DeGiorgiSmallness\_mono} (monotonicity in $K$), and
+\leanname{C\_DeGiorgiSmallness\_mul\_right}:
+\begin{equation*}
+  C_{\mathrm{small}}(d, K t) =
+    C_{\mathrm{small}}(d, K) \, t^{d/4} \quad (K, t \ge 0).
+\end{equation*}
+
+\begin{definition}[Iteration constants for subsolutions]
+\label{def:K_DeGiorgi_subsolution}
+\lean{DeGiorgi.K_DeGiorgi_subsolution, DeGiorgi.C_DeGiorgi_subsolution}
+\leanok
+\uses{def:C_gns, lem:smoothTransition_nnnorm_deriv_bounded, def:EllipticCoeff, def:ellipticityRatio, def:C_DeGiorgiSmallness}
+For an elliptic coefficient field $A$ on $\Bz{1}$ set
+\begin{equation*}
+  K_{\mathrm{DG}}(d, A) := (C_{\mathrm{gns}}(d, 2))^2 \cdot
+    8\bigl(\Lambda/\lambda + 1\bigr) \cdot (2 M_{\mathrm{st}})^2 + 1,
+\end{equation*}
+\begin{equation*}
+  C_{\mathrm{DG}}(d, A) := C_{\mathrm{small}}(d, K_{\mathrm{DG}}(d, A)).
+\end{equation*}
+Both are positive (\leanname{K\_DeGiorgi\_subsolution\_pos},
+\leanname{C\_DeGiorgi\_subsolution\_pos}). The constant
+$M_{\mathrm{st}}$ is the standard cutoff gradient bound from the
+Stampacchia layer.
+\end{definition}
+
+\begin{theorem}[Iteration package]
+\label{thm:deGiorgi_iteration_package_on_unitBall_of_subsolution}
+\lean{DeGiorgi.deGiorgi_iteration_package_on_unitBall_of_subsolution}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution, def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq, def:K_DeGiorgi_subsolution}
+Let $d > 2$, $A$ elliptic on $\Bz{1}$, and $u$ a subsolution. Then
+$K_{\mathrm{DG}}(d,A) > 0$ and for every $\ell^* > 0$:
+\begin{enumerate}
+\item $|(u-\ell^*)_+|^2$ is integrable on $\Ball{1/2}{0}$;
+\item for every $n \in \N$, $|(u-\ell_n(\ell^*))_+|^2$ is integrable
+on $\Ball{r_n}{0}$;
+\item the canonical pre-iteration recurrence holds:
+\begin{multline*}
+  A_{n+1}(u,0,\ell^*) \le \\
+   \frac{K_{\mathrm{DG}}(d,A)}{(r_n - r_{n+1})^2 \,
+     (\ell_{n+1}(\ell^*)-\ell_n(\ell^*))^{4/d}} \cdot
+   A_n(u,0,\ell^*)^{1 + 2/d}.
+\end{multline*}
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:weak_grad_norm_memLp, lem:zero_outside_tsupport, thm:zero_extend, thm:weak_grad_unique, def:C_gns, cor:sobolev_W01p, def:CampanatoBall, def:HasCampanatoBound, lem:smoothTransition_nnnorm_deriv_bounded, thm:Cutoff_exists, thm:w12-approx, lem:MemW1pWitness_sub_const, lem:MemW1pWitness_mul_smooth_bounded, thm:MemW1pWitness_posPart, def:ellipticityRatio, lem:EllipticCoeff_lam_nonneg, lem:positivePartSub_nonneg, def:deGiorgiCutoffTestGeneral, lem:deGiorgiCutoffTestGeneral_hasCompactSupport, lem:deGiorgiCutoffTestGeneral_tsupport_subset, thm:deGiorgiCutoffTest_memW01p_of_truncWitness, def:positivePartSub_memW1pWitness_on_ball, thm:caccioppoli_weighted_of_subsolution, thm:deGiorgi_preiter_of_energy, lem:deGiorgiRadius_gap}
+
+Take a $W^{1,2}(\Bz{1})$ witness for $u$ from
+$\leanname{IsSubsolution.memW1p}$. The smooth approximation package
+on the unit ball produces, for any shift $\theta$, an approximating
+sequence $\psi_n \in C^1_c$ with $\psi_n \to u - \theta$ in $L^2$ and
+$\nabla \psi_n \to \nabla u$ in $L^2$. From this one constructs
+witnesses for $(u-\ell^*)_+$ and $(u-\ell_n(\ell^*))_+$ on $\Bz{1}$
+via \leanname{positivePartSub\_memW1pWitness\_on\_ball}, and the
+required integrability follows by restriction to $\Ball{r_n}{0}$. For
+the recurrence, fix $n$ and apply the PDE pre-iteration theorem
+\leanname{deGiorgi\_preiter\_on\_concentricBalls\_of\_ballPosPart} to $r =
+r_{n+1}$, $s = r_n$, $\theta = \ell_n(\ell^*)$, $\ell =
+\ell_{n+1}(\ell^*)$, with a smooth Stampacchia cutoff $\eta_n$
+satisfying $\eta_n = 1$ on $\Ball{r_{n+1}}{0}$, $\tsupp\,\eta_n
+\subset \Ball{r_n}{0}$, and $\|\nabla \eta_n\| \le 2 M_{\mathrm{st}}
+/ (r_n - r_{n+1})$, so that the constant becomes
+$(C_{\mathrm{gns}}(d,2))^2 \cdot 8(\Lambda/\lambda + 1)
+(2 M_{\mathrm{st}})^2 \le K_{\mathrm{DG}}(d,A)$.
+\end{proof}
+
+\begin{theorem}[Vanishing version]
+\label{thm:linfty_subsolution_DeGiorgi_ae_zero_of_smallness}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi_ae_zero_of_smallness}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq}
+With $d > 2$, $K, \ell^* > 0$, the integrability assumptions on the
+truncations, the canonical recurrence, and the abstract smallness
+condition
+\begin{equation*}
+  A_0(u,x_0,\ell^*) \le
+    C_d(K,\ell^*)^{-d/2}\, B_d^{-(d/2)^2 / 2},
+\end{equation*}
+one has $(u-\ell^*)_+ = 0$ almost everywhere on $\Ball{1/2}{x_0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:deGiorgi_preiter_vanishing, lem:ae_eq_zero_of_forall_setIntegral_sq_le_of_tendsto_zero, lem:integral_sq_halfBall_le_deGiorgiEnergySeq}
+
+By \leanname{deGiorgi\_preiter\_vanishing}, $A_n \to 0$. Combined with
+the half-ball monotonicity lemma, this gives
+$\int_{\Ball{1/2}{x_0}} |(u-\ell^*)_+|^2 = 0$, whence
+$(u-\ell^*)_+ = 0$ a.e.\ on the half-ball by the abstract zero
+lemma.
+\end{proof}
+
+\begin{corollary}
+\label{cor:linfty_subsolution_DeGiorgi_ae_of_smallness}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi_ae_of_smallness}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq}
+Under the same hypotheses, $\max(u, 0) \le \ell^*$ a.e.\ on
+$\Ball{1/2}{x_0}$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{lem:le_of_positivePartSub_eq_zero, thm:linfty_subsolution_DeGiorgi_ae_zero_of_smallness}
+
+$(u-\ell^*)_+(x) = 0$ implies $u(x) \le \ell^*$ by
+\leanname{le\_of\_positivePartSub\_eq\_zero}, and $0 \le \ell^*$.
+\end{proof}
+
+\begin{theorem}[Unit-ball smallness packaging]
+\label{thm:linfty_subsolution_DeGiorgi_ae_of_unitBall_initial_energy_sm}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi_ae_of_unitBall_initial_energy_smallness}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq}
+Replacing the abstract smallness on $A_0$ by the same threshold for
+$\int_{\Bz{1}} (u_+)^2$, the same conclusion holds.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:deGiorgiEnergySeq_zero_le_integral_sq_posPartZero_on_unitBal, cor:linfty_subsolution_DeGiorgi_ae_of_smallness}
+
+The bound $A_0 \le \int_{\Bz{1}} (u_+)^2$ converts the assumption
+into the previous form.
+\end{proof}
+
+\begin{theorem}[Height-threshold form]
+\label{thm:linfty_subsolution_DeGiorgi_ae_of_unitBall_height_bound}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi_ae_of_unitBall_height_bound}
+\leanok
+\uses{def:positivePartSub, def:deGiorgiTail, def:deGiorgiEnergySeq, def:C_DeGiorgiSmallness}
+Under the same setup, if
+\begin{equation*}
+  C_{\mathrm{small}}(d,K)\,
+    \Bigl(\int_{\Bz{1}} (u_+)^2\Bigr)^{1/2} \le \ell^*,
+\end{equation*}
+then $\max(u,0) \le \ell^*$ a.e.\ on $\Ball{1/2}{x_0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:linfty_subsolution_DeGiorgi_ae_of_unitBall_initial_energy_sm}
+
+Squaring and using the formula for $C_{\mathrm{small}}$ shows that
+the height-bound implies the abstract smallness condition above.
+This step is the lemma
+\leanname{deGiorgi\_initial\_energy\_small\_of\_height\_bound}.
+\end{proof}
+
+\begin{theorem}[De Giorgi $L^\infty$ bound]
+\label{thm:linfty_subsolution_DeGiorgi}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution, def:K_DeGiorgi_subsolution}
+Let $d > 2$, $A$ elliptic on $\Bz{1}$, and $u$ a subsolution with
+$|\max(u,0)|^2 \in L^1(\Bz{1})$. Then
+\begin{equation*}
+  \max(u(x), 0) \le C_{\mathrm{DG}}(d, A) \cdot
+    \Bigl(\int_{\Bz{1}} |\max(u,0)|^2\, dx\Bigr)^{1/2}
+\end{equation*}
+for almost every $x \in \Ball{1/2}{0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:deGiorgiTail, lem:ae_eq_zero_of_forall_setIntegral_sq_le_of_tendsto_zero, def:C_DeGiorgiSmallness, thm:deGiorgi_iteration_package_on_unitBall_of_subsolution, thm:linfty_subsolution_DeGiorgi_ae_of_unitBall_height_bound}
+
+Set $I_0 := \int_{\Bz{1}} |u_+|^2 \, dx$. If $I_0 = 0$ then by
+monotonicity $|u_+|^2 = 0$ a.e.\ on $\Ball{1/2}{0}$, so the
+inequality holds trivially. Otherwise let $\ell^* := C_{\mathrm{DG}}
+(d,A) \sqrt{I_0} > 0$. The iteration package supplies the integrability
+of all canonical truncations and the canonical recurrence. The
+height-threshold theorem then yields $\max(u,0) \le \ell^* =
+C_{\mathrm{DG}}(d,A) \sqrt{I_0}$ a.e.\ on $\Ball{1/2}{0}$.
+\end{proof}
+
+\begin{corollary}[Existence of a level threshold]
+\label{cor:linfty_subsolution_DeGiorgi_exists_threshold}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi_exists_threshold}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution, def:K_DeGiorgi_subsolution}
+Under the same hypotheses there exists $\ell^* > 0$ with
+$C_{\mathrm{DG}}(d,A) \sqrt{I_0} \le \ell^*$ such that
+$\max(u,0) \le \ell^*$ a.e.\ on $\Ball{1/2}{0}$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{def:C_gns, lem:smoothTransition_nnnorm_deriv_bounded, def:ellipticityRatio, lem:EllipticCoeff_lam_nonneg, def:deGiorgiTail, def:C_DeGiorgiSmallness, thm:linfty_subsolution_DeGiorgi}
+See the Lean formalization.
+\end{proof}
+
+\section{Normalised constants}
+
+\begin{definition}
+\label{def:K_DeGiorgi_subsolution_normalized}
+\lean{DeGiorgi.K_DeGiorgi_subsolution_normalized, DeGiorgi.C_DeGiorgi_subsolution_normalized}
+\leanok
+\uses{def:C_gns, lem:smoothTransition_nnnorm_deriv_bounded, def:C_DeGiorgiSmallness}
+The dimension-only counterparts are
+\begin{equation*}
+  K^{\mathrm{norm}}_{\mathrm{DG}}(d) :=
+    2 \cdot (C_{\mathrm{gns}}(d,2))^2 \cdot 8\, (2 M_{\mathrm{st}})^2 + 1,
+\end{equation*}
+\begin{equation*}
+  C^{\mathrm{norm}}_{\mathrm{DG}}(d) :=
+    C_{\mathrm{small}}(d, K^{\mathrm{norm}}_{\mathrm{DG}}(d)).
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:C_DeGiorgi_subsolution_le_normalized}
+\lean{DeGiorgi.C_DeGiorgi_subsolution_le_normalized}
+\leanok
+\uses{def:ellipticityRatio, def:K_DeGiorgi_subsolution, def:K_DeGiorgi_subsolution_normalized}
+For a normalised elliptic coefficient field $A$ on $\Bz{1}$ (i.e.\
+$\lambda = 1$, so $\Lambda \ge 1$ and the ratio
+$\Lambda/\lambda = \Lambda$),
+\begin{equation*}
+  C_{\mathrm{DG}}(d, A) \le
+    C^{\mathrm{norm}}_{\mathrm{DG}}(d) \cdot \Lambda^{d/4}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_gns, lem:smoothTransition_nnnorm_deriv_bounded, def:EllipticCoeff, lem:EllipticCoeff_lam_nonneg, def:deGiorgiTail, def:C_DeGiorgiSmallness}
+
+Comparing the formulas, $K_{\mathrm{DG}}(d,A) = c (\Lambda+1) + 1$ and
+$K^{\mathrm{norm}}_{\mathrm{DG}}(d) = 2c + 1$ where $c =
+(C_{\mathrm{gns}}(d,2))^2 \cdot 8 (2 M_{\mathrm{st}})^2$. Since
+$\Lambda \ge 1$ one has $c(\Lambda + 1) + 1 \le (2c+1)\Lambda$,
+i.e.\ $K_{\mathrm{DG}}(d,A) \le K^{\mathrm{norm}}_{\mathrm{DG}}(d) \cdot
+\Lambda$. Monotonicity of $C_{\mathrm{small}}$ in $K$ followed by the
+multiplicative scaling identity
+$C_{\mathrm{small}}(d, K \cdot \Lambda) = C_{\mathrm{small}}(d, K)\,
+\Lambda^{d/4}$ gives the claim.
+\end{proof}
+
+\begin{theorem}[Normalised De Giorgi $L^\infty$ bound]
+\label{thm:linfty_subsolution_DeGiorgi_normalized}
+\lean{DeGiorgi.linfty_subsolution_DeGiorgi_normalized}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:K_DeGiorgi_subsolution_normalized}
+Let $d > 2$, $A$ a normalised elliptic coefficient field on
+$\Bz{1}$, and $u$ a subsolution with
+$|\max(u,0)|^2 \in L^1(\Bz{1})$. Then
+\begin{equation*}
+  \max(u(x), 0) \le
+    C^{\mathrm{norm}}_{\mathrm{DG}}(d) \cdot \Lambda^{d/4} \cdot
+    \Bigl(\int_{\Bz{1}} |\max(u,0)|^2 \, dx\Bigr)^{1/2}
+\end{equation*}
+for almost every $x \in \Ball{1/2}{0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:K_DeGiorgi_subsolution, thm:linfty_subsolution_DeGiorgi, lem:C_DeGiorgi_subsolution_le_normalized}
+
+Combine \leanname{linfty\_subsolution\_DeGiorgi} with the previous
+lemma comparing $C_{\mathrm{DG}}(d,A)$ to
+$C^{\mathrm{norm}}_{\mathrm{DG}}(d) \, \Lambda^{d/4}$, multiplying
+by the nonnegative factor $\sqrt{I_0}$.
+\end{proof}
+
+This concludes the formal De Giorgi $L^2 \to L^\infty$ chapter. The
+two top-level interfaces \leanname{DeGiorgiIteration} and
+\leanname{DeGiorgiTheory} simply re-export the constructions and
+theorems above so that downstream chapters (weak Harnack, Harnack,
+Holder) can rely on the De Giorgi bound directly.
+
+
+%% ========================================================================

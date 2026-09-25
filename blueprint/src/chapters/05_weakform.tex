@@ -1,0 +1,1145 @@
+\chapter{Elliptic Coefficients and Weak Formulation}\label{sec:weakform}
+%% ========================================================================
+
+% Section 5: Elliptic Coefficients and Weak Formulation
+
+Throughout this section we fix a dimension $d \in \N$ with $d \neq 0$ and work in the ambient Euclidean space $E := \R^d$ (denoted \leanname{AmbientSpace} in the formalization, where it is $\mathrm{EuclideanSpace}\,\R\,(\mathrm{Fin}\,d)$). For a $d \times d$ real matrix $M$ and $\xi \in E$, the matrix-vector action is denoted $M\xi$ (\leanname{matMulE}).
+
+\section{Elliptic coefficient structure}
+
+\begin{definition}
+\label{def:EllipticCoeff}
+\lean{DeGiorgi.EllipticCoeff}
+\leanok
+Let $\Omega \subseteq E$. A (nonsymmetric) \emph{elliptic coefficient field} on $\Omega$ consists of:
+\begin{itemize}
+  \item a matrix-valued field $a : E \to \R^{d \times d}$ with each entry $x \mapsto a(x)_{ij}$ measurable;
+  \item a lower ellipticity constant $\lam > 0$ (\leanname{lam});
+  \item an upper ellipticity constant $\Lambda$ with $\lam \leq \Lambda$;
+  \item a coercivity statement: for almost every $x \in \Omega$,
+  \begin{equation*}
+    \lam \,\|\xi\|^{2} \leq \langle \xi, a(x)\xi\rangle \quad \text{for all } \xi \in E;
+  \end{equation*}
+  \item an inverse coercivity statement: for almost every $x \in \Omega$,
+  \begin{equation*}
+    \Lambda^{-1}\,\|\xi\|^{2} \leq \langle \xi, a(x)^{-1}\xi\rangle \quad \text{for all } \xi \in E.
+  \end{equation*}
+\end{itemize}
+\end{definition}
+
+\begin{definition}
+\label{def:ellipticityRatio}
+\lean{DeGiorgi.ellipticityRatio, DeGiorgi.NormalizedEllipticCoeff}
+\leanok
+\uses{def:EllipticCoeff}
+The \emph{ellipticity ratio} of $A$ is $\mathrm{ER}(A) := \Lambda/\lam$. A coefficient field is \emph{normalized} if $\lam = 1$; in that case $\mathrm{ER}(A) = \Lambda$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:EllipticCoeff_lam_nonneg}
+\lean{DeGiorgi.EllipticCoeff.lam_nonneg, DeGiorgi.EllipticCoeff.ellipticityRatio_pos, DeGiorgi.EllipticCoeff.one_le_ellipticityRatio}
+\leanok
+\uses{def:ellipticityRatio}
+For any $A$ as above one has $\lam \geq 0$, $\Lambda > 0$, $\mathrm{ER}(A) > 0$, and $1 \leq \mathrm{ER}(A)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Positivity of $\lam$ gives $\lam \geq 0$. From $0 < \lam \leq \Lambda$ we get $\Lambda > 0$ and $\Lambda \geq 0$. The ratio $\Lambda/\lam$ is then a quotient of positive reals, hence positive; from $\lam \leq \Lambda$ and $\lam > 0$ we get $1 \leq \Lambda/\lam$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:EllipticCoeff_ae_coercive_nonneg}
+\lean{DeGiorgi.EllipticCoeff.ae_coercive_nonneg, DeGiorgi.EllipticCoeff.ae_coercive_inv_nonneg}
+\leanok
+For a.e.\ $x \in \Omega$ and every $\xi \in E$, both $\langle \xi, a(x)\xi\rangle$ and $\langle \xi, a(x)^{-1}\xi\rangle$ are nonnegative.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_lam_nonneg}
+
+Apply coercivity (resp.\ inverse coercivity) and observe that $\lam\|\xi\|^2 \geq 0$ and $\Lambda^{-1}\|\xi\|^2 \geq 0$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:EllipticCoeff_det_ne_zero_of_coercive}
+\lean{DeGiorgi.EllipticCoeff.det_ne_zero_of_coercive, DeGiorgi.EllipticCoeff.inv_matMulE_matMulE}
+\leanok
+At any point $x$ where the lower coercivity bound holds, $\det a(x) \neq 0$ and $a(x)^{-1}\bigl(a(x)\xi\bigr) = \xi$ for all $\xi \in E$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_lam_nonneg}
+
+If $\det a(x) = 0$, choose a nonzero $v$ with $a(x) v = 0$. Then $\lam\|v\|^2 \leq \langle v, a(x)v\rangle = 0$, forcing $\|v\| = 0$ since $\lam > 0$, a contradiction. Once $a(x)$ is invertible, the identity $a(x)^{-1}a(x) = I$ gives the second claim.
+\end{proof}
+
+\begin{lemma}
+\label{lem:EllipticCoeff_mulVec_sq_le}
+\lean{DeGiorgi.EllipticCoeff.mulVec_sq_le}
+\leanok
+For a.e.\ $x \in \Omega$ and all $\xi \in E$,
+\begin{equation*}
+  \|a(x)\xi\|^{2} \leq \Lambda \,\langle \xi, a(x)\xi\rangle.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_det_ne_zero_of_coercive}
+
+Set $\eta := a(x)\xi$. Inverse coercivity applied to $\eta$ gives $\Lambda^{-1}\|\eta\|^{2} \leq \langle \eta, a(x)^{-1}\eta\rangle$, hence $\|\eta\|^{2} \leq \Lambda \langle \eta, a(x)^{-1}\eta\rangle$. Since $a(x)^{-1}\eta = \xi$ by the previous lemma, the right-hand side equals $\Lambda\langle \eta, \xi\rangle = \Lambda\langle \xi, a(x)\xi\rangle$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:EllipticCoeff_quadratic_upper}
+\lean{DeGiorgi.EllipticCoeff.quadratic_upper}
+\leanok
+For a.e.\ $x \in \Omega$ and all $\xi \in E$,
+\begin{equation*}
+  \langle \xi, a(x)\xi\rangle \leq \Lambda\,\|\xi\|^{2}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_lam_nonneg, lem:EllipticCoeff_mulVec_sq_le}
+
+Let $q := \langle \xi, a(x)\xi\rangle$, $m := \|a(x)\xi\|$, $n := \|\xi\|$. Cauchy--Schwarz gives $q \leq n m$, and the previous lemma gives $m^{2} \leq \Lambda q$. If $q = 0$ the bound is trivial. Otherwise multiply $q \leq nm$ by $q$ to obtain $q^{2} \leq n^{2} m^{2} \leq \Lambda n^{2} q$, and divide by $q > 0$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:EllipticCoeff_mixed_bound}
+\lean{DeGiorgi.EllipticCoeff.mixed_bound}
+\leanok
+For a.e.\ $x \in \Omega$ and all $\xi, \zeta \in E$,
+\begin{equation*}
+  |\langle \zeta, a(x)\xi\rangle| \leq \Lambda\,\|\zeta\|\,\|\xi\|.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_mulVec_sq_le, lem:EllipticCoeff_quadratic_upper}
+
+Cauchy--Schwarz gives $|\langle \zeta, a(x)\xi\rangle| \leq \|\zeta\|\,\|a(x)\xi\|$, so it suffices to show $\|a(x)\xi\| \leq \Lambda\|\xi\|$. Squaring, $\|a(x)\xi\|^{2} \leq \Lambda \langle \xi, a(x)\xi\rangle \leq \Lambda^{2}\|\xi\|^{2}$ by the previous two lemmas, and taking square roots (using nonnegativity of both sides) gives the desired estimate.
+\end{proof}
+
+\section{Pointwise bilinear form on Sobolev witnesses}
+
+Throughout, $u, v \in W^{1,2}(\Omega)$ are equipped with weak-gradient \emph{witnesses} $h_u, h_v$ in the sense of Section 4. We write $\nabla u$ for $h_u.\mathrm{weakGrad}$.
+
+\begin{definition}
+\label{def:bilinFormIntegrandOfCoeff}
+\lean{DeGiorgi.bilinFormIntegrandOfCoeff, DeGiorgi.bilinFormOfCoeff}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff}
+The pointwise bilinear-form integrand and the bilinear form are
+\begin{equation*}
+  b_A(u,v)(x) := \langle a(x)\,\nabla u(x), \nabla v(x)\rangle, \qquad
+  \mathfrak{a}_A(u,v) := \int_{\Omega} b_A(u,v)(x)\,dx.
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff}
+\lean{DeGiorgi.aestronglyMeasurable_bilinFormIntegrandOfCoeff, DeGiorgi.integrable_bilinFormIntegrandOfCoeff}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+The integrand $b_A(u,v)$ is a.e.\ strongly measurable and integrable on $\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_mixed_bound}
+
+Measurability follows from the componentwise measurability of $a$ and the $\Lp{2}$-membership of the components of $\nabla u, \nabla v$. Integrability follows from the pointwise mixed bound $|b_A(u,v)| \leq \Lambda\,\|\nabla u\|\,\|\nabla v\|$ and the Cauchy--Schwarz product $\|\nabla u\|\,\|\nabla v\| \in \Lp{1}$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:bilinForm_bound}
+\lean{DeGiorgi.bilinForm_bound}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+\begin{equation*}
+  |\mathfrak{a}_A(u,v)| \leq \Lambda
+  \Bigl(\int_{\Omega} \|\nabla u\|^{2}\,dx\Bigr)^{1/2}
+  \Bigl(\int_{\Omega} \|\nabla v\|^{2}\,dx\Bigr)^{1/2}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_grad_norm_memLp, lem:EllipticCoeff_mixed_bound, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff}
+
+By the triangle inequality for integrals and the pointwise bound $|b_A(u,v)| \leq \Lambda\,\|\nabla u\|\,\|\nabla v\|$,
+\begin{equation*}
+  |\mathfrak{a}_A(u,v)| \leq \Lambda \int_{\Omega} \|\nabla u\|\,\|\nabla v\|\,dx.
+\end{equation*}
+H\"older's inequality with conjugate exponents $(2,2)$ bounds the right-hand side by $\Lambda \,\|\nabla u\|_{\Lp{2}}\,\|\nabla v\|_{\Lp{2}}$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:bilinForm_coercive}
+\lean{DeGiorgi.bilinForm_coercive}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+\begin{equation*}
+  \lam \int_{\Omega} \|\nabla u\|^{2}\,dx \leq \mathfrak{a}_A(u,u).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_grad_norm_memLp, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff}
+
+Coercivity gives $\lam\|\nabla u(x)\|^{2} \leq \langle \nabla u(x), a(x)\nabla u(x)\rangle = b_A(u,u)(x)$ for a.e.\ $x$. Integrate.
+\end{proof}
+
+\begin{lemma}
+\label{lem:bilinFormOfCoeff_eq_left}
+\lean{DeGiorgi.bilinFormOfCoeff_eq_left, DeGiorgi.bilinFormOfCoeff_eq_right}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+On an open set $\Omega$, $\mathfrak{a}_A(u,v)$ is independent of the chosen $W^{1,2}$ witness for $u$ (resp.\ $v$).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:weak_grad_unique}
+
+Two witnesses for the same function on an open set have a.e.-equal weak gradients. The integrand depends only on these gradients, so the integrals agree.
+\end{proof}
+
+\begin{lemma}
+\label{lem:bilinFormOfCoeff_add_left}
+\lean{DeGiorgi.bilinFormOfCoeff_add_left, DeGiorgi.bilinFormOfCoeff_smul_left, DeGiorgi.bilinFormOfCoeff_add_right, DeGiorgi.bilinFormOfCoeff_smul_right}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+(\leanname{bilinFormOfCoeff\_add\_left},
+\leanname{bilinFormOfCoeff\_smul\_left},
+\leanname{bilinFormOfCoeff\_add\_right},
+\leanname{bilinFormOfCoeff\_smul\_right})\\
+The bilinear form $\mathfrak{a}_A$ is bilinear: additive and homogeneous in both slots.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:witness_add, lem:MemW1pWitness_smul, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff}
+
+The weak gradient of $u_1 + u_2$ is the sum of the weak gradients (by witness construction), and matrix-vector multiplication and the inner product are linear, so the integrand splits. Linearity then transfers to the integral by integrability. The argument for the right slot and for scalar multiplication is identical.
+\end{proof}
+
+\section{Divergence-form right-hand sides}
+
+\begin{definition}
+\label{def:divergenceRHSIntegrandOfField}
+\lean{DeGiorgi.divergenceRHSIntegrandOfField, DeGiorgi.divergenceRHSOfField}
+\leanok
+\uses{def:MemW1pWitness}
+For $F : E \to E$ in $\Lp{2}(\Omega; E)$ and a witness $h_v$ for $v \in W^{1,2}(\Omega)$, set
+\begin{equation*}
+  \ell_F(v)(x) := \langle F(x), \nabla v(x)\rangle, \qquad
+  L_F(v) := -\int_{\Omega} \ell_F(v)(x)\,dx.
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:aestronglyMeasurable_divergenceRHSIntegrandOfField}
+\lean{DeGiorgi.aestronglyMeasurable_divergenceRHSIntegrandOfField, DeGiorgi.integrable_divergenceRHSIntegrandOfField}
+\leanok
+\uses{def:MemW1pWitness, def:divergenceRHSIntegrandOfField}
+$\ell_F(v)$ is a.e.\ strongly measurable and integrable on $\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Pointwise, $|\ell_F(v)| \leq \|F\|\,\|\nabla v\|$, and the right-hand side belongs to $\Lp{1}$ by H\"older.
+\end{proof}
+
+\begin{lemma}
+\label{lem:divergenceRHSOfField_bound}
+\lean{DeGiorgi.divergenceRHSOfField_bound}
+\leanok
+\uses{def:MemW1pWitness, def:divergenceRHSIntegrandOfField}
+\begin{equation*}
+  |L_F(v)| \leq \Bigl(\int_{\Omega}\|F\|^{2}\,dx\Bigr)^{1/2}
+  \Bigl(\int_{\Omega}\|\nabla v\|^{2}\,dx\Bigr)^{1/2}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_grad_norm_memLp, lem:aestronglyMeasurable_divergenceRHSIntegrandOfField}
+
+Bound $|L_F(v)|$ by the integral of $|\ell_F(v)|$, then by the integral of $\|F\|\,\|\nabla v\|$, and apply H\"older.
+\end{proof}
+
+\begin{lemma}
+\label{lem:divergenceRHSOfField_add}
+\lean{DeGiorgi.divergenceRHSOfField_add, DeGiorgi.divergenceRHSOfField_smul}
+\leanok
+\uses{def:MemW1pWitness, def:divergenceRHSIntegrandOfField}
+$L_F$ is additive and homogeneous in $v$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:witness_add, lem:MemW1pWitness_smul, lem:aestronglyMeasurable_divergenceRHSIntegrandOfField}
+
+The weak gradient is linear in $v$ (witness construction), and the inner product distributes; integrate.
+\end{proof}
+
+\begin{definition}
+\label{def:weakProblemRHSOfField}
+\lean{DeGiorgi.weakProblemRHSOfField, DeGiorgi.weakProblemRHSOfFieldAndDatum}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:forgetting-witness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff, def:divergenceRHSIntegrandOfField}
+The \emph{raw-function} divergence RHS is $v \mapsto L_F(v)$ when $v \in H^{1}_{0}(\Omega)$ (using a chosen witness) and $0$ otherwise. The \emph{shifted} version with boundary datum $u_0$ is $v \mapsto L_F(v) - \mathfrak{a}_A(u_0, v)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:weakProblemRHSOfField_eq_of_memH01}
+\lean{DeGiorgi.weakProblemRHSOfField_eq_of_memH01, DeGiorgi.weakProblemRHSOfFieldAndDatum_eq_of_memH01}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:weakProblemRHSOfField}
+For $v \in H^{1}_{0}(\Omega)$, the raw-function (resp.\ shifted) RHS agrees with $L_F(v)$ (resp.\ $L_F(v) - \mathfrak{a}_A(u_0,v)$) on every witness.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_partial_unique, def:MemW1p, lem:forgetting-witness, thm:weak_grad_unique, def:bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_eq_left, def:divergenceRHSIntegrandOfField}
+
+Two witnesses for $v$ on the open set $\Omega$ have a.e.-equal weak gradients, so $L_F$ and $\mathfrak{a}_A$ depend only on $v$ itself (Lemmas above).
+\end{proof}
+
+\begin{lemma}
+\label{lem:weakProblemRHSOfField_bound}
+\lean{DeGiorgi.weakProblemRHSOfField_bound, DeGiorgi.weakProblemRHSOfFieldAndDatum_bound}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:weakProblemRHSOfField}
+For $v \in H^{1}_{0}(\Omega)$ with witness $h_v$,
+\begin{align*}
+  |L_F(v)| &\leq \|F\|_{\Lp{2}} \,\|\nabla v\|_{\Lp{2}}, \\
+  |L_F(v) - \mathfrak{a}_A(u_0, v)| &\leq \bigl(\|F\|_{\Lp{2}} + \Lambda\,\|\nabla u_0\|_{\Lp{2}}\bigr)\,\|\nabla v\|_{\Lp{2}}.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:bilinFormIntegrandOfCoeff, lem:bilinForm_bound, def:divergenceRHSIntegrandOfField, lem:divergenceRHSOfField_bound, lem:weakProblemRHSOfField_eq_of_memH01}
+
+Combine the previous bounds using the triangle inequality and the bilinear-form continuity bound $|\mathfrak{a}_A(u_0,v)| \leq \Lambda\,\|\nabla u_0\|_{\Lp{2}}\|\nabla v\|_{\Lp{2}}$.
+\end{proof}
+
+\section{Smooth test functions and the L\texorpdfstring{$^2$}{2} coefficient operator}
+
+\begin{definition}
+\label{def:IsSmoothTestOn}
+\lean{DeGiorgi.IsSmoothTestOn}
+\leanok
+A function $u : E \to \R$ is a \emph{smooth test on $\Omega$} if $u \in C^{\infty}(E)$, $u$ has compact support, and $\supp u \subseteq \Omega$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:IsSmoothTestOn_zero}
+\lean{DeGiorgi.IsSmoothTestOn.zero, DeGiorgi.IsSmoothTestOn.add, DeGiorgi.IsSmoothTestOn.smul, DeGiorgi.IsSmoothTestOn.sub}
+\leanok
+\uses{def:IsSmoothTestOn}
+The smooth tests on $\Omega$ form a real vector space (closed under sums, scalar multiples, and differences).
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Smoothness and compact support are stable under sums and scalar multiples; the support of a sum is contained in the union of supports, hence in $\Omega$.
+\end{proof}
+
+\begin{definition}
+\label{def:smoothGradField}
+\lean{DeGiorgi.smoothGradField, DeGiorgi.smoothTestWitness}
+\leanok
+\uses{lem:weak_of_contDiff, def:MemW1pWitness, def:IsSmoothTestOn}
+For smooth $u$, the \emph{classical gradient field} is
+\begin{equation*}
+  (\nabla u)(x) := \bigl((\partial_{i} u)(x)\bigr)_{i=1}^{d} \in E.
+\end{equation*}
+A smooth test on $\Omega$ carries a canonical $W^{1,2}(\Omega)$-witness with this classical gradient.
+\end{definition}
+
+\begin{lemma}
+\label{lem:smoothTest_memH01}
+\lean{DeGiorgi.smoothTest_memH01}
+\leanok
+\uses{def:MemW01p, def:IsSmoothTestOn}
+A smooth test on $\Omega$ belongs to $H^{1}_{0}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:memW01p_of_smooth_cpt}
+
+Approximate by its constant sequence; smoothness and compactly supported support in $\Omega$ provide the required convergence in $W^{1,2}$.
+\end{proof}
+
+\begin{definition}
+\label{def:smoothFunToLp}
+\lean{DeGiorgi.smoothFunToLp, DeGiorgi.smoothGradToLp, DeGiorgi.gradLpOfWitness}
+\leanok
+\uses{def:MemW1pWitness, def:IsSmoothTestOn, def:smoothGradField}
+A smooth test $u$ defines:
+\begin{equation*}
+  [u] \in \Lp{2}(\Omega; \R), \qquad [\nabla u] \in \Lp{2}(\Omega; E),
+\end{equation*}
+the latter being the $\Lp{2}$ class of any witness's weak gradient.
+\end{definition}
+
+\begin{lemma}
+\label{lem:smoothFunToLp_zero}
+\lean{DeGiorgi.smoothFunToLp_zero, DeGiorgi.smoothFunToLp_add, DeGiorgi.smoothFunToLp_smul, DeGiorgi.smoothFunToLp_sub, DeGiorgi.smoothGradToLp}
+\leanok
+\uses{def:IsSmoothTestOn, lem:IsSmoothTestOn_zero, def:smoothFunToLp}
+Both maps $u \mapsto [u]$ and $u \mapsto [\nabla u]$ are real-linear.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:smoothGradField}
+
+Linearity of the $\Lp{2}$ class follows from $\mathrm{toLp}$-linearity in Mathlib; for the gradient version one further uses linearity of the classical gradient.
+\end{proof}
+
+\begin{lemma}
+\label{lem:norm_smoothFunToLp_eq}
+\lean{DeGiorgi.norm_smoothFunToLp_eq, DeGiorgi.norm_smoothGradToLp_eq, DeGiorgi.norm_gradLpOfWitness_eq}
+\leanok
+\uses{def:MemW1pWitness, def:IsSmoothTestOn, def:smoothGradField, def:smoothFunToLp}
+The norms in $\Lp{2}$ are
+\begin{equation*}
+  \bigl\|[u]\bigr\| = \Bigl(\int_{\Omega} |u|^{2}\,dx\Bigr)^{1/2}, \qquad
+  \bigl\|[\nabla u]\bigr\| = \Bigl(\int_{\Omega} \|\nabla u\|^{2}\,dx\Bigr)^{1/2}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Direct from the definition of the $\Lp{2}$ norm via $\mathrm{toLp}$ in Mathlib.
+\end{proof}
+
+\section{The L\texorpdfstring{$^2$}{2} coefficient operator and the closed bilinear form}
+
+\begin{definition}
+\label{def:smoothGradSubmodule}
+\lean{DeGiorgi.smoothGradSubmodule}
+\leanok
+\uses{lem:weak_grad_norm_memLp, def:IsSmoothTestOn, lem:IsSmoothTestOn_zero, def:smoothGradField, def:smoothFunToLp}
+Let $\Omega$ be open. Define
+\begin{equation*}
+  S(\Omega) := \bigl\{ [\nabla u] : u \text{ smooth test on } \Omega \bigr\} \subseteq \Lp{2}(\Omega; E),
+\end{equation*}
+a real linear subspace, and let $H(\Omega)$ be its closure.
+\end{definition}
+
+\begin{lemma}
+\label{lem:coeffMulLpL}
+\lean{DeGiorgi.coeffMulLpL, DeGiorgi.norm_coeffMulLpL_le}
+\leanok
+\uses{def:EllipticCoeff}
+There is a bounded linear operator $T_A : \Lp{2}(\Omega;E) \to \Lp{2}(\Omega;E)$ given pointwise a.e.\ by $T_A g (x) = a(x)\,g(x)$, satisfying $\|T_A g\|_{\Lp{2}} \leq \Lambda\,\|g\|_{\Lp{2}}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_mixed_bound}
+
+For each component $i$, $|T_A g(x)_i| \leq \|T_A g(x)\| \leq \Lambda\|g(x)\|$ by the mixed bound, and componentwise measurability of $a$ and $g$ make $T_A g$ strongly measurable. Hence each component lies in $\Lp{2}$, so does $T_A g$, and the operator norm bound follows from $\|T_A g(x)\| \leq \Lambda\|g(x)\|$ a.e.\ via $\Lp{p}$ pointwise dominance.
+\end{proof}
+
+\begin{definition}
+\label{def:coeffBilinSubmodule}
+\lean{DeGiorgi.coeffBilinSubmodule}
+\leanok
+\uses{def:EllipticCoeff, lem:coeffMulLpL}
+For any closed real subspace $H \leq \Lp{2}(\Omega;E)$ define the continuous bilinear form
+\begin{equation*}
+  B_{A,H}(g,h) := \langle T_A g, h\rangle_{\Lp{2}}.
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:coeffBilinSubmodule_coercive}
+\lean{DeGiorgi.coeffBilinSubmodule_coercive}
+\leanok
+\uses{def:EllipticCoeff, def:coeffBilinSubmodule}
+$B_{A,H}$ is bounded by $\Lambda$ and coercive on $H$ with constant $\lam$:
+\begin{equation*}
+  |B_{A,H}(g,h)| \leq \Lambda\,\|g\|\,\|h\|, \qquad \lam\,\|g\|^{2} \leq B_{A,H}(g,g).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_mixed_bound, lem:coeffMulLpL}
+
+The boundedness $|\langle T_A g, h\rangle| \leq \|T_A g\|\,\|h\| \leq \Lambda \|g\|\,\|h\|$ comes from Cauchy--Schwarz and the bound on $T_A$. For coercivity, write
+\begin{equation*}
+  B_{A,H}(g,g) = \int_{\Omega}\langle a(x) g(x), g(x)\rangle\,dx \geq \int_{\Omega} \lam\,\|g(x)\|^{2}\,dx = \lam\,\|g\|_{\Lp{2}}^{2}
+\end{equation*}
+using the a.e.\ coercivity of $A$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:tendsto_eLpNorm_vector_of_componentwise}
+\lean{DeGiorgi.tendsto_eLpNorm_vector_of_componentwise}
+\leanok
+Componentwise $\Lp{2}$-convergence in each coordinate of $\Fin d$ implies vector $\Lp{2}$-convergence: if for each $i$ the seminorm $\|g_n^{(i)} - g^{(i)}\|_{\Lp{2}} \to 0$, then $\|g_n - g\|_{\Lp{2}} \to 0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Pointwise, $\|g_n(x) - g(x)\|^{2} = \sum_i (g_n(x)_i - g(x)_i)^{2}$, hence $\|g_n(x) - g(x)\| \leq \sum_i |g_n(x)_i - g(x)_i|$. The $\Lp{2}$ norm of the right-hand side is bounded by $\sum_i \|g_n^{(i)} - g^{(i)}\|_{\Lp{2}}$, which tends to zero.
+\end{proof}
+
+\begin{lemma}
+\label{lem:coeffMulLpL_inner_gradLpOfWitness_eq_bilinFormOfCoeff}
+\lean{DeGiorgi.coeffMulLpL_inner_gradLpOfWitness_eq_bilinFormOfCoeff}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff, def:smoothFunToLp, lem:coeffMulLpL}
+For witnesses $h_u, h_v$ for $u, v \in W^{1,2}(\Omega)$,
+\begin{equation*}
+  \langle T_A [\nabla u], [\nabla v]\rangle_{\Lp{2}} = \mathfrak{a}_A(u, v).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_grad_norm_memLp, lem:EllipticCoeff_mixed_bound}
+
+Both sides equal $\int_\Omega \langle a(x)\,\nabla u(x), \nabla v(x)\rangle\,dx$; the left-hand side after using the a.e.\ identification $T_A[\nabla u] = a(\cdot)\nabla u(\cdot)$.
+\end{proof}
+
+\section{Weak problems and weak solutions}
+
+\begin{definition}
+\label{def:WeakProblem}
+\lean{DeGiorgi.WeakProblem}
+\leanok
+\uses{def:EllipticCoeff}
+A \emph{weak elliptic Dirichlet problem} consists of an open bounded set $\Omega \subseteq E$, an elliptic coefficient field $A$ on $\Omega$, and a functional $\mathrm{rhs} : (E \to \R) \to \R$.
+\end{definition}
+
+\begin{definition}
+\label{def:IsWeakSolution}
+\lean{DeGiorgi.IsWeakSolution}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:bilinFormIntegrandOfCoeff, def:WeakProblem}
+A function $u : E \to \R$ is a \emph{weak solution} of $P = (\Omega, A, \mathrm{rhs})$ if $u \in H^{1}_{0}(\Omega)$ and, for every witness $h_u$ of $u$ and every $v \in H^{1}_{0}(\Omega)$ with witness $h_v$,
+\begin{equation*}
+  \mathfrak{a}_A(u, v) = \mathrm{rhs}(v).
+\end{equation*}
+\end{definition}
+
+\begin{definition}
+\label{def:IsSubsolution}
+\lean{DeGiorgi.IsSubsolution, DeGiorgi.IsSupersolution, DeGiorgi.IsSolution}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+For an elliptic field $A$ on $\Omega$, $u \in W^{1,2}(\Omega)$ is a (weak) \emph{subsolution} of $-\dv(a\nabla u) \leq 0$ if for all $\varphi \in H^{1}_{0}(\Omega)$ with $\varphi \geq 0$, $\mathfrak{a}_A(u, \varphi) \leq 0$. The notion of \emph{supersolution} reverses the inequality. A \emph{solution} is both a sub- and supersolution.
+\end{definition}
+
+\begin{definition}
+\label{def:IsHomogeneousWeakSolution}
+\lean{DeGiorgi.IsHomogeneousWeakSolution}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+$u \in W^{1,2}(\Omega)$ is a \emph{homogeneous weak solution} of $-\dv(a\nabla u) = 0$ on $\Omega$ if, for every $W^{1,2}$-witness $h_u$ of $u$ and every $\varphi \in H^{1}_{0}(\Omega)$ with $W^{1,2}$-witness $h_\varphi$, one has $\mathfrak{a}_A(u,\varphi) = 0$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:isHomogeneousWeakSolution_isSubsolution}
+\lean{DeGiorgi.isHomogeneousWeakSolution_isSubsolution, DeGiorgi.isHomogeneousWeakSolution_isSupersolution, DeGiorgi.isHomogeneousWeakSolution_isSolution}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution, def:IsHomogeneousWeakSolution}
+A homogeneous weak solution is both a subsolution and a supersolution (hence a solution).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:bilinFormIntegrandOfCoeff}
+
+For any nonnegative test $\varphi$, $\mathfrak{a}_A(u,\varphi) = 0$, so both inequalities hold trivially.
+\end{proof}
+
+Note that \leanname{IsWeakSolution} is the existential predicate used by the Lax--Milgram existence theorem (it carries an explicit RHS functional and forces $u \in H^{1}_{0}$). \leanname{IsHomogeneousWeakSolution} is the equality-form local interface used by the Harnack and H\"older statements: it requires $u \in W^{1,2}(\Omega)$ but does \emph{not} require zero boundary values, and uses test functions in $H^{1}_{0}(\Omega)$.
+
+\section{Existence via Lax--Milgram}
+
+\begin{theorem}
+\label{thm:weakProblem-exists}
+\lean{DeGiorgi.weakProblem_exists}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:IsWeakSolution}
+Let $d \geq 2$. Let $\Omega \subseteq E$ be open and bounded, $A$ an elliptic coefficient field on $\Omega$, and $\mathrm{rhs}$ a functional on $H^{1}_{0}(\Omega)$ that is real-linear and bounded:
+\begin{equation*}
+  |\mathrm{rhs}(v)| \leq C_{\mathrm{rhs}}\,\|\nabla v\|_{\Lp{2}}.
+\end{equation*}
+Then there exists $u \in H^{1}_{0}(\Omega)$ that is a weak solution of $(\Omega, A, \mathrm{rhs})$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_lp_closure, lem:witness_add, lem:MemW1pWitness_smul, lem:weak_grad_norm_memLp, prop:H01_vector_space, def:smoothGradNorm, lem:smoothCompactSupport_L2_bound_on_bounded_ge_two, def:bilinFormIntegrandOfCoeff, lem:bilinForm_bound, lem:bilinFormOfCoeff_eq_left, lem:bilinFormOfCoeff_add_left, def:IsSmoothTestOn, lem:IsSmoothTestOn_zero, def:smoothGradField, lem:smoothTest_memH01, def:smoothFunToLp, lem:smoothFunToLp_zero, lem:norm_smoothFunToLp_eq, def:smoothGradSubmodule, lem:coeffMulLpL, def:coeffBilinSubmodule, lem:coeffBilinSubmodule_coercive, lem:tendsto_eLpNorm_vector_of_componentwise, lem:coeffMulLpL_inner_gradLpOfWitness_eq_bilinFormOfCoeff}
+
+Let $\mu := \mathrm{vol}\!\restriction\!\Omega$ and let $S = S(\Omega) \leq \Lp{2}(\Omega; E)$ be the smooth-gradient submodule with closure $H = H(\Omega)$. By the Poincar\'e inequality on bounded domains in dimension $d \geq 2$, there is a constant $C_P > 0$ with
+\begin{equation*}
+  \|u\|_{\Lp{2}} \leq C_P\,\|\nabla u\|_{\Lp{2}} \quad \text{for every smooth test } u \text{ on } \Omega.
+\end{equation*}
+For each $g \in S$ choose, via Classical choice, a smooth test $u_g$ with $[\nabla u_g] = g$. The Poincar\'e inequality, lifted via $\mathrm{toReal}$, gives $\|[u_g]\|_{\Lp{2}} \leq C_P \|g\|$, and shows that two such choices with the same gradient class differ by a function with vanishing $\Lp{2}$-class.
+
+Define linear maps on $S$ by
+\begin{equation*}
+  L_0(g) := \mathrm{rhs}(u_g), \qquad U_0(g) := [u_g] \in \Lp{2}(\Omega; \R).
+\end{equation*}
+The hypotheses on $\mathrm{rhs}$ and the Poincar\'e inequality, together with the fact that two representatives with the same gradient class give the same value of $\mathrm{rhs}$ (because their difference has zero gradient class and the bound forces $|\mathrm{rhs}(u_1) - \mathrm{rhs}(u_2)| \leq C_{\mathrm{rhs}} \cdot 0 = 0$), make $L_0$ and $U_0$ well-defined linear maps with bounds
+\begin{equation*}
+  |L_0(g)| \leq C_{\mathrm{rhs}}\|g\|, \qquad \|U_0(g)\| \leq C_P\|g\|.
+\end{equation*}
+Since the inclusion $S \hookrightarrow H$ has dense range (as $H$ is the closure of $S$), $L_0$ and $U_0$ extend uniquely to continuous maps $L : H \to \R$, $U : H \to \Lp{2}(\Omega;\R)$.
+
+By the coercivity of the submodule bilinear form established above ($B_{A,H}$ is bounded and coercive on the Hilbert space $H$, which is complete; see \leanname{coeffBilinSubmodule\_coercive}), the Lax--Milgram theorem produces a unique $g_{\mathrm{sol}} \in H$ with
+\begin{equation*}
+  B_{A,H}(g_{\mathrm{sol}}, w) = L(w) \quad \text{for all } w \in H.
+\end{equation*}
+Set $G_{\mathrm{sol}}$ to be the underlying $\Lp{2}(\Omega;E)$ element of $g_{\mathrm{sol}}$ and let $u_{\mathrm{Lp}} := U(g_{\mathrm{sol}}) \in \Lp{2}(\Omega;\R)$ with representative $u : E \to \R$.
+
+Approximate $g_{\mathrm{sol}}$ by a sequence $G_n \in S$ (closure), with corresponding smooth tests $\psi_n$ such that $[\nabla \psi_n] = G_n$. By continuity of $U$, $[\psi_n] \to u_{\mathrm{Lp}}$ in $\Lp{2}$. By the componentwise convergence lemma, the components of $\nabla \psi_n$ converge to the corresponding components of $G_{\mathrm{sol}}$ in $\Lp{2}$, and $\psi_n \to u$ in $\Lp{2}$. By the standard transition principle for weak partial derivatives under $\Lp{p}$-approximation, $u$ has weak gradient given by $G_{\mathrm{sol}}$, providing a witness $h_u$ with $[\nabla u] = G_{\mathrm{sol}}$. Since $\psi_n$ are smooth tests on $\Omega$, $u \in H^{1}_{0}(\Omega)$.
+
+For any smooth test $\varphi$ on $\Omega$ with corresponding $g_\varphi \in S$,
+\begin{equation*}
+  \mathfrak{a}_A(u, \varphi) = \langle T_A [\nabla u], [\nabla \varphi]\rangle_{\Lp{2}} = B_{A,H}(g_{\mathrm{sol}}, g_\varphi) = L(g_\varphi) = L_0(g_\varphi) = \mathrm{rhs}(\varphi).
+\end{equation*}
+Finally, by approximation: any $v \in H^{1}_{0}(\Omega)$ admits an approximating sequence $\varphi_n$ of smooth tests in the $H^{1}_{0}$-sense; the bilinear form is continuous against gradient seminorms, and $\mathrm{rhs}$ is also bounded against the gradient seminorm. Passing to the limit in $\mathfrak{a}_A(u, \varphi_n) = \mathrm{rhs}(\varphi_n)$ (using independence of the bilinear form on the choice of witness in the right slot) gives $\mathfrak{a}_A(u, v) = \mathrm{rhs}(v)$ for any witness of $v$. This completes the proof.
+\end{proof}
+
+\begin{theorem}
+\label{thm:weakProblem_exists_of_divergenceData}
+\lean{DeGiorgi.weakProblem_exists_of_divergenceData}
+\leanok
+\uses{def:EllipticCoeff, def:IsWeakSolution}
+Under the hypotheses of Theorem~\ref{thm:weakProblem-exists} and $F \in \Lp{2}(\Omega; E)$, there exists a zero-Dirichlet weak solution of $-\dv(a\nabla u) = -\dv F$, i.e.\ a weak solution for the raw functional $v \mapsto L_F(v)$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:forgetting-witness, prop:H01_vector_space, def:divergenceRHSIntegrandOfField, lem:divergenceRHSOfField_add, def:weakProblemRHSOfField, lem:weakProblemRHSOfField_eq_of_memH01, lem:weakProblemRHSOfField_bound, thm:weakProblem-exists}
+
+We invoke the abstract existence theorem
+Theorem~\ref{thm:weakProblem-exists} (\leanname{weakProblem\_exists}) with
+$\mathrm{rhs}$ chosen to be $\leanname{weakProblemRHSOfField}\,F$, the
+linear functional $v \mapsto \int_{\Omega} \langle F, \nabla v\rangle\,dx$
+acting on $H^{1}_{0}(\Omega)$. The abstract theorem requires three inputs.
+
+\emph{Additivity.} For $u, v \in H^{1}_{0}(\Omega)$ pick canonical witnesses
+through \leanname{MemW1p.someWitness}; the sum witness for $u + v$ is the
+componentwise sum (\leanname{MemW1pWitness.add}). Both
+$\mathrm{rhs}(u+v)$ and $\mathrm{rhs}(u) + \mathrm{rhs}(v)$ unfold via
+\leanname{weakProblemRHSOfField\_eq\_of\_memH01} into integrals against the
+weak gradient, so additivity reduces to
+\leanname{divergenceRHSOfField\_add} applied to those witnesses.
+
+\emph{Homogeneity.} Identical reasoning with the scalar witness
+$\mathrm{MemW1pWitness.smul}$ and \leanname{divergenceRHSOfField\_smul}
+gives $\mathrm{rhs}(c\,u) = c\,\mathrm{rhs}(u)$ for every $c \in \R$.
+
+\emph{Boundedness against the gradient seminorm.} The integral
+$\bigl|\int_{\Omega} \langle F, \nabla v\rangle\bigr|$ is controlled by
+$\eLpNormText{F}_{L^2}\,\eLpNormText{\nabla v}_{L^2}$ via Cauchy--Schwarz; this is
+recorded as \leanname{weakProblemRHSOfField\_bound}. We take
+$C_F := \eLpNormText{F}_{L^2(\Omega)}$, which is finite by the hypothesis
+$F \in L^2(\Omega; E)$.
+
+With these three properties, Theorem~\ref{thm:weakProblem-exists} produces a
+zero-Dirichlet weak solution $u \in H^{1}_{0}(\Omega)$ of
+$-\dv(a\nabla u) = -\dv F$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:dirichletProblem_exists_of_divergenceData}
+\lean{DeGiorgi.dirichletProblem_exists_of_divergenceData, DeGiorgi.dirichletProblem_exists_of_divergenceData'}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff, def:divergenceRHSIntegrandOfField, def:IsDirichletWeakSolutionOfDivergenceData}
+Under the same hypotheses, with prescribed boundary datum $u_0 \in W^{1,2}(\Omega)$ and $F \in \Lp{2}(\Omega;E)$, there exists $u \in W^{1,2}(\Omega)$ with $u - u_0 \in H^{1}_{0}(\Omega)$ and
+\begin{equation*}
+  \mathfrak{a}_A(u, v) = L_F(v) \quad \text{for all } v \in H^{1}_{0}(\Omega).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:forgetting-witness, prop:H01_vector_space, lem:bilinFormOfCoeff_eq_left, lem:bilinFormOfCoeff_add_left, lem:divergenceRHSOfField_add, def:weakProblemRHSOfField, lem:weakProblemRHSOfField_eq_of_memH01, lem:weakProblemRHSOfField_bound, thm:weakProblem-exists}
+
+Choose a witness $h_{u_0}$ for $u_0$. Apply the previous theorem to the shifted RHS $\mathrm{rhs}(v) = L_F(v) - \mathfrak{a}_A(u_0, v)$ to obtain a zero-Dirichlet weak solution $w$. Set $u := w + u_0$. Then $u - u_0 = w \in H^{1}_{0}(\Omega)$, and bilinearity of $\mathfrak{a}_A$ gives
+\begin{equation*}
+  \mathfrak{a}_A(u, v) = \mathfrak{a}_A(w, v) + \mathfrak{a}_A(u_0, v) = \mathrm{rhs}(v) + \mathfrak{a}_A(u_0, v) = L_F(v).
+\end{equation*}
+\end{proof}
+
+\begin{theorem}
+\label{thm:weakSolution_stability}
+\lean{DeGiorgi.weakSolution_stability}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+Let $A$ be elliptic on $\Omega$, $u \in H^{1}_{0}(\Omega)$ a weak solution against a functional $\mathrm{rhs}$ bounded by $C_F\|\nabla v\|_{\Lp{2}}$. Then
+\begin{equation*}
+  \|\nabla u\|_{\Lp{2}} \leq \frac{C_F}{\lam}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_lam_nonneg, lem:bilinForm_coercive, def:smoothFunToLp, lem:norm_smoothFunToLp_eq}
+
+Test against $u$ itself. Coercivity gives $\lam \|\nabla u\|_{\Lp{2}}^{2} \leq \mathfrak{a}_A(u, u) = \mathrm{rhs}(u)$, while boundedness gives $|\mathrm{rhs}(u)| \leq C_F \|\nabla u\|_{\Lp{2}}$. The bilinear form value is nonnegative (by coercivity), hence $\mathrm{rhs}(u) \geq 0$ and equals $|\mathrm{rhs}(u)|$. Combining,
+\begin{equation*}
+  \lam \|\nabla u\|_{\Lp{2}}^{2} \leq C_F \|\nabla u\|_{\Lp{2}},
+\end{equation*}
+and dividing (or using $\nabla u = 0$) yields $\|\nabla u\|_{\Lp{2}} \leq C_F/\lam$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:ae_eq_zero_of_memH01_of_gradLpOfWitness_eq_zero}
+\lean{DeGiorgi.ae_eq_zero_of_memH01_of_gradLpOfWitness_eq_zero}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:smoothFunToLp}
+For $d \geq 2$, an open bounded $\Omega$, and $u \in H^{1}_{0}(\Omega)$ with vanishing $\Lp{2}$ gradient class, $u = 0$ a.e.\ on $\Omega$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_grad_norm_memLp, thm:weak_grad_unique, def:smoothGradNorm, lem:smoothCompactSupport_L2_bound_on_bounded_ge_two, def:IsSmoothTestOn, def:smoothGradField, lem:norm_smoothFunToLp_eq, lem:tendsto_eLpNorm_vector_of_componentwise}
+
+Take an approximating sequence of smooth tests $\varphi_n$ from the $H^{1}_{0}$ structure with $\varphi_n \to u$ in $\Lp{2}$ and $\nabla \varphi_n$ converging componentwise to a representative of $0$. By Poincar\'e on the bounded domain, $\|\varphi_n\|_{\Lp{2}} \leq C_P \|\nabla \varphi_n\|_{\Lp{2}} \to 0$, so $[\varphi_n] \to 0$ in $\Lp{2}$. Combining with $[\varphi_n] \to [u]$, we get $[u] = 0$, i.e.\ $u = 0$ a.e.
+\end{proof}
+
+\begin{theorem}
+\label{thm:weakProblem_unique}
+\lean{DeGiorgi.weakProblem_unique}
+\leanok
+\uses{def:WeakProblem}
+For $d \geq 2$, weak solutions of a fixed weak problem $P$ are unique up to a.e.\ equality.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:forgetting-witness, prop:H01_vector_space, def:bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_add_left, def:smoothFunToLp, lem:norm_smoothFunToLp_eq, def:IsWeakSolution, thm:weakSolution_stability, thm:ae_eq_zero_of_memH01_of_gradLpOfWitness_eq_zero}
+
+If $u, v$ are two weak solutions, $w := u - v$ lies in $H^{1}_{0}$ and tests against any $\varphi \in H^{1}_{0}$ to zero by linearity. By the stability estimate (with $C_F = 0$), $\|\nabla w\|_{\Lp{2}} = 0$, and the previous theorem gives $w = 0$ a.e.
+\end{proof}
+
+\begin{definition}
+\label{def:IsDirichletWeakSolutionOfDivergenceData}
+\lean{DeGiorgi.IsDirichletWeakSolutionOfDivergenceData}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff, def:divergenceRHSIntegrandOfField}
+$u$ is a Dirichlet weak solution for boundary datum $u_0$ and field $F$ if $u \in W^{1,2}(\Omega)$, $u - u_0 \in H^{1}_{0}(\Omega)$, and $\mathfrak{a}_A(u, v) = L_F(v)$ for every $v \in H^{1}_{0}(\Omega)$ on every witness.
+\end{definition}
+
+\begin{theorem}
+\label{thm:isWeakSolution_subDatum_of_dirichletProblem}
+\lean{DeGiorgi.isWeakSolution_subDatum_of_dirichletProblem, DeGiorgi.dirichletProblem_stability_of_divergenceData, DeGiorgi.dirichletProblem_unique_of_divergenceData, DeGiorgi.dirichletProblem_wellPosed_of_divergenceData}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:EllipticCoeff, def:IsWeakSolution, def:IsDirichletWeakSolutionOfDivergenceData}
+(\leanname{isWeakSolution\_subDatum\_of\_dirichletProblem},
+\leanname{dirichletProblem\_stability\_of\_divergenceData},
+\leanname{dirichletProblem\_unique\_of\_divergenceData},
+\leanname{dirichletProblem\_wellPosed\_of\_divergenceData})\\
+The shifted unknown $u - u_0$ is a zero-boundary weak solution for the shifted RHS, satisfies the energy estimate
+\begin{equation*}
+  \|\nabla(u - u_0)\|_{\Lp{2}} \leq \frac{1}{\lam}\Bigl(\|F\|_{\Lp{2}} + \Lambda\,\|\nabla u_0\|_{\Lp{2}}\Bigr),
+\end{equation*}
+and Dirichlet weak solutions for fixed $(u_0, F)$ are unique up to a.e.\ equality. Combined with existence, we obtain well-posedness.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW01p, def:bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_eq_left, lem:bilinFormOfCoeff_add_left, def:divergenceRHSIntegrandOfField, def:weakProblemRHSOfField, lem:weakProblemRHSOfField_eq_of_memH01, lem:weakProblemRHSOfField_bound, def:WeakProblem, thm:dirichletProblem_exists_of_divergenceData, thm:weakSolution_stability, thm:weakProblem_unique}
+
+The shifted-solution identity follows by linearity of $\mathfrak{a}_A$: $\mathfrak{a}_A(u - u_0, v) = \mathfrak{a}_A(u, v) - \mathfrak{a}_A(u_0, v) = L_F(v) - \mathfrak{a}_A(u_0, v)$. Apply \leanname{weakSolution\_stability} to the shifted unknown with $C_F = \|F\|_{\Lp{2}} + \Lambda\|\nabla u_0\|_{\Lp{2}}$ to obtain the energy estimate. Uniqueness reduces to uniqueness of zero-Dirichlet solutions for the shifted RHS, hence to \leanname{weakProblem\_unique}.
+\end{proof}
+
+\begin{theorem}
+\label{thm:aHarmonic_replacement_exists}
+\lean{DeGiorgi.aHarmonic_replacement_exists, DeGiorgi.aHarmonic_replacement_unique}
+\leanok
+\uses{def:MemW1p, def:MemW01p, def:EllipticCoeff, def:IsHomogeneousWeakSolution}
+For $d \geq 2$, an open bounded $\Omega$, an elliptic field $A$ on $\Omega$, and $u \in W^{1,2}(\Omega)$, there exists a homogeneous weak solution $h$ of $-\dv(a\nabla h) = 0$ with $h - u \in H^{1}_{0}(\Omega)$, and any two such replacements agree a.e.\ on $\Omega$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:divergenceRHSIntegrandOfField, thm:dirichletProblem_exists_of_divergenceData, def:IsDirichletWeakSolutionOfDivergenceData, thm:isWeakSolution_subDatum_of_dirichletProblem}
+
+Apply \leanname{dirichletProblem\_exists\_of\_divergenceData} with the
+prescribed boundary datum $u_0 := u$ and the trivial divergence field
+$F := 0 \in L^{2}(\Omega; E)$. The hypotheses are met because $u \in
+W^{1,2}(\Omega)$ by assumption and the constant zero function is in $L^2$
+(\leanname{MeasureTheory.MemLp.zero'}). The theorem produces a
+$h \in W^{1,2}(\Omega)$ with $h - u \in H^{1}_{0}(\Omega)$ satisfying
+\begin{equation*}
+  \mathfrak{a}_A(h, v) = L_F(v) = \int_{\Omega}\langle 0, \nabla v\rangle\,dx = 0
+  \quad \text{for every } v \in H^{1}_{0}(\Omega),
+\end{equation*}
+i.e.\ $h$ is a homogeneous weak solution against any choice of witness for $v$.
+
+To see that $h$ is moreover a \emph{homogeneous} weak solution in the sense of
+\leanname{IsHomogeneousWeakSolution} (the local interface used by Harnack and
+H\"older), unfold the definition: it requires that for every test
+$\varphi \in H^{1}_{0}(\Omega)$ and every witness, the bilinear form vanishes.
+This is exactly the displayed identity (with the right-hand side
+$\leanname{divergenceRHSOfField}\,0$ unfolding to zero by
+\leanname{divergenceRHSIntegrandOfField}).
+
+Uniqueness follows directly from
+\leanname{dirichletProblem\_unique\_of\_divergenceData} applied to the same
+data $(u_0, F) = (u, 0)$: any two replacements have identical Dirichlet trace
+along $u$ and identical zero divergence data, so they coincide a.e.\ on
+$\Omega$.
+\end{proof}
+
+\section{Weighted bilinear-form estimates}
+
+\begin{lemma}
+\label{lem:bilinFormIntegrand_mul_smooth_eq}
+\lean{DeGiorgi.bilinFormIntegrand_mul_smooth_eq}
+\leanok
+\uses{def:MemW1pWitness, prop:witness_mul_smooth_bounded, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+Let $u, w \in W^{1,2}(\Omega)$ with witnesses $h_u, h_w$, and $\eta \in C^{\infty}(E)$ satisfying $|\eta| \leq C_0$ and $\|\fderiv{\eta}{x}\| \leq C_1$. Then for every $x$,
+\begin{multline*}
+  b_A(u, \eta\!\cdot\!w)(x) = \eta(x)\,b_A(u,w)(x) + w(x)\,\bigl\langle a(x)\,\nabla u(x), \nabla \eta(x)\bigr\rangle,
+\end{multline*}
+where $\nabla(\eta\cdot w)$ is realized by the witness produced from \leanname{MemW1pWitness.mul\_smooth\_bounded\_p} as $\eta\,\nabla w + w\,\nabla \eta$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+The witness for $\eta w$ has weak gradient $\eta(x)\,\nabla w(x) + w(x)\,\nabla \eta(x)$ pointwise. Inserting into $\langle a(x)\nabla u(x), \cdot\rangle$ and using bilinearity of the inner product splits the integrand as claimed. The reformulation as a finite sum over $i$ is just unfolding the matrix-vector product and the $\Lp{2}$ inner product.
+\end{proof}
+
+\begin{theorem}
+\label{thm:bilinForm_weighted_cauchySchwarz}
+\lean{DeGiorgi.bilinForm_weighted_cauchySchwarz}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+For $u, v \in W^{1,2}(\Omega)$ with witnesses $h_u, h_v$, a measurable weight $f : E \to \R$, and assuming $f^{2}\,b_A(u,u)$ is integrable, one has
+\begin{multline*}
+  \Bigl(\int_{\Omega} f(x)\,b_A(u,v)(x)\,dx\Bigr)^{2}
+  \leq \Bigl(\int_{\Omega} f(x)^{2}\,b_A(u,u)(x)\,dx\Bigr)\\
+  \cdot \Bigl(\Lambda \int_{\Omega} \|\nabla v(x)\|^{2}\,dx\Bigr).
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:EllipticCoeff_lam_nonneg, lem:EllipticCoeff_mulVec_sq_le}
+
+If $f\,b_A(u,v)$ is non-integrable then the integral is defined to be zero and the inequality is trivial (the right-hand side is nonnegative). Otherwise, point\-wise Cauchy--Schwarz on the inner product gives
+\begin{equation*}
+  |f(x)\,b_A(u,v)(x)| \leq |f(x)|\,\|a(x)\nabla u(x)\|\,\|\nabla v(x)\|.
+\end{equation*}
+By the mixed bound
+$\|a(x)\nabla u(x)\|^{2} \leq \Lambda\,b_A(u,u)(x)$,
+the function
+\begin{equation*}
+  g(x) := |f(x)|\,\|a(x)\nabla u(x)\|
+\end{equation*}
+satisfies
+\begin{equation*}
+  g(x)^{2} = f(x)^{2}\,\|a(x)\nabla u(x)\|^{2} \leq \Lambda\,f(x)^{2}\,b_A(u,u)(x),
+\end{equation*}
+so $g \in \Lp{2}$. H\"older's inequality with conjugate exponents $(2,2)$ applied to $g$ and $h(x) := \|\nabla v(x)\|$ gives
+\begin{equation*}
+  \int g\,h\,dx \leq \Bigl(\int g^{2}\,dx\Bigr)^{1/2}\Bigl(\int h^{2}\,dx\Bigr)^{1/2},
+\end{equation*}
+and squaring (using $g^{2} \leq \Lambda f^{2}\,b_A(u,u)$) yields the claimed inequality.
+\end{proof}
+
+\begin{lemma}
+\label{lem:integrable_bounded_mul_bilinFormIntegrand}
+\lean{DeGiorgi.integrable_bounded_mul_bilinFormIntegrand}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff}
+If $|f(x)| \leq C$ everywhere and $u \in W^{1,2}(\Omega)$, then $f \cdot b_A(u,u) \in \Lp{1}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff}
+
+Pointwise, $|f(x)\,b_A(u,u)(x)| \leq C \,|b_A(u,u)(x)|$, and the right-hand side is integrable since $b_A(u,u)$ is.
+\end{proof}
+
+\section{Ball scaling}
+
+We now record the affine pullback $z \mapsto x_0 + R z$ from the unit ball $\Bz{1}$ to $\Ball{R}{x_0}$ and its effect on weak (sub-/super-)solutions. Throughout, $R > 0$.
+
+\begin{definition}
+\label{def:rescaleToUnitBall}
+\lean{DeGiorgi.rescaleToUnitBall, DeGiorgi.transportFromUnitBall}
+\leanok
+For $u : E \to \R$, write
+\begin{equation*}
+  (T^{*}_{x_0,R} u)(z) := u(x_0 + R z), \qquad
+  (T_{x_0,R} u)(x) := u\bigl(R^{-1}(x - x_0)\bigr),
+\end{equation*}
+the pullback to the unit ball and the pushforward from the unit ball, respectively.
+\end{definition}
+
+\begin{lemma}
+\label{lem:rescaleToUnitBall_transportFromUnitBall}
+\lean{DeGiorgi.rescaleToUnitBall_transportFromUnitBall}
+\leanok
+\uses{def:rescaleToUnitBall}
+$T^{*}_{x_0,R} \circ T_{x_0,R} = \mathrm{id}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Direct unfolding: $u\bigl(R^{-1}((x_0 + Rz) - x_0)\bigr) = u(z)$.
+\end{proof}
+
+\begin{definition}
+\label{def:rescaleCoeffToUnitBall}
+\lean{DeGiorgi.rescaleCoeffToUnitBall, DeGiorgi.rescaleNormalizedCoeffToUnitBall}
+\leanok
+\uses{def:EllipticCoeff, def:ellipticityRatio}
+Pull back an elliptic field $A$ on $\Ball{R}{x_0}$ to the unit ball by $\widetilde A(z) := (A.a)(x_0 + R z)$, with the same constants $\lam, \Lambda$. The result is an elliptic coefficient field on $\Bz{1}$. The construction preserves normalization $\lam = 1$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:MemW1pWitness_transportFromUnitBall}
+\lean{DeGiorgi.MemW1pWitness.transportFromUnitBall}
+\leanok
+\uses{def:MemW1pWitness, def:rescaleToUnitBall}
+A $W^{1,p}$-witness for $u$ on $\Bz{1}$ transports to a $W^{1,p}$-witness for $T_{x_0,R} u$ on $\Ball{R}{x_0}$, with weak gradient $x \mapsto R^{-1}\,(\nabla u)\bigl(R^{-1}(x - x_0)\bigr)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+
+The Lp norms transform by an explicit power of $R$ depending on the dimension; weak partial derivative compatibility is preserved by the chain rule for the affine map $R^{-1}(\cdot - x_0)$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:rescaleToUnitBall_isSubsolution}
+\lean{DeGiorgi.rescaleToUnitBall_isSubsolution, DeGiorgi.rescaleToUnitBall_isSupersolution, DeGiorgi.rescaleToUnitBall_isSolution, DeGiorgi.rescaleToUnitBall_isHomogeneousWeakSolution}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution, def:IsHomogeneousWeakSolution, def:rescaleCoeffToUnitBall}
+If $u$ is a weak subsolution (resp.\ supersolution, solution, homogeneous weak solution) of $A$ on $\Ball{R}{x_0}$, then $T^{*}_{x_0,R} u$ is the corresponding object for $\widetilde A$ on $\Bz{1}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:rescale-witness, def:bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_eq_left, def:rescaleToUnitBall, lem:MemW1pWitness_transportFromUnitBall}
+
+The key computation is
+\begin{equation*}
+  \mathfrak{a}_{\widetilde A}\bigl(T^{*}_{x_0,R} u, \varphi\bigr) = \bigl(R^{-d} \cdot R^{2}\bigr)\,\mathfrak{a}_{A}\bigl(u, T_{x_0,R} \varphi\bigr),
+\end{equation*}
+proven by changing variables in the integral defining $\mathfrak{a}$, using the Jacobian factor $R^{-d}$ and the chain-rule factor $R^{-1}$ in each gradient (giving an $R^{2}$ from the two slots). Since the multiplicative constant $R^{2-d} > 0$ has fixed sign, the inequality $\mathfrak{a}_{\widetilde A}(\cdot, \varphi) \leq 0$ on the unit ball is equivalent to $\mathfrak{a}_A(\cdot, T_{x_0,R}\varphi) \leq 0$ on $\Ball{R}{x_0}$, and similarly for the reverse inequality, equality, and the homogeneous case. Nonnegative test functions $\varphi$ on $\Bz{1}$ pull back to nonnegative test functions $T_{x_0,R}\varphi$ on $\Ball{R}{x_0}$ (and vice versa), so the sign condition is preserved.
+\end{proof}
+
+\section{Localization helpers}
+
+\begin{definition}
+\label{def:EllipticCoeff_restrict}
+\lean{DeGiorgi.EllipticCoeff.restrict, DeGiorgi.NormalizedEllipticCoeff.restrict}
+\leanok
+\uses{def:EllipticCoeff, def:ellipticityRatio}
+Given $\Omega' \subseteq \Omega$ and $A$ elliptic on $\Omega$, the restriction $A\!\restriction\!\Omega'$ keeps the same matrix and constants and shrinks the a.e.\ coercivity domain to $\Omega'$. Normalization is preserved.
+\end{definition}
+
+\begin{lemma}
+\label{lem:essSup_rescale_halfBall}
+\lean{DeGiorgi.essSup_rescale_halfBall, DeGiorgi.essInf_rescale_halfBall}
+\leanok
+For $R > 0$,
+\begin{equation*}
+  \esssup_{z \in \Bz{1/2}} u(x_0 + R z) = \esssup_{x \in \Ball{R/2}{x_0}} u(x),
+\end{equation*}
+and similarly for $\essinf$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+The affine map $z \mapsto x_0 + R z$ is a measurable embedding sending the half unit ball onto $\Ball{R/2}{x_0}$ with the volume measure pushing forward to a strictly positive multiple of the restricted volume on $\Ball{R/2}{x_0}$. Strict positivity of the constant scaling implies that the a.e.\ filters coincide, so the essential suprema (and infima) match.
+\end{proof}
+
+\begin{lemma}
+\label{lem:memH01_indicator_ball_of_closedBall_subset}
+\lean{DeGiorgi.memH01_indicator_ball_of_closedBall_subset, DeGiorgi.ballIndicatorWitnessOn}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p}
+If $\overline{\Ball{r}{c}} \subseteq \Omega$ and $\varphi \in H^{1}_{0}(\Ball{r}{c})$, then the zero extension $\mathbf{1}_{\Ball{r}{c}}\,\varphi$ lies in $H^{1}_{0}(\Omega)$ and carries an explicit $W^{1,2}(\Omega)$-witness whose weak gradient is the zero extension of the gradient of $\varphi$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, lem:forgetting-witness, lem:zero_outside_tsupport, thm:zero_extend, thm:memW01p_of_compactly_supported}
+
+Zero-extension preserves $H^{1}_{0}$ on open sets (the approximating sequence of compactly supported smooth functions extends by zero). Compact support inside $\overline{\Ball{r}{c}} \subseteq \Omega$ together with the universal $W^{1,2}$-witness restricts to a $W^{1,2}(\Omega)$-witness with the same weak gradient.
+\end{proof}
+
+\begin{lemma}
+\label{lem:bilinForm_ball_restrict_eq_zeroExtend}
+\lean{DeGiorgi.bilinForm_ball_restrict_eq_zeroExtend}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:EllipticCoeff, def:bilinFormIntegrandOfCoeff, lem:memH01_indicator_ball_of_closedBall_subset}
+Under the same hypotheses, for $u \in W^{1,2}(\Omega)$ and $\varphi \in H^{1}_{0}(\Ball{r}{c})$,
+\begin{equation*}
+  \mathfrak{a}_{A\restriction \Ball{r}{c}}\bigl(u\!\restriction, \varphi\bigr)
+  = \mathfrak{a}_{A}\bigl(u, \mathbf{1}_{\Ball{r}{c}}\,\varphi\bigr).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:MemW1pWitness_restrict, thm:zero_extend, def:EllipticCoeff_restrict}
+
+Pointwise, the two integrands agree on $\Ball{r}{c}$ and the right-hand integrand vanishes outside (the indicator-extended witness has zero weak gradient there). Hence both integrals over $\Omega$ equal the integral over $\Ball{r}{c}$ of the same integrand.
+\end{proof}
+
+\begin{lemma}
+\label{lem:MemW1pWitness_of_ae_eq}
+\lean{DeGiorgi.MemW1pWitness.of_ae_eq}
+\leanok
+\uses{def:MemW1pWitness}
+If $f =_{a.e.} g$ on $\Omega$ and $f$ has a $W^{1,2}(\Omega)$-witness, then $g$ has a witness with the same weak gradient.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Lp membership transfers under a.e.\ equality. The weak partial derivative identity $\int g\,\partial_i\varphi = -\int (\nabla f)_i\,\varphi$ follows from $\int g\,\partial_i\varphi = \int f\,\partial_i\varphi$ by a.e.\ equality.
+\end{proof}
+
+\begin{theorem}
+\label{thm:IsSubsolution_congr_ae}
+\lean{DeGiorgi.IsSubsolution.congr_ae, DeGiorgi.IsSupersolution.congr_ae, DeGiorgi.IsSolution.congr_ae}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution}
+The weak (sub-, super-) solution predicates are stable under a.e.\ equality of the unknown.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:bilinFormIntegrandOfCoeff, lem:MemW1pWitness_of_ae_eq}
+
+Use the previous lemma to transport witnesses, and observe that $\mathfrak{a}_A$ depends only on the witness's weak gradient, which is unchanged.
+\end{proof}
+
+\begin{theorem}
+\label{thm:IsSubsolution_restrict_ball}
+\lean{DeGiorgi.IsSubsolution.restrict_ball, DeGiorgi.IsSupersolution.restrict_ball, DeGiorgi.IsSolution.restrict_ball}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution}
+Let $\Omega$ be open, $\overline{\Ball{r}{c}} \subseteq \Omega$, and $A$ elliptic on $\Omega$. If $u$ is a weak subsolution (resp.\ super-, solution) of $A$ on $\Omega$, then $u$ is a weak subsolution (resp.\ super-, solution) of $A\!\restriction\!\Ball{r}{c}$ on the smaller domain.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p, def:bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_eq_left, lem:memH01_indicator_ball_of_closedBall_subset, lem:bilinForm_ball_restrict_eq_zeroExtend}
+
+We treat the subsolution case; the supersolution and solution cases are
+symmetric. Pick a witness $h_u^{\Omega}$ for $u$ on $\Omega$ via
+\leanname{MemW1p.someWitness}. The restriction lemma
+\leanname{MemW1pWitness.restrict} (specialised to the open subball
+$\Ball{r}{c} \subseteq \Omega$) yields a witness $h_u^{\Ball{r}{c}}$ for $u$
+on the smaller domain, with weak gradient given by the restriction of
+$\nabla u$ to $\Ball{r}{c}$; this verifies the $W^{1,2}$ membership half of
+\leanname{IsSubsolution}.
+
+For the bilinear-form inequality, fix a nonnegative test
+$\varphi \in H^{1}_{0}(\Ball{r}{c})$ together with any witness $h_\varphi$.
+The zero extension $\mathbf{1}_{\Ball{r}{c}}\varphi$ lies in $H^{1}_{0}(\Omega)$
+and admits an explicit witness $\hat h_\varphi$ produced by
+\leanname{ballIndicatorWitnessOn}, whose weak gradient is the zero
+extension of $\nabla \varphi$. The pointwise nonnegativity of $\varphi$ on
+$\Ball{r}{c}$ extends to a pointwise nonnegativity of the indicator, so
+$\mathbf{1}_{\Ball{r}{c}}\varphi$ is a valid nonnegative test on $\Omega$.
+
+Apply the subsolution hypothesis on $\Omega$ to this extended test:
+$\mathfrak{a}_{A}(h_u^{\Omega}, \hat h_\varphi) \le 0$. By
+\leanname{bilinForm\_ball\_restrict\_eq\_zeroExtend}, the bilinear form for
+the restricted coefficient field $A\restriction\Ball{r}{c}$ paired with
+$h_u^{\Ball{r}{c}}$ and $h_\varphi$ equals the bilinear form for $A$ paired
+with $h_u^{\Omega}$ and $\hat h_\varphi$. Therefore
+$\mathfrak{a}_{A\restriction\Ball{r}{c}}(h_u^{\Ball{r}{c}}, h_\varphi) \le 0$,
+which is the desired subsolution inequality on the smaller domain.
+\end{proof}
+
+\begin{theorem}
+\label{thm:IsSubsolution_sub_const_ball}
+\lean{DeGiorgi.IsSubsolution.sub_const_ball, DeGiorgi.IsSupersolution.sub_const_ball, DeGiorgi.IsSolution.sub_const_ball}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution}
+For $u$ a weak (sub-, super-)solution on $\Ball{r}{c}$ and $k \in \R$, $u - k$ is a weak (sub-, super-)solution on $\Ball{r}{c}$ with the same coefficient field $A$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, lem:MemW1pWitness_sub_const, def:bilinFormIntegrandOfCoeff, lem:MemW1pWitness_of_ae_eq}
+
+The constant function $k$ has zero weak gradient on the ball (a finite-measure set), so the witness for $u - k$ has the same weak gradient as the witness for $u$. The bilinear form $\mathfrak{a}_A$ depends only on the gradient, so the inequality is unchanged.
+\end{proof}
+
+\begin{theorem}
+\label{thm:IsSubsolution_neg_ball}
+\lean{DeGiorgi.IsSubsolution.neg_ball, DeGiorgi.IsSupersolution.neg_ball, DeGiorgi.IsSolution.neg_ball}
+\leanok
+\uses{def:EllipticCoeff, def:IsSubsolution}
+On $\Ball{r}{c}$, negation swaps subsolutions and supersolutions: if $u$ is a subsolution, then $-u$ is a supersolution; similarly with the roles reversed; and a solution stays a solution under negation.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_add_left, lem:MemW1pWitness_of_ae_eq}
+
+Suppose $u$ is a subsolution: pick a witness $h_u$ for $u$ on $\Ball{r}{c}$
+via \leanname{MemW1p.someWitness}. The scaled witness
+$h_u.\mathrm{smul}(-1)$ is a witness for $-u$ with weak gradient $-\nabla u$
+(\leanname{MemW1pWitness.smul}), establishing the $W^{1,2}$ membership half
+of \leanname{IsSupersolution}.
+
+For the bilinear-form inequality, fix a nonnegative test $\varphi$ together
+with a witness $h_\varphi$. The negation witness $h_{-(-u)}$ obtained by
+applying $\mathrm{smul}(-1)$ a second time agrees a.e.\ with $h_u$
+(after clearing the double negation by ring arithmetic), so by
+\leanname{MemW1pWitness.of\_ae\_eq} it produces the same bilinear-form
+value as $h_u$. The subsolution hypothesis applied to $u$ then gives
+$\mathfrak{a}_A(h_u, h_\varphi) \le 0$.
+
+By the linearity lemma \leanname{bilinFormOfCoeff\_smul\_left} applied with
+scalar $-1$, we have
+\begin{equation*}
+  \mathfrak{a}_A(h_u, h_\varphi)
+  = -\mathfrak{a}_A(h_{-u}, h_\varphi),
+\end{equation*}
+so the inequality $\mathfrak{a}_A(h_u, h_\varphi) \le 0$ rewrites as
+$\mathfrak{a}_A(h_{-u}, h_\varphi) \ge 0$, which is the supersolution
+inequality for $-u$. The reverse direction (supersolution to subsolution) is
+identical with the roles swapped; the solution case follows by combining
+both.
+\end{proof}
+
+
+%% ========================================================================

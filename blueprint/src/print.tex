@@ -1,0 +1,27 @@
+% Printable version of the blueprint (compile with latexmk, see latexmkrc).
+% Uses pdflatex, like the original companion document.
+\documentclass[a4paper]{report}
+\usepackage{geometry}
+\usepackage{expl3}
+\usepackage{amssymb, amsthm, mathtools}
+\usepackage{enumitem}
+\usepackage{nicefrac}
+\usepackage{seqsplit}
+\usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta,citecolor=blue]{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
+\usepackage[expansion=false]{microtype}
+\setlength{\emergencystretch}{3em}
+
+\input{macros/common}
+\input{macros/print}
+
+\title{De Giorgi--Nash--Moser theory in Lean: blueprint}
+\author{Scott Armstrong and Julia Kempe\\\small(blueprint generated from the Lean-to-\TeX{} companion)}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\input{content}
+\end{document}

@@ -1,0 +1,872 @@
+\chapter{Crossover, Weak Harnack, Harnack, and H\"older Regularity}\label{sec:crossover}
+%% ========================================================================
+
+%% --- Section 9 ---
+\section{Crossover Estimate}
+
+Let $d \in \N$, $d \geq 3$, and $E = \R^d$ throughout. Write $\Bz r$ for the
+open Euclidean ball of radius $r$ centred at the origin. Given a normalized
+elliptic coefficient $A$ on $\Bz 1$ with ellipticity constants $\lambda_A,
+\Lambda_A$ (with $\lambda_A = 1$ after normalization, so $\Lambda_A \geq 1$),
+write $\IsSupersolution{A}{u}$ for the assertion that $u \in W^{1,2}_{\loc}$
+satisfies $-\dv(A\nabla u) \geq 0$ in the weak sense, and $\IsSolution{A}{u}$
+for the corresponding equality.
+
+The crossover estimate, due in this form to Moser, bridges positive and
+negative powers of a positive supersolution. Throughout this section we work
+with a fixed positive constant
+\begin{equation*}
+  \Cpoinc = \Cpoinc(d) > 0
+\end{equation*}
+denoting the dimensional Poincar\'e constant on the unit ball, a fixed
+constant $\Mst > 1$ used in the smooth cutoff construction, and the
+dimensional John--Nirenberg constant $\CJN(d) > 0$.
+
+\begin{definition}
+\label{def:c_crossover_bmo_scale}
+\lean{DeGiorgi.c_crossover_bmo_scale, DeGiorgi.c_crossover'}
+\leanok
+\uses{def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded}
+We define the BMO scale and crossover exponent
+\begin{align*}
+  c_{\BMO}(d) &:= \bigl(\vol(\Bz 1)\bigr)^{-1/2}\,\Cpoinc(d) \cdot
+    \tfrac12^{1 - d/2} \cdot 8\Mst \,\bigl(\vol(\Bz 1)\bigr)^{1/2}, \\
+  c'(d)       &:= \frac{1}{2\,\CJN(d)\,c_{\BMO}(d) + 1}.
+\end{align*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:c-crossover-bounds}
+\lean{DeGiorgi.crossoverC'_pos, DeGiorgi.c_crossover'_lt_one}
+\leanok
+\uses{def:c_crossover_bmo_scale}
+$0 < c'(d) < 1$ and $c'(d) \leq 1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded}
+
+The constant $c_{\BMO}(d)$ is a product of strictly positive terms, so
+$c_{\BMO}(d) > 0$. Since $\CJN(d) > 0$, the denominator
+$2\,\CJN(d)\,c_{\BMO}(d) + 1$ is strictly greater than $1$, hence its
+reciprocal lies in $(0,1)$.
+\end{proof}
+
+\subsection{Logarithmic gradient bound}
+
+The first ingredient is the Caccioppoli-type inequality for $\log u$, obtained
+by testing the supersolution against $\varphi^2/(u + \varepsilon)$.
+
+\begin{theorem}
+\label{thm:log-grad-eps}
+\lean{DeGiorgi.log_gradient_bound_eps}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:IsSubsolution}
+Let $\Omega \subseteq E$ be open, $A$ an elliptic coefficient on $\Omega$
+with ellipticity constants $\lambda, \Lambda$, $u \in W^{1,2}_{\loc}(\Omega)$
+positive on $\Omega$ with $\IsSupersolution A u$, and let
+$\varphi \in C_c^\infty(\Omega)$. Then for every $\varepsilon > 0$,
+\begin{equation*}
+  \int_\Omega \frac{\varphi^2 \,|\nabla u|^2}{(u+\varepsilon)^2}\,dx
+    \;\leq\; \frac{4\Lambda}{\lambda}\int_\Omega |\nabla\varphi|^2\,dx.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1p, def:MemW01p, lem:witness_add, lem:MemW1pWitness_restrict, prop:witness_mul_smooth_bounded, lem:witness_smooth_cpt, prop:H01_vector_space, lem:memW01p_of_smooth_cpt, thm:memW01p_of_compactly_supported, def:smoothGradNorm, thm:chain-rule-open, lem:EllipticCoeff_lam_nonneg, lem:EllipticCoeff_ae_coercive_nonneg, def:bilinFormIntegrandOfCoeff, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff, def:IsSmoothTestOn, def:smoothGradField, thm:bilinForm_weighted_cauchySchwarz, lem:integrable_bounded_mul_bilinFormIntegrand}
+
+Set $\psi := \varphi^2/(u+\varepsilon)$. By the smooth chain-rule witness
+construction \leanname{build\_test\_function\_eps}, $\psi$ lies in
+$H^1_0(\Omega)$, $\psi \geq 0$, and its weak gradient satisfies almost
+everywhere
+\begin{equation*}
+  \nabla\psi = \frac{2\varphi\,\nabla\varphi}{u+\varepsilon}
+    - \frac{\varphi^2\,\nabla u}{(u+\varepsilon)^2}.
+\end{equation*}
+Since $u$ is a supersolution and $\psi \geq 0$,
+\begin{equation*}
+  0 \;\leq\; \int_\Omega \langle A\nabla u, \nabla\psi\rangle\,dx
+   \;=\; \int_\Omega \frac{2\varphi}{u+\varepsilon}\langle A\nabla u,
+       \nabla\varphi\rangle\,dx
+   \;-\; \int_\Omega \frac{\varphi^2}{(u+\varepsilon)^2}
+       \langle A\nabla u, \nabla u\rangle\,dx.
+\end{equation*}
+Set
+\begin{align*}
+  Q &:= \int_\Omega \frac{\varphi^2}{(u+\varepsilon)^2}\langle A\nabla u,\nabla u\rangle\,dx, \\
+  X &:= \int_\Omega \frac{\varphi}{u+\varepsilon}\langle A\nabla u,\nabla\varphi\rangle\,dx.
+\end{align*}
+The supersolution inequality reads $Q \leq 2X$. By Cauchy--Schwarz applied to
+the bilinear form $\langle A\,\cdot,\cdot\rangle$,
+\begin{equation*}
+  X^2 \;\leq\; Q \cdot \int_\Omega \langle A\nabla\varphi,\nabla\varphi\rangle\,dx
+    \;\leq\; Q \cdot \Lambda \int_\Omega |\nabla\varphi|^2\,dx.
+\end{equation*}
+Combining $Q \leq 2X$ with $X^2 \leq Q\,\Lambda\int|\nabla\varphi|^2$, the
+elementary inequality $Q^2 \leq 4QP$ implies $Q \leq 4P$ where
+$P := \Lambda \int_\Omega |\nabla\varphi|^2$ (see
+\leanname{log\_gradient\_algebraic\_conclusion}). Hence
+\begin{equation*}
+  \lambda \int_\Omega \frac{\varphi^2|\nabla u|^2}{(u+\varepsilon)^2}\,dx
+    \;\leq\; Q \;\leq\; 4\Lambda \int_\Omega |\nabla\varphi|^2\,dx,
+\end{equation*}
+and dividing by $\lambda > 0$ gives the claim.
+\end{proof}
+
+\begin{theorem}
+\label{thm:log-grad}
+\lean{DeGiorgi.log_gradient_bound_of_supersolution}
+\leanok
+\uses{def:MemW1pWitness, def:EllipticCoeff, def:IsSubsolution}
+Under the same hypotheses, with $u > 0$ on $\Omega$,
+\begin{equation*}
+  \int_\Omega \frac{\varphi^2\,|\nabla u|^2}{u^2}\,dx
+    \;\leq\; \frac{4\Lambda}{\lambda}\int_\Omega |\nabla\varphi|^2\,dx.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:log-grad-eps}
+
+Apply Theorem~\ref{thm:log-grad-eps} with $\varepsilon_n = 1/(n+1)$. The
+integrand
+\begin{equation*}
+  g_n(x) := \varphi(x)^2|\nabla u(x)|^2/(u(x)+\varepsilon_n)^2
+\end{equation*}
+increases monotonically as $\varepsilon_n \downarrow 0$ to
+$g_0(x) := \varphi(x)^2|\nabla u(x)|^2/u(x)^2$ at every point of $\Omega$
+since $u > 0$ there. By Fatou's lemma,
+\begin{equation*}
+  \int_\Omega g_0\,dx \;\leq\; \liminf_{n\to\infty}\int_\Omega g_n\,dx
+    \;\leq\; \frac{4\Lambda}{\lambda}\int_\Omega |\nabla\varphi|^2\,dx.
+\end{equation*}
+\end{proof}
+
+\subsection{BMO control of \texorpdfstring{$\log u$}{log u}}
+
+For $\varepsilon > 0$ define the regularized log
+$v_\varepsilon(x) := -\log(u(x)+\varepsilon) + \log\varepsilon$ and its smooth
+chain-rule witness $\leanname{regularizedLogFun}$. Combining the log-gradient
+bound with the Poincar\'e inequality on $\Bz{1/2}$ gives the BMO estimate.
+
+\begin{theorem}
+\label{thm:bmo-half}
+\lean{DeGiorgi.regularizedLog_unit_halfBall_meanOscillation}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution}
+Let $A$ be normalized elliptic on $\Bz 1$, $u > 0$ a supersolution. Then
+for $v := v_\varepsilon$,
+\begin{equation*}
+  \fint_{\Bz{1/2}} \Bigl|v(x) - \fint_{\Bz{1/2}} v\Bigr|\,dx
+    \;\leq\; c_{\BMO}(d)\,\Lambda_A^{1/2}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1p, def:MemW1pWitness, lem:weak_grad_norm_memLp, lem:zero_outside_tsupport, def:C_poinc_val, thm:poincare_unitBall_W1p_public, lem:eLpNorm_const_average_le, def:CampanatoBall, def:HasCampanatoBound, thm:chain-rule-open, lem:smoothTransition_nnnorm_deriv_bounded, thm:Cutoff_exists, lem:rescale-witness, lem:eLpNorm_rescale_to_unitBall, def:EllipticCoeff, def:c_crossover_bmo_scale, thm:log-grad-eps}
+
+Pick a cutoff $\eta \in C_c^\infty(\Bz{3/4})$ with $\eta = 1$ on $\Bz{1/2}$,
+$0 \leq \eta \leq 1$, and $|\nabla \eta| \leq 8\Mst$ (existence given by
+\leanname{Cutoff.exists}). Theorem~\ref{thm:log-grad-eps} (with
+$\varphi = \eta$, $\lambda_A = 1$) yields
+\begin{equation*}
+  \int_{\Bz{1/2}} |\nabla v_\varepsilon|^2\,dx
+    \;\leq\; \int_{\Bz 1} \eta^2 \frac{|\nabla u|^2}{(u+\varepsilon)^2}\,dx
+    \;\leq\; 4\Lambda_A \int_{\Bz 1}|\nabla \eta|^2\,dx
+    \;\leq\; 4\Lambda_A \cdot (8\Mst)^2 \vol(\Bz 1).
+\end{equation*}
+Hence $\|\nabla v_\varepsilon\|_{L^2(\Bz{1/2})} \leq 16\Mst\,\Lambda_A^{1/2}\,\vol(\Bz 1)^{1/2}$.
+By the Poincar\'e--Wirtinger inequality on $\Bz{1/2}$ with constant
+$\Cpoinc(d) \cdot (1/2)^{1-d/2}$ (the dimensional rescaling factor),
+\begin{multline*}
+  \fint_{\Bz{1/2}}\Bigl|v_\varepsilon - \fint_{\Bz{1/2}} v_\varepsilon\Bigr|\,dx
+    \;\leq\; \vol(\Bz{1/2})^{-1/2} \Cpoinc(d) (1/2)^{1-d/2}
+        \|\nabla v_\varepsilon\|_{L^2(\Bz{1/2})} \\
+    \;\leq\; \vol(\Bz 1)^{-1/2}\Cpoinc(d) (1/2)^{1-d/2}\cdot
+        8\Mst\,\Lambda_A^{1/2}\,\vol(\Bz 1)^{1/2}
+    \;=\; c_{\BMO}(d)\,\Lambda_A^{1/2}.
+\end{multline*}
+\end{proof}
+
+The same statement holds on every ball $B(x_0, R/2)$ with $\overline{B(x_0,R)}
+\subset \Bz 1$, by affine rescaling $\leanname{rescaleToUnitBall}$
+(see \leanname{regularizedLog\_ball\_meanOscillation}).
+
+\subsection{John--Nirenberg exponential integrability}
+
+\begin{definition}
+\label{def:JN-constants}
+\lean{DeGiorgi.crossoverJNTheta, DeGiorgi.crossoverJNKloc, DeGiorgi.crossoverJNKhalf}
+\leanok
+\uses{def:C_JN, def:c_crossover_bmo_scale}
+Set
+\begin{align*}
+  \theta(d)  &:= 24 \cdot 2^{d+1} \cdot \bigl(c'(d)\,c_{\BMO}(d)\bigr), \\
+  K_{\loc}(d)&:= \exp(\theta(d)) \cdot (1 + \CJN(d)),\\
+  K_{1/2}(d) &:= \lceil 97^d \rceil \cdot K_{\loc}(d).
+\end{align*}
+\end{definition}
+
+\begin{theorem}
+\label{thm:exp-half}
+\lean{DeGiorgi.regularizedLog_halfBall_exp_average_to_origin_le}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution}
+With $p := c'(d)/\Lambda_A^{1/2}$, $v := v_\varepsilon$, and
+$a := \fint_{\Bz{1/48}} v\,dz$,
+\begin{equation*}
+  \fint_{\Bz{1/2}} \exp(p\,|v(z) - a|)\,dz \;\leq\; K_{1/2}(d).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1p, def:MemW1pWitness, def:C_poinc_val, def:C_JN, thm:john_nirenberg_local, thm:chain-rule-open, lem:smoothTransition_nnnorm_deriv_bounded, lem:MemW1pWitness_sub_const, thm:finite-cover-card, def:EllipticCoeff, def:rescaleToUnitBall, def:rescaleCoeffToUnitBall, thm:rescaleToUnitBall_isSubsolution, def:EllipticCoeff_restrict, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:bmo-half}
+
+Apply the local John--Nirenberg lemma at scale $\rho = 1/48$ on a finite cover
+of $\Bz{1/2}$ by balls $B(x_i, 1/48)$ with $\#\{x_i\} \leq \lceil 97^d\rceil$.
+On each cover ball, Theorem~\ref{thm:bmo-half} (rescaled to $B(x_i, R)$ via
+\leanname{regularizedLog\_ball\_meanOscillation}) gives
+$\|v - \langle v\rangle\|_{\BMO} \leq c_{\BMO}(d)\,\Lambda_A^{1/2}$. The
+classical John--Nirenberg theorem $\leanname{C\_JN}$ then yields
+\begin{equation*}
+  \fint_{B(x_i,1/48)} \exp\bigl(p\,|v - \langle v\rangle_{B(x_i,1/48)}|\bigr)\,dz
+    \;\leq\; 1 + \CJN(d).
+\end{equation*}
+The shift between local and global averages is controlled by $\theta(d) =
+24 \cdot 2^{d+1}\,c'(d)\,c_{\BMO}(d)$ via the standard telescoping
+$\leanname{regularizedLog\_smallBallAverage\_to\_origin\_le}$. Multiplying
+each local exponential bound by $\exp(p\,\theta(d)) = \exp(\theta(d))$ (since
+$p\cdot \delta = \theta(d)$ by direct computation, using
+$\delta := 24\cdot 2^{d+1}\,(c_{\BMO}(d)\Lambda_A^{1/2})$ and
+$p \cdot \Lambda_A^{1/2} = c'(d)$), and summing over the $\lceil 97^d\rceil$
+cover balls gives the asserted bound by $K_{1/2}(d)$.
+\end{proof}
+
+\subsection{Crossover product bound}
+
+\begin{theorem}
+\label{thm:crossover-exists}
+\lean{DeGiorgi.crossover_product_bound_exists}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:c_crossover_bmo_scale}
+There exists a constant $C(d) \geq 1$ such that for every normalized elliptic
+$A$ on $\Bz 1$, every positive supersolution $u$, and $p_0 := c'(d)/\Lambda_A^{1/2}$,
+\begin{equation*}
+  \Bigl(\fint_{\Bz{1/2}} u^{p_0}\,dx\Bigr)\Bigl(\fint_{\Bz{1/2}} u^{-p_0}\,dx\Bigr)
+    \;\leq\; C(d).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1p, def:MemW1pWitness, def:C_poinc_val, def:C_JN, thm:chain-rule-open, lem:smoothTransition_nnnorm_deriv_bounded, def:EllipticCoeff, lem:c-crossover-bounds, def:JN-constants, thm:exp-half}
+
+By a regularization step $u \mapsto u + \varepsilon$, it suffices to bound
+\begin{equation*}
+  J_\varepsilon := \Bigl(\fint_{\Bz{1/2}}(u+\varepsilon)^{p_0}\Bigr)
+        \Bigl(\fint_{\Bz{1/2}}(u+\varepsilon)^{-p_0}\Bigr)
+\end{equation*}
+uniformly in $\varepsilon > 0$ by $K_{1/2}(d)^2$. With $v_\varepsilon =
+-\log(u+\varepsilon) + \log\varepsilon$, $a := \fint_{\Bz{1/48}} v_\varepsilon$,
+$F_\pm(x) := \exp(\pm p_0(v_\varepsilon - a))$ and
+$F_{\mathrm{abs}} := \exp(p_0|v_\varepsilon - a|)$, we have $F_\pm \leq
+F_{\mathrm{abs}}$ pointwise. Theorem~\ref{thm:exp-half} together with
+$\leanname{setAverage\_mono\_of\_nonneg\_local}$ yields
+\begin{equation*}
+  \fint_{\Bz{1/2}} F_+\,dx \leq K_{1/2}(d), \qquad
+  \fint_{\Bz{1/2}} F_-\,dx \leq K_{1/2}(d).
+\end{equation*}
+Now $(u+\varepsilon)^{p_0} = \exp(p_0(\log\varepsilon - a))\,F_+$ and
+$(u+\varepsilon)^{-p_0} = \exp(p_0(a - \log\varepsilon))\,F_-$ pointwise on
+$\Bz{1/2}$. The two scalar prefactors multiply to $1$ (cancellation
+$\leanname{hcancel}$), so
+\begin{equation*}
+  J_\varepsilon \;=\; \Bigl(\fint F_+\Bigr)\Bigl(\fint F_-\Bigr)
+    \;\leq\; K_{1/2}(d)^2.
+\end{equation*}
+Letting $\varepsilon \downarrow 0$ along $\varepsilon_n = 1/(n+1)$, the
+shifted integrals converge to the original ones by dominated/monotone
+convergence (the integrability of $|u|^{p_0}$ is supplied by the
+$W^{1,2}$ estimate using $p_0 < 1 \leq 2$, see
+\leanname{hpow\_int}). Choose $C(d) := \max\{1, K_{1/2}(d)^2\}$.
+\end{proof}
+
+\begin{definition}
+\label{def:Ccrossover}
+\lean{DeGiorgi.C_crossover'}
+\leanok
+\uses{thm:crossover-exists}
+$C_{\mathrm{cross}}(d) := C(d)$ from Theorem~\ref{thm:crossover-exists}, so
+$C_{\mathrm{cross}}(d) \geq 1$.
+\end{definition}
+
+\begin{theorem}
+\label{thm:crossover-estimate}
+\lean{DeGiorgi.crossover_estimate}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:c_crossover_bmo_scale, def:Ccrossover}
+Let $d \geq 3$, $A$ normalized elliptic on $\Bz 1$, and $u > 0$ a
+supersolution. Then with $c := c'(d)/\Lambda_A^{1/2}$,
+\begin{equation*}
+  \Bigl(\fint_{\Bz{1/2}} u^c\,dx\Bigr)\Bigl(\fint_{\Bz{1/2}} u^{-c}\,dx\Bigr)
+    \;\leq\; C_{\mathrm{cross}}(d).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:crossover-exists}
+
+Set $v(x) := -\log u(x)$, $v_{\mathrm{avg}} := \fint_{\Bz{1/2}} v\,dx$,
+$w(x) := \exp(c(v_{\mathrm{avg}} - v(x)))$, and
+$w^{-1}(x) := \exp(c(v(x) - v_{\mathrm{avg}}))$, so $w \cdot w^{-1} \equiv 1$.
+On $\Bz{1/2}$ where $u > 0$, $u^c = e^{-c v_{\mathrm{avg}}}\,w$ and
+$u^{-c} = e^{c v_{\mathrm{avg}}}\,w^{-1}$, hence
+\begin{equation*}
+  \Bigl(\fint u^c\Bigr)\Bigl(\fint u^{-c}\Bigr)
+    \;=\; e^{-cv_{\mathrm{avg}}}e^{cv_{\mathrm{avg}}}
+        \Bigl(\fint w\Bigr)\Bigl(\fint w^{-1}\Bigr)
+    \;=\; \Bigl(\fint w\Bigr)\Bigl(\fint w^{-1}\Bigr).
+\end{equation*}
+Apply Theorem~\ref{thm:crossover-exists}.
+\end{proof}
+
+\begin{corollary}
+\label{cor:crossover-unaveraged}
+\lean{DeGiorgi.crossover_estimate_unaveraged}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:c_crossover_bmo_scale, def:Ccrossover}
+Multiplying through by $\vol(\Bz{1/2})^2 > 0$,
+\begin{equation*}
+  \Bigl(\int_{\Bz{1/2}} u^c\Bigr)\Bigl(\int_{\Bz{1/2}} u^{-c}\Bigr)
+    \;\leq\; C_{\mathrm{cross}}(d)\,\vol(\Bz{1/2})^2.
+\end{equation*}
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:crossover-estimate}
+See the Lean formalization.
+\end{proof}
+
+%% --- Section 10 ---
+\section{Weak Harnack Inequality}
+
+\begin{definition}
+\label{def:p0}
+\lean{DeGiorgi.weakHarnackP0, DeGiorgi.weak_harnack_decay_exp}
+\leanok
+\uses{def:ellipticityRatio, def:moserChi, def:c_crossover_bmo_scale}
+For a normalized elliptic $A$ on $\Bz 1$, set
+\begin{equation*}
+  p_0 := p_0(A) := \frac{c'(d)}{\Lambda_A^{1/2}}, \qquad
+  \beta(d) := \frac{d\,\chi(d)}{c'(d)},
+\end{equation*}
+where $\chi(d) := d/(d-2)$ is the Sobolev exponent (\leanname{moserChi}).
+\end{definition}
+
+\begin{lemma}
+\label{lem:p_pos}
+\lean{DeGiorgi.p₀_pos, DeGiorgi.p₀_lt_one, DeGiorgi.Λ_mul_p₀_sq}
+\leanok
+\uses{def:ellipticityRatio, def:c_crossover_bmo_scale, def:p0}
+$0 < p_0(A) < 1$, $p_0(A) \leq c'(d)$, and $\Lambda_A\,p_0(A)^2 = c'(d)^2$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded, lem:c-crossover-bounds}
+
+Since $\Lambda_A \geq 1$, $\Lambda_A^{1/2} \geq 1$, so
+$0 < p_0 = c'(d)/\Lambda_A^{1/2} \leq c'(d) < 1$. The identity follows from
+$(c'(d)/\Lambda_A^{1/2})^2 \cdot \Lambda_A = c'(d)^2$.
+\end{proof}
+
+The proof of the weak Harnack inequality chains three pieces at half scale.
+We rescale $v(z) := u(z/2)$ from $\Bz{1/2}$ to $\Bz 1$ via the rescaled
+coefficient $A' := \leanname{rescaledCoeff}\,A$ which preserves $\Lambda$.
+The three steps are:
+
+\begin{itemize}
+\item \emph{Forward Moser at level $p_0$}
+  (\leanname{weak\_harnack\_stage\_one\_forward\_ball}):
+\begin{equation*}
+\Bigl(\int_{\Bz{1/4}} u^{q\,d/(d-2)}\Bigr)^{p_0(d-2)/(qd)}
+\leq C_{\mathrm{wH},0\to}(d)\,(\Lambda_A p_0^2/(1-q)^2 + 1)^{d\chi/2}
+\int_{\Bz{1/2}} u^{p_0}.
+\end{equation*}
+
+\item \emph{Crossover} (Corollary~\ref{cor:crossover-unaveraged}) at the level
+$p_0$:
+\begin{equation*}
+\Bigl(\int_{\Bz{1/2}} u^{p_0}\Bigr)\Bigl(\int_{\Bz{1/2}} u^{-p_0}\Bigr)
+\leq C_{\mathrm{cross}}(d)\,\vol(\Bz{1/2})^2.
+\end{equation*}
+
+\item \emph{Inverse Moser}
+  (\leanname{weak\_harnack\_stage\_one\_inverse\_ball}):
+\begin{equation*}
+(\Lambda_A p_0^2 + 1)^{-d/2}\Bigl(\int_{\Bz{1/2}} u^{-p_0}\Bigr)^{-1}
+\leq C_{\mathrm{wH},0}(d)\,\bigl(\essinf_{\Bz{1/4}} u\bigr)^{p_0}.
+\end{equation*}
+\end{itemize}
+
+Multiplying these three estimates yields the chain.
+
+\begin{theorem}
+\label{thm:wH-chain}
+\lean{DeGiorgi.weak_harnack_chain}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution}
+For $d \geq 3$, $A$ normalized on $\Bz 1$, $u > 0$ a supersolution, and
+$0 < q < 1$:
+\begin{equation*}
+\Bigl(\int_{\Bz{1/4}} u^{q d/(d-2)}\,dx\Bigr)^{p_0(d-2)/(qd)}
+\leq \frac{C_{\mathrm{chain}}(d)}{(1-q)^{d\chi(d)}}
+\Bigl(\essinf_{\Bz{1/4}} u\Bigr)^{p_0}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded, def:rescaleCoeffToUnitBall, thm:rescaleToUnitBall_isSubsolution, def:EllipticCoeff_restrict, lem:essSup_rescale_halfBall, def:C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, thm:preMoser-fwd, thm:wH-stage1-inv, def:C_weakHarnack0Forward, thm:wH-stage1-fwd, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:crossover-exists, def:Ccrossover, cor:crossover-unaveraged, def:p0, lem:p_pos, lem:meas-bd}
+
+We split into the case $p_0 < q$ (the natural case) and the case $q \leq p_0$
+(handled by interpolating with $q' := (p_0+1)/2$). Assume $p_0 < q$ first.
+
+By regularization $u \mapsto u + \delta$ (which preserves the supersolution
+property by \leanname{isSupersolution\_add\_const\_unitBall}), and using the
+identity $\Lambda_A p_0^2 = c'(d)^2$, the product of the forward Moser
+estimate, the crossover bound and the inverse Moser estimate gives
+\begin{multline*}
+  \Bigl(\int_{\Bz{1/4}}(u+\delta)^{q d/(d-2)}\Bigr)^{p_0(d-2)/(q d)}
+  \times \bigl(c'(d)^2 + 1\bigr)^{d/2}
+  \\[-2pt]
+  \leq C_{\mathrm{wH},0\to}\,C_{\mathrm{wH},0}\,C_{\mathrm{cross}}\,
+       \vol(\Bz{1/2})^2\,(c'(d)^2/(1-q)^2 + 1)^{d\chi/2}
+       \bigl(\essinf_{\Bz{1/4}}(u+\delta)\bigr)^{p_0}.
+\end{multline*}
+By \leanname{weak\_harnack\_forward\_factor\_bound} the right factor is
+absorbed into $(1-q)^{-d\chi}$ times a dimensional constant, so collecting
+terms produces a constant $C_{\mathrm{chainMain}}(d)$ with
+\begin{equation*}
+  \Bigl(\int_{\Bz{1/4}} (u+\delta)^{qd/(d-2)}\Bigr)^{p_0(d-2)/(qd)}
+  \;\leq\; \frac{C_{\mathrm{chainMain}}(d)}{(1-q)^{d\chi(d)}}
+        \bigl(\essinf_{\Bz{1/4}}(u+\delta)\bigr)^{p_0}.
+\end{equation*}
+Letting $\delta = 1/(n+1) \downarrow 0$ and using the dominated/monotone
+convergence theorems on each side concludes the case $p_0 < q$.
+
+For $q \leq p_0$ pick $q' := (p_0+1)/2 \in (p_0,1)$ and apply the previous
+case with $q'$. Since $q d/(d-2) \leq q' d/(d-2)$, monotonicity of $L^p$ norms
+on $\Bz{1/4}$ (\leanname{quarterBall\_lpNorm\_mono}) raises the resulting
+$L^{q' d/(d-2)}$ norm to dominate the $L^{q d/(d-2)}$ norm, and a uniform
+bound $C_{\mathrm{chainMain}}/(1-q')^{d\chi} \leq C_{\mathrm{chain}}/(1-q)^{d\chi}$
+\leanname{(hmain\_to\_public)} then yields the claim.
+\end{proof}
+
+\begin{definition}
+\label{def:CwH}
+\lean{DeGiorgi.C_weakHarnack}
+\leanok
+\uses{def:moserChi, def:C_Moser, def:C_weakHarnack0Forward, def:c_crossover_bmo_scale, def:Ccrossover}
+$
+  C_{wH}(d) \;:=\; C_{\mathrm{chain}}(d)^{1/c'(d)}.
+$
+By Lemma~\ref{lem:c-crossover-bounds} and $C_{\mathrm{chain}} \geq 1$, we have
+$C_{wH}(d) \geq 1$ (\leanname{one\_le\_C\_weakHarnack}).
+\end{definition}
+
+\begin{theorem}
+\label{thm:wH}
+\lean{DeGiorgi.weak_harnack}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:p0, def:CwH}
+For $d \geq 3$, $A$ normalized elliptic on $\Bz 1$, $u > 0$ a supersolution,
+and $0 < q < 1$:
+\begin{equation*}
+  \Bigl(\int_{\Bz{1/4}} u^{q d/(d-2)}\,dx\Bigr)^{(d-2)/(qd)}
+    \leq \Bigl(\frac{C_{wH}(d)}{(1-q)^{\beta(d)}}\Bigr)^{\Lambda_A^{1/2}}
+        \essinf_{\Bz{1/4}} u.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, def:C_weakHarnack0Forward, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:crossover-exists, def:Ccrossover, lem:p_pos, thm:wH-chain, lem:meas-bd}
+
+By Theorem~\ref{thm:wH-chain},
+$I^\alpha \leq C_{\mathrm{chain}}(d)/(1-q)^{d\chi}\cdot (\essinf u)^{p_0}$
+where $I := \int_{\Bz{1/4}} u^{qd/(d-2)}$ and $\alpha := p_0(d-2)/(qd)$.
+Raising both sides to the $1/p_0$ power (\leanname{rpow\_le\_rpow\_of\_exponent}):
+\begin{equation*}
+  I^{(d-2)/(qd)}
+   \;\leq\; \Bigl(\frac{C_{\mathrm{chain}}(d)}{(1-q)^{d\chi(d)}}\Bigr)^{1/p_0}
+       \essinf_{\Bz{1/4}} u.
+\end{equation*}
+Now use $1/p_0 = \Lambda_A^{1/2}/c'(d)$ and the laws of real powers:
+\begin{align*}
+  \Bigl(\frac{C_{\mathrm{chain}}(d)}{(1-q)^{d\chi(d)}}\Bigr)^{1/p_0}
+   &= \Bigl(\bigl(C_{\mathrm{chain}}(d)/(1-q)^{d\chi(d)}\bigr)^{1/c'(d)}\Bigr)^{\Lambda_A^{1/2}}\\
+   &= \Bigl(C_{\mathrm{chain}}(d)^{1/c'(d)}\big/(1-q)^{d\chi(d)/c'(d)}\Bigr)^{\Lambda_A^{1/2}}\\
+   &= \Bigl(C_{wH}(d)\big/(1-q)^{\beta(d)}\Bigr)^{\Lambda_A^{1/2}}.
+\end{align*}
+\end{proof}
+
+\begin{theorem}
+\label{thm:wH-on-ball}
+\lean{DeGiorgi.weak_harnack_on_ball}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:p0, def:CwH}
+On a general ball $\Ball R{x_0}$ with $R > 0$, the weak Harnack inequality
+takes the form
+\begin{multline*}
+  \Bigl(R^{-d}\int_{\Ball{R/4}{x_0}} u^{qd/(d-2)}\,dx\Bigr)^{(d-2)/(qd)}\\
+   \leq \Bigl(\frac{C_{wH}(d)}{(1-q)^{\beta(d)}}\Bigr)^{\Lambda_A^{1/2}}
+        \essinf_{z \in \Bz{1/4}}\, u(x_0 + R z).
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:rescaleToUnitBall, def:rescaleCoeffToUnitBall, thm:rescaleToUnitBall_isSubsolution, thm:wH}
+
+Apply Theorem~\ref{thm:wH} to the rescaled function
+$u_R(z) := u(x_0 + R z)$ on $\Bz 1$ with the rescaled coefficients
+$A_R := \leanname{rescaleNormalizedCoeffToUnitBall}\,A$, which preserves
+$\Lambda$ (so $p_0(A_R) = p_0(A)$). The change of variables
+$\leanname{crossover\_integral\_comp\_affine\_ball}$ yields the
+$R^{-d}$ Jacobian factor on the left, while the essential infimum of $u_R$
+on $\Bz{1/4}$ equals that of $u$ on $\Ball{R/4}{x_0}$ pulled back through the
+affine map.
+\end{proof}
+
+\subsection{Support constants}
+
+\begin{definition}
+\label{def:local-bases}
+\lean{DeGiorgi.localMoserBase, DeGiorgi.localWeakHarnackBase}
+\leanok
+\uses{def:C_Moser, def:p0, def:CwH}
+\begin{align*}
+  M_{\mathrm{loc}}(d) &:= C_{\mathrm{Moser}}(d)\,((d-1))^d\,4^d, \\
+  W_{\mathrm{loc}}(d) &:= C_{wH,0}(d)\, d^{\beta(d)}.
+\end{align*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:one_le_localMoserBase}
+\lean{DeGiorgi.one_le_localMoserBase, DeGiorgi.one_le_localWeakHarnackBase}
+\leanok
+\uses{def:local-bases}
+For $d \geq 3$, $1 \leq M_{\mathrm{loc}}(d)$ and $1 \leq W_{\mathrm{loc}}(d)$.
+Both are strictly positive.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, def:C_weakHarnack0Forward, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:crossover-exists, def:Ccrossover, def:p0, def:CwH}
+
+Each is a product of factors $\geq 1$: $C_{\mathrm{Moser}}(d) \geq 1$,
+$(d-1)^d \geq 1$ (since $d-1 \geq 2$), $4^d \geq 1$, $C_{wH,0} \geq 1$,
+$d^{\beta(d)} \geq 1$ (since $d \geq 1$ and $\beta(d) \geq 0$ by
+\leanname{weak\_harnack\_decay\_exp\_nonneg}).
+\end{proof}
+
+\subsection{Measure-bound utilities}
+
+The Harnack and Holder layers also use a small toolkit of $\esssup/\essinf$
+arithmetic on restricted ball measures (\leanname{Support/MeasureBounds.lean}).
+
+\begin{lemma}
+\label{lem:meas-bd}
+\lean{DeGiorgi.le_essInf_real_of_ae_le, DeGiorgi.essSup_le_of_ae_bdd, DeGiorgi.essInf_add_const_of_bdd, DeGiorgi.essSup_neg_of_bdd}
+\leanok
+Let $\mu$ be a non-zero (Borel) measure on $E$ and $u : E \to \R$.
+\begin{enumerate}
+\item If $u \geq c$ $\mu$-a.e., then $c \leq \essinf_\mu u$.
+\item If $K \leq u \leq C$ $\mu$-a.e., then $\essinf_\mu u, \esssup_\mu u
+  \in [K,C]$.
+\item If $u$ is bounded $\mu$-a.e., then
+  $\essinf_\mu(u+c) = \essinf_\mu u + c$ and the symmetric statement for
+  $\esssup$.
+\item $\esssup_\mu(-u) = -\essinf_\mu u$ when $u$ is bounded.
+\item For a measurable embedding $T : E\to E$ and measurable $g$,
+  $\essinf_\mu(g\circ T) = \essinf_{T_*\mu} g$ \leanname{(essInf\_comp\_measurableEmbedding\_eq)}.
+\item For $c \in \ENNReal\setminus\{0\}$, $\essinf_{c\cdot \mu}f =
+  \essinf_\mu f$.
+\end{enumerate}
+Furthermore, $\vol(\Ball r c)\neq 0$ for $r > 0$, so the restriction
+$\vol|_{\Ball r c}$ is non-zero \leanname{(restrict\_ball\_ne\_zero)}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Each statement is a direct unfolding of $\essinf$/$\esssup$ as a $\sSup$/$\sInf$
+over levels at which the corresponding sublevel set has positive/full measure.
+For instance, in (1): assume $\mu \neq 0$ and $\mu(\{u < c\}) = 0$. Then
+$\{u < a\}$ has measure zero for every $a < c$, so $a$ is dominated by every
+upper bound used in the definition of $\essinf_\mu u$, hence $c \leq
+\essinf_\mu u$. Statements (3),(4) follow from the corresponding
+$\liminf/\limsup$ arithmetic on the filter $\ae \mu$ together with the fact
+that the functions are eventually bounded. Statements (5),(6) follow from
+the change-of-variables and scaling formulas for the underlying
+$\sSup/\sInf$ over level sets.
+\end{proof}
+
+%% --- Section 11 ---
+\section{Harnack Inequality and Holder Regularity}
+
+\begin{definition}
+\label{def:Charnack}
+\lean{DeGiorgi.C_harnack}
+\leanok
+\uses{def:C_Moser, def:p0, def:CwH}
+\begin{equation*}
+  C_{\mathrm{Har}}(d) := 17\Bigl(\frac{d-2}{d-1}\,\log\bigl(C_{\mathrm{Moser}}(d)\,(d-1)^d\,4^d\bigr)
+        + d + \log\bigl(C_{wH,0}(d)\,d^{\beta(d)}\bigr)\Bigr).
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:C_harnack_nonneg}
+\lean{DeGiorgi.C_harnack_nonneg}
+\leanok
+\uses{def:Charnack}
+For $d \geq 3$, $0 \leq C_{\mathrm{Har}}(d)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_Moser, def:p0, def:CwH, def:local-bases, lem:one_le_localMoserBase}
+
+$(d-2)/(d-1) \geq 0$, both logs are nonnegative since
+$M_{\mathrm{loc}}(d) \geq 1$ and $W_{\mathrm{loc}}(d) \geq 1$, and $d \geq 0$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:harnack}
+\lean{DeGiorgi.harnack}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:Charnack}
+Let $d \geq 3$, $A$ normalized elliptic on $\Bz 1$, and $u > 0$ a (local
+weak) solution of $-\dv(A\nabla u) = 0$ on $\Bz 1$. Then
+\begin{equation*}
+  \esssup_{\Bz{1/2}} u \;\leq\; \exp\bigl(C_{\mathrm{Har}}(d)\,\Lambda_A^{1/2}\bigr)
+        \essinf_{\Bz{1/2}} u.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded, thm:ae_on_set_of_ae_on_finite_cover, def:EllipticCoeff, def:rescaleToUnitBall, def:rescaleCoeffToUnitBall, thm:rescaleToUnitBall_isSubsolution, def:EllipticCoeff_restrict, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, thm:linfty-Moser, def:C_weakHarnack0Forward, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:crossover-exists, def:Ccrossover, def:p0, def:CwH, thm:wH-on-ball, def:local-bases, lem:one_le_localMoserBase, lem:meas-bd}
+
+Define
+\begin{equation*}
+K(A) := \bigl(M_{\mathrm{loc}}(d)\Lambda_A^{d/2}\bigr)^{1/p_{\mathrm{Har}}(d)}
+        \cdot W_{\mathrm{loc}}(d)^{\Lambda_A^{1/2}},
+\end{equation*}
+where $p_{\mathrm{Har}}(d) = (d-1)/(d-2) \cdot$ stuff (the auxiliary
+exponent \leanname{harnack\_p}). The forward Moser estimate gives, on each
+ball $\Ball{1/16}{c}$ centred at $c \in \Ball{1/2}{0}$,
+\begin{equation*}
+  \esssup_{\Ball{1/16}{c}} u
+   \;\leq\; \bigl(M_{\mathrm{loc}}(d)\Lambda_A^{d/2}\bigr)^{1/p_{\mathrm{Har}}(d)}
+        \cdot \Bigl(\fint_{\Ball{1/8}{c}} u^{p_{\mathrm{Har}}(d)}\Bigr)^{1/p_{\mathrm{Har}}(d)},
+\end{equation*}
+and Theorem~\ref{thm:wH-on-ball} (weak Harnack on $\Ball{1/8}{c}$) gives
+\begin{equation*}
+  \Bigl(\fint_{\Ball{1/8}{c}} u^{p_{\mathrm{Har}}(d)}\Bigr)^{1/p_{\mathrm{Har}}(d)}
+        \;\leq\; W_{\mathrm{loc}}(d)^{\Lambda_A^{1/2}}\,
+        \essinf_{\Ball{1/16}{c}} u.
+\end{equation*}
+Concatenating gives the local pointwise (a.e.) bound
+$u(x) \leq K(A)\,\essinf_{\Ball{1/8}{c}} u$ for almost every $x \in \Ball{1/16}{c}$
+(\leanname{ae\_le\_localHarnack\_on\_eighthBall}).
+
+By compactness of $\overline{\Bz{1/2}}$, there is a finite cover of
+$\overline{\Bz{1/2}}$ by balls $\Ball{1/16}{c_i}$ with $c_i = (15/16) x_i$,
+$x_i \in \overline{\Bz{1/2}}$. Chaining at most $16$ such local Harnack
+inequalities along a path connecting any two centres
+(\leanname{quarterBallInf\_chain\_le}) yields, almost everywhere on
+$\Bz{1/2}$,
+\begin{equation*}
+  u(x) \;\leq\; K(A)^{17}\,\essinf_{\Bz{1/2}} u.
+\end{equation*}
+Hence $\esssup_{\Bz{1/2}} u \leq K(A)^{17}\,\essinf_{\Bz{1/2}} u$.
+
+Finally, the elementary identity
+\begin{equation*}
+  17\Bigl[\frac{d-2}{d-1}\log M_{\mathrm{loc}}(d) + \frac{d}{2}\log\Lambda_A
+    + \log W_{\mathrm{loc}}(d) \Lambda_A^{1/2}\Bigr]
+  \;\leq\; C_{\mathrm{Har}}(d)\,\Lambda_A^{1/2}
+\end{equation*}
+(using $\Lambda_A^{1/2} \geq 1$ and $\log\Lambda_A \leq 2\Lambda_A^{1/2}$,
+established in \leanname{localHarnackConstant\_pow\_seventeen\_le\_exp})
+gives $K(A)^{17} \leq \exp(C_{\mathrm{Har}}(d)\,\Lambda_A^{1/2})$, completing
+the proof.
+\end{proof}
+
+\begin{corollary}
+\label{cor:harnack_of_homogeneousWeakSolution}
+\lean{DeGiorgi.harnack_of_homogeneousWeakSolution}
+\leanok
+\uses{def:ellipticityRatio, def:IsHomogeneousWeakSolution, def:Charnack}
+The same conclusion holds for any positive homogeneous weak solution
+$u$ on $\Bz 1$, since such a $u$ is in particular an
+$\IsSolution$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{lem:isHomogeneousWeakSolution_isSubsolution, thm:harnack}
+See the Lean formalization.
+\end{proof}
+
+\subsection{Holder regularity}
+
+\begin{definition}
+\label{def:CholderMoser}
+\lean{DeGiorgi.C_holder_Moser, DeGiorgi.moserDecayAlpha}
+\leanok
+\uses{def:ellipticityRatio, def:C_Moser, def:CwH, def:Charnack}
+\begin{align*}
+  C_{\mathrm{Hol}}(d) &:= 256\bigl(|C_{\mathrm{Har}}(d)| + M_{\mathrm{loc}}(d)
+        + C_{\mathrm{Moser}}(d) 2^d + C_{wH,0}(d) d^d + 8\bigr), \\
+  \alpha(A) &:= \exp\bigl(-(C_{\mathrm{Har}}(d)\,\Lambda_A^{1/2})\bigr).
+\end{align*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:moserDecayAlpha_pos}
+\lean{DeGiorgi.moserDecayAlpha_pos, DeGiorgi.moserDecayAlpha_le_one, DeGiorgi.moserLowerBound_le_decayAlpha}
+\leanok
+\uses{def:ellipticityRatio, def:CholderMoser}
+$0 < \alpha(A) \leq 1$, and
+$\exp(-(C_{\mathrm{Hol}}(d)\,\Lambda_A^{1/2})) \leq \alpha(A)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_poinc_val, def:C_JN, lem:smoothTransition_nnnorm_deriv_bounded, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, def:C_weakHarnack0Forward, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:crossover-exists, def:Ccrossover, def:CwH, def:local-bases, def:Charnack, lem:C_harnack_nonneg}
+
+$\alpha(A) > 0$ as the exponential of a real, $\alpha(A) \leq 1$ since the
+exponent is $\leq 0$ (because $C_{\mathrm{Har}} \geq 0$), and the lower
+bound is the monotonicity of $\exp$ together with $C_{\mathrm{Har}}(d) \leq
+C_{\mathrm{Hol}}(d)$ (\leanname{C\_harnack\_le\_C\_holder\_Moser}).
+\end{proof}
+
+\begin{lemma}
+\label{lem:one_sub_moserDecayAlpha_le_two_rpow_neg}
+\lean{DeGiorgi.one_sub_moserDecayAlpha_le_two_rpow_neg}
+\leanok
+\uses{def:ellipticityRatio, def:CholderMoser}
+$1 - \alpha(A) \leq (1/2)^{\alpha(A)}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:moserDecayAlpha_pos}
+
+Set $\alpha = \alpha(A) \in (0,1]$. We have $1 - \alpha \leq e^{-\alpha}$
+(by $1+x \leq e^x$ at $x = -\alpha$), and $-\alpha \leq -\alpha\log 2$ since
+$\log 2 \leq 1$. Hence $e^{-\alpha} \leq e^{-\alpha\log 2} = (1/2)^\alpha$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:holder-Moser}
+\lean{DeGiorgi.holder_Moser}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:CholderMoser}
+Let $d \geq 3$, $A$ normalized elliptic on $\Bz 1$, $p_0 > 1$, and $u$ a
+solution of $-\dv(A\nabla u) = 0$ with $|u|^{p_0} \in \Lp{1}(\Bz 1)$.
+Then there exists a representative $v$ of $u$ on $\Bz 1$ (i.e.\ $v = u$
+almost everywhere on $\Bz 1$) and an exponent
+$\alpha = \alpha(A) > 0$ with
+$\exp(-(C_{\mathrm{Hol}}(d)\,\Lambda_A^{1/2})) \leq \alpha$ such that for
+every $x, y \in \Bz{1/2}$,
+\begin{equation*}
+  |v(x) - v(y)|
+   \;\leq\; C_{\mathrm{Hol}}(d)\,\Lambda_A^{d/(2p_0)}
+        \Bigl(\frac{p_0}{p_0 - 1}\Bigr)^{d/p_0}
+        \Bigl(\int_{\Bz 1} |u|^{p_0}\,dz\Bigr)^{1/p_0}
+        \,\|x - y\|^{\alpha}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:C_poinc_val, def:C_JN, def:dyadicBallAverage, lem:smoothTransition_nnnorm_deriv_bounded, def:rescaleToUnitBall, def:rescaleCoeffToUnitBall, thm:rescaleToUnitBall_isSubsolution, def:EllipticCoeff_restrict, lem:essSup_rescale_halfBall, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, thm:linfty-Moser, def:C_weakHarnack0Forward, def:c_crossover_bmo_scale, lem:c-crossover-bounds, thm:crossover-exists, def:Ccrossover, def:CwH, def:local-bases, lem:meas-bd, def:Charnack, lem:C_harnack_nonneg, thm:harnack, lem:moserDecayAlpha_pos, lem:one_sub_moserDecayAlpha_le_two_rpow_neg}
+
+Define $\alpha := \alpha(A)$ and let $v := \leanname{moserRepresentative}\,u$
+be the dyadic-average representative supplied by
+\leanname{Holder/Representative.lean}. By
+\leanname{moserRepresentative\_ae\_eq}, $v = u$ almost everywhere on $\Bz 1$.
+
+Fix $x, y \in \Bz{1/2}$. If $x = y$ the bound is trivial. Otherwise,
+distinguish two cases.
+
+\emph{Large distance.} If $\|x - y\| \geq 1/8$, by
+\leanname{moserRepresentative\_large\_distance\_bound} there is a direct
+control by the $L^{p_0}$ norm of $u$:
+\begin{equation*}
+  |v(x) - v(y)| \;\leq\; C_{\mathrm{Hol}}(d)\,\Lambda_A^{d/(2p_0)}
+    \bigl(p_0/(p_0-1)\bigr)^{d/p_0}\,\|u\|_{L^{p_0}(\Bz 1)}.
+\end{equation*}
+Since $\|x-y\|^\alpha \geq (1/8)^\alpha \geq 1/8$ and absorbing constants
+into $C_{\mathrm{Hol}}$ via the factor $256$ in
+Definition~\ref{def:CholderMoser} gives the claim.
+
+\emph{Small distance.} If $\|x - y\| < 1/8$, choose $n$ with
+$2^{-(n+1)} \leq \|x - y\| < 2^{-n}$ \leanname{(exists\_moserDyadicRadius\_near)},
+and apply the dyadic oscillation decay
+\leanname{moser\_oscillation\_decay\_on\_ball}, which iterates the Harnack
+inequality on each ball $\Ball{2^{-k}}{c}$ centred near $x$:
+\begin{equation*}
+  \osc_{\Ball{2^{-k-1}}{c}} u
+    \;\leq\; (1 - \alpha)\,\osc_{\Ball{2^{-k}}{c}} u.
+\end{equation*}
+Iterating gives geometric decay
+$\osc_{\Ball{2^{-n}}{c}} u \leq (1-\alpha)^n\,\osc_{\Ball 1 0} u$.
+By the previous lemma $1 - \alpha \leq (1/2)^\alpha$, hence
+$(1-\alpha)^n \leq 2^{-\alpha n} \leq C\,\|x - y\|^\alpha$.
+
+The starting oscillation $\osc_{\Bz 1} u$ is controlled by twice the local
+$L^\infty$ bound, which by the forward Moser estimate
+\leanname{linfty\_subsolution\_Moser\_on\_ball} is bounded by
+$M_{\mathrm{loc}}(d)\Lambda_A^{d/(2p_0)} (p_0/(p_0-1))^{d/p_0}
+        \|u\|_{L^{p_0}(\Bz 1)}$.
+This yields the desired pointwise Holder bound on the representative $v$.
+\end{proof}
+
+\begin{corollary}
+\label{cor:holder_Moser_of_homogeneousWeakSolution}
+\lean{DeGiorgi.holder_Moser_of_homogeneousWeakSolution}
+\leanok
+\uses{def:ellipticityRatio, def:IsHomogeneousWeakSolution, def:CholderMoser}
+The same conclusion holds verbatim for homogeneous weak solutions
+($\IsHomogeneousWeakSolution$), since these satisfy
+$\IsSolution$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{lem:isHomogeneousWeakSolution_isSubsolution, thm:holder-Moser}
+See the Lean formalization.
+\end{proof}
+
+\begin{remark}
+The dependence on the ellipticity bound $\Lambda_A$ enters Holder regularity
+in two ways: through the multiplicative prefactor $\Lambda_A^{d/(2p_0)}$
+inherited from the forward Moser bound, and through the Holder exponent
+$\alpha(A) = \exp(-C_{\mathrm{Har}}(d)\,\Lambda_A^{1/2})$ inherited from the
+Harnack constant. As $\Lambda_A \to \infty$, $\alpha(A) \to 0$ exponentially,
+quantifying the well-known degeneration of De Giorgi--Nash--Moser regularity
+for highly anisotropic elliptic operators.
+\end{remark}

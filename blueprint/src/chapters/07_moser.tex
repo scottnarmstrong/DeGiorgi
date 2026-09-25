@@ -1,0 +1,1244 @@
+\chapter{Moser Iteration and Supersolution Estimates}\label{sec:moser}
+%% ========================================================================
+
+%% --- Section 7 ---
+
+\section{Moser Iteration}
+
+Throughout this section we fix a dimension $d \in \N$ with $d \geq 1$ and
+$d > 2$, and write $E = \R^d$ for the ambient space. All balls are taken
+around the origin in $E$, and we abbreviate $\Bz{r} = \Ball{r}{0}$. Functions
+$u : E \to \R$ are real valued; $A$ denotes a normalized elliptic coefficient
+field on $\Bz{1}$, with ellipticity ratio $\Lambda = \Lambda_A \geq 1$
+\leanname{NormalizedEllipticCoeff}. The notion of subsolution is
+\leanname{IsSubsolution} and that of supersolution is
+\leanname{IsSupersolution}. The starting point is the normalized De Giorgi
+$L^2 \to L^\infty$ estimate proved in Section 5.
+
+\subsection{Moser constants}
+
+\begin{definition}[Moser anchor constant]
+\label{def:C_MoserAnchor}
+\lean{DeGiorgi.C_MoserAnchor}
+\leanok
+\uses{def:C_gns, lem:smoothTransition_nnnorm_deriv_bounded, def:K_DeGiorgi_subsolution_normalized}
+The \emph{Moser anchor} in dimension $d$ is
+\begin{equation*}
+  C_{\mathrm{MA}}(d) := \max\!\left\{1,\;
+    C_{\mathrm{DG}}^{\mathrm{sub}}(d)^{2},\;
+    8\,\Mst^{2}\,C_{\mathrm{gns}}(d,2)^{2}\right\},
+\end{equation*}
+where $C_{\mathrm{DG}}^{\mathrm{sub}}(d)$ is the normalized De Giorgi
+subsolution constant of Section 5 and $C_{\mathrm{gns}}(d,2)$ is the
+Gagliardo--Nirenberg--Sobolev constant for $p=2$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:one_le_C_MoserAnchor}
+\lean{DeGiorgi.one_le_C_MoserAnchor}
+\leanok
+\uses{def:C_MoserAnchor}
+$1 \leq C_{\mathrm{MA}}(d)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Immediate from $C_{\mathrm{MA}}(d) \geq \max\{1,\dots\} \geq 1$.
+\end{proof}
+
+\begin{definition}[Sobolev gain factor and decay ratio]
+\label{def:moserChi}
+\lean{DeGiorgi.moserChi, DeGiorgi.moserDecayRatio}
+\leanok
+Set
+\begin{equation*}
+  \chi := \frac{d}{d-2} \quad (\text{\leanname{moserChi}}),
+  \qquad
+  q := \frac{d-2}{d} \quad (\text{\leanname{moserDecayRatio}}).
+\end{equation*}
+\end{definition}
+
+\begin{lemma}[Basic algebraic facts on $\chi,q$]
+\label{lem:moserDecayRatio_nonneg}
+\lean{DeGiorgi.moserDecayRatio_nonneg, DeGiorgi.moserDecayRatio_lt_one, DeGiorgi.moserChi_pos, DeGiorgi.one_lt_moserChi, DeGiorgi.moserDecayRatio_eq_inv_moserChi}
+\leanok
+\uses{def:moserChi}
+Assume $d > 2$. Then
+\begin{enumerate}
+  \item $0 \leq q$ \leanname{moserDecayRatio\_nonneg};
+  \item $q < 1$ \leanname{moserDecayRatio\_lt\_one};
+  \item $0 < \chi$ \leanname{moserChi\_pos};
+  \item $1 < \chi$ \leanname{one\_lt\_moserChi};
+  \item $q = \chi^{-1}$ \leanname{moserDecayRatio\_eq\_inv\_moserChi}.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+For (1)--(2) note $0 \leq d-2 < d$, so $0 \leq (d-2)/d < 1$.
+For (3)--(4), $d/(d-2) > 0$ and $d > d-2$ gives $d/(d-2) > 1$.
+For (5), $\big((d-2)/d\big)^{-1} = d/(d-2)$.
+\end{proof}
+
+\begin{definition}[Dimensional Moser constant]
+\label{def:C_Moser}
+\lean{DeGiorgi.C_Moser}
+\leanok
+\uses{def:C_MoserAnchor, def:moserChi}
+Set $C_{\mathrm{MA}} := C_{\mathrm{MA}}(d)$. If $d > 2$, define
+\begin{equation*}
+  C_{\mathrm{Moser}}(d) := \max\!\left\{C_{\mathrm{MA}},\;
+    (32\,C_{\mathrm{MA}})^{d/2}\,
+    4^{\sum_{n=0}^{\infty} n\,q^{n}}\right\};
+\end{equation*}
+otherwise $C_{\mathrm{Moser}}(d) := C_{\mathrm{MA}}$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:C_MoserAnchor_le_C_Moser}
+\lean{DeGiorgi.C_MoserAnchor_le_C_Moser, DeGiorgi.one_le_C_Moser, DeGiorgi.C_DeGiorgi_subsolution_normalized_sq_le_C_Moser}
+\leanok
+\uses{def:K_DeGiorgi_subsolution_normalized, def:C_MoserAnchor, def:C_Moser}
+$C_{\mathrm{MA}}(d) \leq C_{\mathrm{Moser}}(d)$, $1 \leq C_{\mathrm{Moser}}(d)$, and
+$C_{\mathrm{DG}}^{\mathrm{sub}}(d)^2 \leq C_{\mathrm{Moser}}(d)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:one_le_C_MoserAnchor}
+
+Both branches of the definition return a value $\geq C_{\mathrm{MA}}(d) \geq 1$.
+The third statement follows by transitivity from the corresponding bound for
+$C_{\mathrm{MA}}$.
+\end{proof}
+
+\subsection{Geometric sequences}
+
+\begin{definition}[Nested Moser radii]
+\label{def:moserRadius}
+\lean{DeGiorgi.moserRadius}
+\leanok
+\begin{equation*}
+  r_n := \frac{1 + 2^{-n}}{2}, \qquad n \geq 0.
+\end{equation*}
+Thus $r_0 = 1$ and $r_n \searrow 1/2$.
+\end{definition}
+
+\begin{lemma}[Properties of the radii]
+\label{lem:moserRadius_zero}
+\lean{DeGiorgi.moserRadius_zero, DeGiorgi.moserRadius_le_one, DeGiorgi.moserRadius_pos, DeGiorgi.moserRadius_gt_half, DeGiorgi.moserRadius_gap, DeGiorgi.moserRadius_succ_lt}
+\leanok
+\uses{def:moserRadius}
+For all $n \in \N$:
+\begin{enumerate}
+  \item $r_0 = 1$ \leanname{moserRadius\_zero};
+  \item $r_n \leq 1$ \leanname{moserRadius\_le\_one};
+  \item $0 < r_n$ \leanname{moserRadius\_pos};
+  \item $1/2 < r_n$ \leanname{moserRadius\_gt\_half};
+  \item $r_n - r_{n+1} = 2^{-(n+2)}$ \leanname{moserRadius\_gap};
+  \item $r_{n+1} < r_n$ \leanname{moserRadius\_succ\_lt}.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Each follows by direct algebra: e.g.\ for (5),
+$r_n - r_{n+1} = (2^{-n} - 2^{-(n+1)})/2 = 2^{-(n+2)}$.
+\end{proof}
+
+\begin{definition}[Exponent sequence]
+\label{def:moserExponentSeq}
+\lean{DeGiorgi.moserExponentSeq}
+\leanok
+\uses{def:moserChi}
+Given $p_0 \in \R$ and $n \in \N$, set
+\begin{equation*}
+  p_n := p_0 \chi^{n}.
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:moserExponentSeq_zero}
+\lean{DeGiorgi.moserExponentSeq_zero, DeGiorgi.moserExponentSeq_succ, DeGiorgi.moserExponentSeq_pos, DeGiorgi.moserExponentSeq_ge_initial, DeGiorgi.one_lt_moserExponentSeq, DeGiorgi.inv_moserExponentSeq}
+\leanok
+\uses{def:moserChi, def:moserExponentSeq}
+With $\chi = d/(d-2)$ and $q = \chi^{-1}$:
+\begin{enumerate}
+  \item $p_0 = p_0$ and $p_{n+1} = \chi p_n$ \leanname{moserExponentSeq\_zero}, \leanname{moserExponentSeq\_succ};
+  \item if $d>2$ and $p_0 > 0$, then $p_n > 0$ \leanname{moserExponentSeq\_pos};
+  \item if $d>2$ and $p_0 \geq 0$, then $p_0 \leq p_n$ \leanname{moserExponentSeq\_ge\_initial};
+  \item if $d>2$ and $p_0 > 1$, then $p_n > 1$ \leanname{one\_lt\_moserExponentSeq};
+  \item if $d>2$ and $p_0 > 0$, then $1/p_n = q^n / p_0$ \leanname{inv\_moserExponentSeq}.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:moserDecayRatio_nonneg}
+
+All four are immediate consequences of $\chi > 1$ and $p_n = p_0 \chi^n$;
+identity (5) uses $\chi^{-n} = q^n$.
+\end{proof}
+
+\subsection{Regularized power cutoffs}
+
+For the cutoff--power test functions of the iteration we set
+\begin{equation*}
+  \mathrm{PC}_d(\eta,u,p)(x) := \eta(x)\,|\!\max(u(x),0)|^{p/2}
+  \quad (\text{\leanname{moserPowerCutoff}}),
+\end{equation*}
+the smooth cutoff $\eta$ being supported in a slightly larger ball than the
+inner ball where the bound is sought.
+
+\begin{lemma}[Support property]
+\label{lem:moserPowerCutoff_tsupport_subset}
+\lean{DeGiorgi.moserPowerCutoff_tsupport_subset}
+\leanok
+If $\supp \eta \subseteq \Omega$, then
+$\supp \mathrm{PC}_d(\eta,u,p) \subseteq \Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Pointwise $\mathrm{PC}_d(\eta,u,p)(x) = 0$ whenever $\eta(x)=0$.
+\end{proof}
+
+\subsection{Sobolev preparation and the energy bound}
+
+The hard nonlinear core of the Moser iteration is the construction of a
+$W^{1,2}$ witness for the cutoff power $\mathrm{PC}_d(\eta,u,p)$ together with
+the matching energy estimate.
+
+\begin{theorem}[Cutoff--power energy bound]
+\label{thm:moser-cutoff-energy}
+\lean{DeGiorgi.moser_powerCutoff_memW1p_energy_of_subsolution_core}
+\leanok
+\uses{def:MemW1pWitness, def:ellipticityRatio, def:IsSubsolution}
+Let $d > 2$, $A$ a normalized elliptic coefficient on $\Bz{1}$, $u$ a
+subsolution of $A$, and $\eta \in C^{\infty}_c(\Bz{s})$ a smooth cutoff with
+$0 \leq \eta \leq 1$ and $\|\nabla \eta\|_{L^\infty} \leq C_\eta$. Suppose
+$0 < s \leq 1$, $1 < p$, and $\int_{\Bz{s}} |u_+|^p < \infty$. Then there
+exists a $W^{1,2}$ witness for $v := \mathrm{PC}_d(\eta,u,p)$ on $\Bz{s}$
+satisfying
+\begin{equation*}
+  \int_{\Bz{s}} \|\nabla v\|^{2}\,dx
+  \;\leq\;
+  2\,C_\eta^{2}\,\Big(\Lambda\,\Big(\frac{p}{p-1}\Big)^{2} + 1\Big)
+  \int_{\Bz{s}} |u_+|^{p}\,dx.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_lp_closure, def:MemW1p, def:MemW01p, lem:witness_add, lem:MemW1pWitness_restrict, lem:MemW1pWitness_smul, lem:weak_grad_norm_memLp, lem:zero_outside_tsupport, thm:memW01p_of_compactly_supported, def:CampanatoBall, def:HasCampanatoBound, thm:chain-rule-open, lem:rescale-witness, thm:w12-approx, lem:MemW1pWitness_sub_const, lem:MemW1pWitness_mul_smooth_bounded, def:EllipticCoeff, lem:EllipticCoeff_ae_coercive_nonneg, lem:EllipticCoeff_mulVec_sq_le, lem:EllipticCoeff_quadratic_upper, def:bilinFormIntegrandOfCoeff, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff, lem:bilinFormOfCoeff_eq_left, def:rescaleToUnitBall, def:rescaleCoeffToUnitBall, thm:rescaleToUnitBall_isSubsolution, def:EllipticCoeff_restrict, lem:memH01_indicator_ball_of_closedBall_subset, lem:bilinForm_ball_restrict_eq_zeroExtend, def:positivePartSub, def:positivePartSub_memW1pWitness_on_ball, cor:linfty_subsolution_DeGiorgi_exists_threshold}
+
+The witness for $v := \mathrm{PC}_d(\eta, u, p) = \eta\,(u_+)^{p/2}$ is
+constructed in \leanname{moserPowerCutoff\_memW1pWitness}, which we now
+unpack. First, a $W^{1,2}$ witness for $(u_+)^{p/2}$ on $\Bz{s}$ is obtained
+from the truncation $u_+$ (whose witness comes from
+\leanname{positivePartSub\_memW1pWitness\_on\_ball}) composed with the
+power $t \mapsto t^{p/2}$ via the $W^{1,2}$ chain rule
+\leanname{sobolev\_chain\_rule\_unitBall}; the local integrability
+$\int (u_+)^{p} < \infty$ together with $p > 1$ ensures the chain-rule
+hypotheses (locally Lipschitz factor on $[0,\infty)$). The product
+$\eta\,(u_+)^{p/2}$ is then an honest $W^{1,2}$ function via
+\leanname{MemW1pWitness.mul\_smooth\_bounded\_p}, with weak gradient
+$\nabla v = \eta\,(p/2)(u_+)^{p/2-1}\nabla u_+ + (u_+)^{p/2}\nabla \eta$.
+
+For the energy bound, test the subsolution inequality against
+$\varphi := \eta^{2}(u_+)^{p-1}$ (this is in $H^{1}_{0}(\Bz{s})$ thanks to
+the support inclusion of $\eta$ and the integrability hypothesis on $u_+$).
+The pointwise expansion of $\langle A\nabla u, \nabla \varphi\rangle$ via
+\leanname{bilinFormIntegrand\_mul\_smooth\_eq} yields
+\begin{multline*}
+  \int_{\Bz{s}} (p-1)\,\eta^{2}\,(u_+)^{p-2}\,\langle A\nabla u_+, \nabla u_+\rangle\,dx
+  \\
+  \le -2\int_{\Bz{s}} \eta\,(u_+)^{p-1}\,\langle A\nabla u_+, \nabla \eta\rangle\,dx,
+\end{multline*}
+where on the left we discarded the supersolution-favourable term and on the
+right we used the subsolution inequality. The right-hand side is bounded by
+Cauchy--Schwarz against $\langle A\cdot, \cdot\rangle$ followed by AM--GM
+with weight $\varepsilon = (p-1)/2$:
+\begin{equation*}
+  2|\eta\,(u_+)^{p-1}\langle A\nabla u_+,\nabla \eta\rangle|
+  \le \frac{p-1}{2}\eta^{2}(u_+)^{p-2}\langle A\nabla u_+,\nabla u_+\rangle
+  + \frac{2}{p-1}(u_+)^{p}\langle A\nabla \eta,\nabla \eta\rangle.
+\end{equation*}
+Absorbing the first term into the left-hand side leaves
+$(p-1)/2 \cdot \int \eta^{2}(u_+)^{p-2}\langle A\nabla u_+,\nabla u_+\rangle$,
+and the residual term is bounded by $\Lambda C_\eta^{2}\int (u_+)^{p}$ via
+the upper ellipticity bound for $A$ and $\|\nabla \eta\| \le C_\eta$.
+
+Finally, expanding $\nabla v = \eta\,(p/2)(u_+)^{p/2-1}\nabla u_+ +
+(u_+)^{p/2}\nabla \eta$, the pointwise inequality
+$\|\nabla v\|^{2} \le 2\,\eta^{2}(p/2)^{2}(u_+)^{p-2}\|\nabla u_+\|^{2}
++ 2(u_+)^{p}\|\nabla \eta\|^{2}$ together with the absorbed Caccioppoli
+estimate gives
+\begin{equation*}
+  \int_{\Bz{s}} \|\nabla v\|^{2}\,dx
+   \le 2\,C_\eta^{2}\Bigl(\Lambda\bigl(\tfrac{p}{p-1}\bigr)^{2} + 1\Bigr)
+   \int_{\Bz{s}} (u_+)^{p}\,dx,
+\end{equation*}
+the displayed energy inequality.
+\end{proof}
+
+\begin{theorem}[Zero trace upgrade]
+\label{thm:moser_powerCutoff_memW01p_energy_of_subsolution}
+\lean{DeGiorgi.moser_powerCutoff_memW01p_energy_of_subsolution}
+\leanok
+\uses{def:MemW1pWitness, def:ellipticityRatio, def:IsSubsolution}
+Under the hypotheses of Theorem~\ref{thm:moser-cutoff-energy}, the witness
+moreover satisfies $v \in W^{1,2}_{0}(\Bz{s})$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW01p, thm:memW01p_of_compactly_supported, lem:moserPowerCutoff_tsupport_subset, thm:moser-cutoff-energy}
+
+Since $\supp \eta \subseteq \Bz{s}$ is compact, $\supp v \subseteq \Bz{s}$ is
+likewise compactly contained. The criterion
+\leanname{memW01p\_of\_memW1p\_of\_tsupport\_subset} then upgrades $v$ from
+$W^{1,p}$ to $W^{1,p}_0$.
+\end{proof}
+
+\subsection{One-step Moser pre-estimate}
+
+\begin{theorem}[Concentric ball pre-estimate]
+\label{thm:moser-preMoser}
+\lean{DeGiorgi.moser_preMoser}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:C_MoserAnchor, def:moserChi}
+Let $d > 2$, $A$ as above, $u$ a subsolution, and $0 < r < s \leq 1$.
+Suppose $1 < p$ and $\int_{\Bz{s}} |u_+|^p < \infty$. Then $|u_+|^{\chi p}$
+is integrable on $\Bz{r}$ and
+\begin{multline*}
+  \Big(\int_{\Bz{r}} |u_+|^{\chi p}\,dx\Big)^{1/(\chi p)}
+  \\ \leq\;
+  \Big(\frac{C_{\mathrm{MA}}(d)}{(s-r)^{2}}\,
+    \Big(\Lambda\Big(\frac{p}{p-1}\Big)^{2} + 1\Big)\Big)^{1/p}
+  \,\Big(\int_{\Bz{s}} |u_+|^{p}\,dx\Big)^{1/p}.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, lem:zero_outside_tsupport, thm:zero_extend, thm:weak_grad_unique, def:C_gns, cor:sobolev_W01p, def:CampanatoBall, def:HasCampanatoBound, lem:smoothTransition_nnnorm_deriv_bounded, def:Cutoff, thm:Cutoff_exists, lem:one_le_C_MoserAnchor, lem:moserDecayRatio_nonneg, lem:moserPowerCutoff_tsupport_subset, thm:moser-cutoff-energy, thm:moser_powerCutoff_memW01p_energy_of_subsolution}
+
+Choose the midpoint radius $R := (r+s)/2 \in (r,s)$ and a smooth radial cutoff
+$\eta$ with $\eta = 1$ on $\Bz{r}$, $\supp \eta \subseteq \overline{\Bz{R}}
+\subseteq \Bz{s}$, $0 \leq \eta \leq 1$, and (by
+\leanname{Cutoff.exists}) $\|\nabla \eta\|_{L^\infty} \leq C_\eta := 2\Mst/(s-r)$.
+
+Set $v := \mathrm{PC}_d(\eta,u,p) = \eta\,(u_+)^{p/2}$. By
+Theorem~\ref{thm:moser-cutoff-energy} we get $v \in W^{1,2}_0(\Bz{s})$ with
+\begin{equation*}
+  \int_{\Bz{s}} \|\nabla v\|^{2}\,dx
+  \;\leq\;
+  2\,C_\eta^{2}\,\Big(\Lambda\Big(\frac{p}{p-1}\Big)^{2}+1\Big)
+  \int_{\Bz{s}} (u_+)^{p}\,dx.
+\end{equation*}
+The Sobolev inequality \leanname{sobolev\_prepare\_on\_ball} on $\Bz{s}$ in
+exponent $2 \to 2^{*} = 2d/(d-2)$ gives, with $C_{\mathrm{gns}} = C_{\mathrm{gns}}(d,2)$,
+\begin{equation*}
+  \Big(\int_{\Bz{s}} v^{2^{*}}\,dx\Big)^{1/2^{*}}
+  \;\leq\;
+  C_{\mathrm{gns}}\,
+  \Big(\int_{\Bz{s}} \|\nabla v\|^{2}\,dx\Big)^{1/2}.
+\end{equation*}
+On $\Bz{r}$ we have $\eta = 1$, so $v^{2^{*}} = (u_+)^{p\,d/(d-2)} = (u_+)^{\chi p}$.
+Combining with the energy bound and using $C_\eta^2 = 4\Mst^2/(s-r)^2$ together
+with $8\Mst^{2}\,C_{\mathrm{gns}}^{2} \leq C_{\mathrm{MA}}(d)$
+(\leanname{cutoff\_sobolev\_anchor\_le\_C\_MoserAnchor}) yields
+\begin{equation*}
+  \Big(\int_{\Bz{r}} (u_+)^{\chi p}\,dx\Big)^{2/2^{*}}
+  \;\leq\;
+  \frac{C_{\mathrm{MA}}(d)}{(s-r)^{2}}
+  \Big(\Lambda\Big(\frac{p}{p-1}\Big)^{2}+1\Big)
+  \int_{\Bz{s}} (u_+)^{p}\,dx.
+\end{equation*}
+Raising to the power $1/p$ and using $2/(2^{*}\,p)= 1/(\chi p)$ gives the
+claim.
+\end{proof}
+
+\subsection{Iteration}
+
+We now iterate the pre-estimate along $(r_n,p_n)$.
+
+\begin{definition}[Iteration quantities]
+\label{def:moserIterIntegral}
+\lean{DeGiorgi.moserIterIntegral, DeGiorgi.moserIterNorm, DeGiorgi.moserStepConst, DeGiorgi.moserLinftyBoundPow, DeGiorgi.moserLinftyMajorant}
+\leanok
+\uses{def:ellipticityRatio, def:C_MoserAnchor, def:C_Moser, def:moserRadius, def:moserExponentSeq}
+Set
+\begin{align*}
+  I_n(u) &:= \int_{\Bz{r_n}} (u_+)^{p_n}\,dx
+    && (\text{\leanname{moserIterIntegral}}), \\
+  N_n(u) &:= I_n(u)^{1/p_n}
+    && (\text{\leanname{moserIterNorm}}), \\
+  \mathrm{S}(A,p_0) &:= 32\,C_{\mathrm{MA}}(d)\,\Lambda\,\Big(\frac{p_0}{p_0-1}\Big)^{2}
+    && (\text{\leanname{moserStepConst}}).
+\end{align*}
+The product majorant produced by iteration is, for $n \geq 0$,
+\begin{equation*}
+  M_n(A,u,p_0) :=
+  \Big(
+    \mathrm{S}(A,p_0)^{\sum_{i=0}^{n-1} q^{i}}\,
+    4^{\sum_{i=0}^{n-1} i\,q^{i}}\,
+    \int_{\Bz{1}} (u_+)^{p_0}\,dx
+  \Big)^{1/p_0}.
+\end{equation*}
+We further define the target majorant
+\begin{align*}
+  B_\infty(A,u,p_0) &:= C_{\mathrm{Moser}}(d)\,\Lambda^{d/2}\,
+    \Big(\frac{p_0}{p_0-1}\Big)^{d}\,\int_{\Bz{1}} (u_+)^{p_0}\,dx
+    && (\text{\leanname{moserLinftyBoundPow}}), \\
+  M_\infty(A,u,p_0) &:= B_\infty(A,u,p_0)^{1/p_0}
+    && (\text{\leanname{moserLinftyMajorant}}).
+\end{align*}
+\end{definition}
+
+\begin{theorem}[Step--majorant inequality]
+\label{thm:moser-step-maj}
+\lean{DeGiorgi.moser_step_majorant_le}
+\leanok
+\uses{def:ellipticityRatio, def:C_MoserAnchor, def:moserChi, def:moserRadius, def:moserExponentSeq, def:moserIterIntegral}
+For $d > 2$, $1 < p_0$ and any $n \geq 0$,
+\begin{multline*}
+  \Big(\frac{C_{\mathrm{MA}}(d)}{(r_n-r_{n+1})^{2}}\,
+    \Big(\Lambda\Big(\frac{p_n}{p_n-1}\Big)^{2}+1\Big)\Big)^{1/p_n}
+  M_n(A,u,p_0) \\
+  \leq\;
+  M_{n+1}(A,u,p_0).
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:one_le_C_MoserAnchor, lem:moserDecayRatio_nonneg, lem:moserRadius_zero, lem:moserExponentSeq_zero}
+
+First, $r_n - r_{n+1} = 2^{-(n+2)}$ so
+$C_{\mathrm{MA}}/(r_n-r_{n+1})^2 = C_{\mathrm{MA}}\,4^{n+2} = 16\,C_{\mathrm{MA}}\,4^{n}$.
+Second, $p_n/(p_n-1) \leq p_0/(p_0-1)$ since $t \mapsto t/(t-1)$ is decreasing
+on $(1,\infty)$, hence
+\begin{equation*}
+  \Lambda\Big(\frac{p_n}{p_n-1}\Big)^{2}+1
+  \;\leq\; 2\,\Lambda\Big(\frac{p_0}{p_0-1}\Big)^{2}.
+\end{equation*}
+Combining gives
+\begin{equation*}
+  \frac{C_{\mathrm{MA}}}{(r_n-r_{n+1})^{2}}\,
+    \Big(\Lambda\Big(\frac{p_n}{p_n-1}\Big)^{2}+1\Big)
+  \;\leq\;
+  \mathrm{S}(A,p_0)\,4^{n}.
+\end{equation*}
+Raising to $1/p_n = q^n/p_0$ and multiplying by $M_n$ produces the inner factor
+$\mathrm{S}^{q^n/p_0} 4^{n q^n/p_0}$, which precisely promotes the partial sums
+in the exponents from $\sum_{i<n}$ to $\sum_{i\leq n}$. The resulting expression
+equals $M_{n+1}(A,u,p_0)$ by the definition of $M_{n+1}$.
+\end{proof}
+
+\begin{theorem}[Iteration bound]
+\label{thm:moser-iter-bound}
+\lean{DeGiorgi.moser_iteration_bound}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:moserRadius, def:moserExponentSeq, def:moserIterIntegral}
+For $d > 2$, $1 < p_0$, $u$ a subsolution of $A$, and
+$\int_{\Bz{1}} |u_+|^{p_0} < \infty$, for every $n \in \N$ we have
+$|u_+|^{p_n}$ integrable on $\Bz{r_n}$ and
+\begin{equation*}
+  N_n(u) \;\leq\; M_n(A,u,p_0).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserRadius_zero, lem:moserExponentSeq_zero, thm:moser-preMoser, thm:moser-step-maj}
+
+By induction on $n$. The case $n=0$ uses $r_0=1$, $p_0 = p_0$, and
+$M_0(A,u,p_0)= (\int_{\Bz{1}} (u_+)^{p_0})^{1/p_0}$ by definition. For the
+inductive step, the pre-estimate Theorem~\ref{thm:moser-preMoser} applied with
+$(p,r,s) = (p_n,r_{n+1},r_n)$ gives integrability of $|u_+|^{\chi p_n}$ on
+$\Bz{r_{n+1}}$ and
+\begin{multline*}
+  N_{n+1}(u)
+  \;\leq\;
+  \Big(\frac{C_{\mathrm{MA}}}{(r_n-r_{n+1})^{2}}
+    \Big(\Lambda\Big(\frac{p_n}{p_n-1}\Big)^{2}+1\Big)\Big)^{1/p_n}
+  N_n(u).
+\end{multline*}
+The inductive hypothesis $N_n(u) \leq M_n(A,u,p_0)$ and
+Theorem~\ref{thm:moser-step-maj} then yield $N_{n+1}(u) \leq M_{n+1}(A,u,p_0)$.
+\end{proof}
+
+\begin{lemma}[Geometric majorant absorption]
+\label{lem:moser-geom-maj}
+\lean{DeGiorgi.moser_geometric_majorant}
+\leanok
+\uses{def:ellipticityRatio, def:moserChi, def:moserIterIntegral}
+For $d > 2$, $1 < p_0$, and all $n$,
+\begin{equation*}
+  M_n(A,u,p_0) \;\leq\; M_\infty(A,u,p_0).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, lem:moserDecayRatio_nonneg, def:C_Moser}
+
+Set $S := \sum_{i=0}^{n-1} q^{i}$, $T := \sum_{i=0}^{n-1} i q^{i}$,
+$B := 32\,C_{\mathrm{MA}}(d)$, $r := p_0/(p_0-1)$. Then:
+$S \leq d/2$ \leanname{moserDecayRatio\_sum\_le\_half\_dim}, since
+$\sum_{i\geq 0} q^{i} = 1/(1-q) = d/2$; also $T \leq \sum_{i\geq 0} i\,q^{i}$
+\leanname{moserDecayRatio\_weighted\_sum\_le\_tsum} by summability.
+Now $\mathrm{S}(A,p_0) = B \Lambda r^{2}$, so
+\begin{equation*}
+  \mathrm{S}(A,p_0)^{S}
+  = B^{S} \Lambda^{S} (r^{2})^{S}.
+\end{equation*}
+Using $1 \leq B$, $1 \leq \Lambda$, and $1 \leq r$, monotonicity of $t \mapsto
+t^{e}$ in the exponent gives $B^{S} \leq B^{d/2}$, $\Lambda^{S} \leq
+\Lambda^{d/2}$, and $(r^{2})^{S} \leq r^{d}$ (because $2S \leq d$). Also $4^{T}
+\leq 4^{\sum_{i\geq 0} i q^{i}}$. Multiplying these inequalities and using the
+explicit definition of $C_{\mathrm{Moser}}(d)$ in the case $d>2$:
+\begin{equation*}
+  B^{d/2}\,4^{\sum_{i\geq 0} i q^{i}} \;\leq\; C_{\mathrm{Moser}}(d),
+\end{equation*}
+we obtain
+\begin{equation*}
+  \mathrm{S}(A,p_0)^{S}\,4^{T}\,I_0(u)
+  \;\leq\;
+  C_{\mathrm{Moser}}(d)\,\Lambda^{d/2}\,r^{d}\,I_0(u)
+  = B_\infty(A,u,p_0).
+\end{equation*}
+Raising to the power $1/p_0$ yields $M_n \leq M_\infty$.
+\end{proof}
+
+\subsection{Closeout to $L^\infty$}
+
+\begin{lemma}[Closeout from iterated bounds]
+\label{lem:moser-closeout}
+\leanok
+\uses{def:ellipticityRatio, def:moserRadius, def:moserExponentSeq, def:moserIterIntegral}
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.moser\_ae\_closeout}.)}\par
+Fix $d > 2$, $1 < p_0$, and assume that for every $n \in \N$,
+$|u_+|^{p_n}$ is integrable on $\Bz{r_n}$ and $N_n(u) \leq M_\infty(A,u,p_0)$.
+Then for almost every $x \in \Bz{1/2}$,
+\begin{equation*}
+  |u_+(x)|^{p_0} \;\leq\; B_\infty(A,u,p_0).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:moserChi, lem:moserDecayRatio_nonneg, lem:C_MoserAnchor_le_C_Moser, lem:moserRadius_zero, lem:moserExponentSeq_zero}
+
+Set $\mu := \mathrm{vol}\,|\,\Bz{1/2}$, $f(x) := |u_+(x)|$, $g(x) := f(x)^{p_0/2}$,
+and $K := B_\infty(A,u,p_0)^{1/2}$. Note $K \geq 0$.
+For each $n$, write $q_n := 2 \chi^n$. We claim that for every $n$
+and every $c > K$,
+\begin{equation*}
+  \mu_{\mathrm{r}}\{x : c \leq g(x)\} \;\leq\; (K/c)^{q_n}.
+\end{equation*}
+Indeed, on $\{c \leq g\}$ we have $c^{q_n} \leq g^{q_n}$, and Markov's
+inequality gives
+\begin{equation*}
+  c^{q_n}\,\mu_{\mathrm{r}}\{c \leq g\}
+  \;\leq\;
+  \int g^{q_n}\,d\mu
+  = \int_{\Bz{1/2}} f^{p_n}\,dx
+  \;\leq\;
+  \int_{\Bz{r_n}} f^{p_n}\,dx = I_n(u),
+\end{equation*}
+where we used $g^{q_n} = f^{p_0 q_n / 2} = f^{p_n}$ and
+$\Bz{1/2} \subseteq \Bz{r_n}$. By hypothesis $I_n(u)^{1/p_n} = N_n(u) \leq
+M_\infty$, so raising to $p_n$ and using $1/q_n = (1/p_n)(p_0/2)$ we get
+$I_n(u) \leq M_\infty^{q_n p_0/2 \cdot 2/p_0} = M_\infty^{q_n p_0/p_0}$\,;
+more cleanly, $I_n^{1/q_n} \leq M_\infty^{p_0/2} = K$. Hence
+$\mu_{\mathrm{r}}\{c\leq g\} \leq (K/c)^{q_n}$.
+
+As $\chi > 1$, $q_n \to \infty$, so $(K/c)^{q_n} \to 0$ for every $c > K$.
+Therefore $\mu_{\mathrm{r}}\{c \leq g\} = 0$ for all $c > K$, and a countable
+union over $c = K + 1/(m+1)$ shows $g \leq K$ a.e.\ on $\Bz{1/2}$. Squaring,
+$f^{p_0} = g^{2} \leq K^{2} = B_\infty$.
+\end{proof}
+
+\begin{theorem}[Moser $L^p \to L^\infty$ for subsolutions]
+\label{thm:linfty-Moser}
+\lean{DeGiorgi.linfty_subsolution_Moser}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:C_Moser}
+Let $d > 2$, $A$ a normalized elliptic coefficient on $\Bz{1}$, $u$ a
+subsolution, and $1 < p_0$ with $\int_{\Bz{1}} |u_+|^{p_0} < \infty$. Then for
+almost every $x \in \Bz{1/2}$,
+\begin{equation*}
+  |u_+(x)|^{p_0}
+  \;\leq\;
+  C_{\mathrm{Moser}}(d)\,\Lambda^{d/2}\,
+  \Big(\frac{p_0}{p_0-1}\Big)^{d}
+  \int_{\Bz{1}} |u_+|^{p_0}\,dx.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:moserRadius, def:moserExponentSeq, thm:moser-preMoser, def:moserIterIntegral, thm:moser-iter-bound, lem:moser-geom-maj, lem:moser-closeout}
+
+The headline Moser bound is the composition of three pieces, all assembled
+along the discrete sequence of radii $r_n$ and exponents $p_n$.
+
+\emph{Step 1: iterated step bound.} Theorem~\ref{thm:moser-iter-bound}
+(\leanname{moser\_iteration\_bound}) is applied as a single induction on
+$n$: at each step, the concentric-ball pre-estimate
+Theorem~\ref{thm:moser-preMoser} on $(r_{n+1}, r_n)$ with exponent $p_n$
+upgrades $L^{p_n}$ control of $u_+$ on $\Bz{r_n}$ to $L^{p_{n+1}} = L^{\chi p_n}$
+control on $\Bz{r_{n+1}}$, with multiplicative constant the step constant
+$\mathrm{S}_n$ depending on $\Lambda$, $C_{\mathrm{MA}}(d)$, the dimension,
+and the gap $r_n - r_{n+1} = 2^{-(n+2)}$. Telescoping over $i < n$ produces
+the bound
+\begin{equation*}
+  N_n(u)
+   \le \Bigl(\prod_{i=0}^{n-1} \mathrm{S}_i\Bigr) \cdot N_0(u)
+   = M_n(A, u, p_0).
+\end{equation*}
+At every stage the integrability of $|u_+|^{p_n}$ on $\Bz{r_n}$ is propagated
+forward by the same induction, providing the second half of the conclusion.
+
+\emph{Step 2: geometric absorption of the product.}
+Lemma~\ref{lem:moser-geom-maj} (\leanname{moser\_geometric\_majorant})
+bounds the infinite product $\prod_{i \ge 0} \mathrm{S}_i$ by the closed-form
+constant $M_\infty(A,u,p_0)$. The key two summation identities are
+$\sum_{i \ge 0} q^{i} \le d/2$
+(\leanname{moserDecayRatio\_sum\_le\_half\_dim}) and the weighted variant
+$\sum_{i \ge 0} i\,q^{i}$
+(\leanname{moserDecayRatio\_weighted\_sum\_le\_tsum}); these are precisely
+what is needed to convert the product of $\mathrm{S}_i$, after taking
+logarithms and using $1/p_i = q^{i}/p_0$, into a finite expression involving
+$C_{\mathrm{Moser}}(d)$, $\Lambda^{d/2}$ and the explicit
+$\bigl(p_0/(p_0-1)\bigr)^{d}$ factor visible in the conclusion. Composing with
+Step 1 gives $N_n(u) \le M_\infty(A, u, p_0)$ for every $n$.
+
+\emph{Step 3: a.e.\ closeout via Markov.}
+Lemma~\ref{lem:moser-closeout} (\leanname{moser\_ae\_closeout}) converts the
+uniform $L^{p_n}$ bound at every stage into an a.e.\ pointwise bound on the
+intersection $\Bz{1/2} \subseteq \bigcap_n \Bz{r_n}$. The argument is a
+Markov-type estimate: for every $c > K := M_\infty(A,u,p_0)^{1/2}$, the
+super-level set $\{c \le f\}$ on $\Bz{1/2}$ has measure at most
+$(K/c)^{q_n}$, and since $q_n \to \infty$ this measure is zero. Taking a
+countable union over $c = K + 1/(m+1)$ shows $f \le K$ a.e.\ on $\Bz{1/2}$,
+and squaring gives $|u_+|^{p_0} \le K^{2}$ a.e.\ on $\Bz{1/2}$, which is the
+displayed Moser bound.
+\end{proof}
+
+\begin{remark}[$p_0 = 2$ anchor, \leanname{linfty\_subsolution\_Moser\_two}]
+The case $p_0 = 2$ already follows from the normalized De Giorgi $L^2 \to
+L^\infty$ estimate of Section 5: with $c := C_{\mathrm{DG}}^{\mathrm{sub}}(d)
+\Lambda^{d/4}$, the De Giorgi bound gives
+$\max(u(x),0) \leq c\,(\int_{\Bz{1}} |u_+|^{2}\,dx)^{1/2}$ a.e.\ on
+$\Bz{1/2}$. Squaring and using
+$C_{\mathrm{DG}}^{\mathrm{sub}}(d)^{2} \leq C_{\mathrm{Moser}}(d)$ together with
+$2/(2-1) = 2$ recovers the $p_0=2$ case of Theorem~\ref{thm:linfty-Moser}.
+\end{remark}
+
+%% --- Section 8 ---
+
+\section{Supersolution Estimates}
+
+We now turn to positive supersolutions of the same operator. The main outputs
+of this section are the two stages of the weak Harnack inequality:
+\emph{stage one (inverse)} produces an a.e.\ lower bound on $u$ from inverse
+$L^{p}$ control of $u$, and \emph{stage two (forward)} produces a low-power
+$L^{p}$-on-$L^{p}$ Caccioppoli-type bound. The architecture mirrors Section 7,
+with the role of $u_+$ replaced by $u^{-1}$ (resp.\ $u$ at low powers).
+
+Throughout this section, $u : E \to \R$ is assumed to be strictly positive on
+$\Bz{1}$ and a supersolution of $A$. We write $\mu_{1/2}$ for
+$\mathrm{vol}\,|\,\Bz{1/2}$.
+
+\subsection{The weighted Caccioppoli inequality}
+
+The abstract energy tool driving every iteration in this section is the
+following weighted Caccioppoli inequality.
+
+\begin{theorem}[Weighted Caccioppoli]
+\label{thm:weighted-cacc}
+\lean{DeGiorgi.weighted_caccioppoli_of_supersolution}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:ellipticityRatio, def:bilinFormIntegrandOfCoeff, def:IsSubsolution}
+Let $\Omega \subseteq E$ be open, $A$ a normalized elliptic coefficient on
+$\Omega$, $u$ a supersolution with $u \in W^{1,2}(\Omega)$, and let
+$\Psi : \R \to \R$ be smooth with $\Psi(0)=0$, $|\Psi'| \leq M$, $\Psi(u) \geq 0$
+on $\Omega$, and $\Psi'(u) \leq 0$ on $\Omega$ (with $\Psi(u)=0$ wherever
+$\Psi'(u)=0$). Let $\varphi \in C^{\infty}_c(\Omega)$ satisfy $|\varphi| \leq 1$
+and $\|\nabla \varphi\|_{L^\infty} \leq C_\varphi$, with the integrability
+\begin{equation*}
+  \int_{\Omega} \|\nabla \varphi\|^{2}\,
+  \frac{\Psi(u)^{2}}{-\Psi'(u)}\,dx < \infty
+\end{equation*}
+(interpreted as $0$ where $\Psi'(u)=0$). Then
+\begin{multline*}
+  \int_{\Omega} \varphi^{2}\,(-\Psi'(u))\,\langle A\nabla u,\nabla u\rangle\,dx
+  \\ \leq\;
+  4\,\Lambda \int_{\Omega} \|\nabla \varphi\|^{2}\,
+  \frac{\Psi(u)^{2}}{-\Psi'(u)}\,dx.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, prop:witness_mul_smooth_bounded, thm:chain-rule-open, lem:EllipticCoeff_ae_coercive_nonneg, lem:EllipticCoeff_mulVec_sq_le, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff, lem:bilinFormIntegrand_mul_smooth_eq, lem:integrable_bounded_mul_bilinFormIntegrand}
+
+By the supersolution property tested against $\varphi^{2}\Psi(u) \geq 0$,
+\begin{equation*}
+  0 \leq \int_{\Omega} \langle A\nabla u, \nabla(\varphi^{2}\Psi(u))\rangle\,dx.
+\end{equation*}
+Using the chain rule for $W^{1,2}$ functions, $\nabla(\Psi(u)) = \Psi'(u)\nabla u$,
+and the product rule $\nabla(\varphi^{2}\Psi(u)) = \varphi^{2}\Psi'(u)\nabla u
++ 2\varphi\Psi(u)\nabla \varphi$. The bilinear form expansion
+(\leanname{bilinFormIntegrand\_mul\_smooth\_eq}) yields the pointwise identity
+\begin{equation*}
+  \langle A\nabla u, \nabla(\varphi^{2}\Psi(u))\rangle
+  = \varphi^{2}\Psi'(u)\,\langle A\nabla u,\nabla u\rangle
+  + 2\varphi\Psi(u)\,\langle A\nabla u,\nabla \varphi\rangle.
+\end{equation*}
+Since $\Psi'(u) \leq 0$, the principal term is non-positive; rearranging
+\begin{equation*}
+  \int \varphi^{2}\,(-\Psi'(u))\,\langle A\nabla u,\nabla u\rangle\,dx
+  \;\leq\;
+  2 \int \varphi\,\Psi(u)\,\langle A\nabla u,\nabla \varphi\rangle\,dx.
+\end{equation*}
+By Cauchy--Schwarz with respect to the symmetric form $\langle A\cdot,\cdot\rangle$
+and AM--GM with weight $\varepsilon = 1/2$,
+\begin{multline*}
+  2|\varphi\Psi(u)\,\langle A\nabla u,\nabla \varphi\rangle|
+  \\ \leq\;
+  \tfrac12\,\varphi^{2}(-\Psi'(u))\langle A\nabla u,\nabla u\rangle
+  + 2\,\frac{\Psi(u)^{2}}{-\Psi'(u)}\,\langle A\nabla \varphi,\nabla \varphi\rangle.
+\end{multline*}
+Absorbing the first term into the left-hand side and bounding
+$\langle A\nabla \varphi,\nabla \varphi\rangle \leq \Lambda \|\nabla \varphi\|^{2}$
+(ellipticity \leanname{NormalizedEllipticCoeff.upper}) yields the stated inequality
+with constant $4\Lambda$.
+\end{proof}
+
+\subsection{Reverse Holder inequalities (one--step)}
+
+\paragraph{Inverse case.}
+
+\begin{definition}[Inverse-power cutoff]
+\label{def:superPowerCutoff}
+\lean{DeGiorgi.superPowerCutoff}
+\leanok
+For a smooth $\eta$, positive $u$, and $p > 0$,
+\begin{equation*}
+  \mathrm{PCI}_d(\eta,u,p)(x) := \eta(x)\,|u(x)^{-1}|^{p/2}.
+\end{equation*}
+\end{definition}
+
+\begin{theorem}[Inverse-power one-step gain]
+\label{thm:preMoser-inv}
+\lean{DeGiorgi.supersolution_preMoser_inverse}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:C_MoserAnchor, def:moserChi}
+Let $d>2$, $A$ as above, $u > 0$ a supersolution, $p > 0$, and
+$0 < r < s \leq 1$ with $\int_{\Bz{s}} |u^{-1}|^{p}\,dx < \infty$. Then
+$|u^{-1}|^{\chi p}$ is integrable on $\Bz{r}$ and
+\begin{multline*}
+  \Big(\int_{\Bz{r}} |u^{-1}|^{\chi p}\,dx\Big)^{1/(\chi p)}
+  \\ \leq\;
+  \Big(\frac{C_{\mathrm{MA}}(d)}{(s-r)^{2}}\,
+    \Big(\Lambda\Big(\frac{p}{1+p}\Big)^{2}+1\Big)\Big)^{1/p}
+  \Big(\int_{\Bz{s}} |u^{-1}|^{p}\,dx\Big)^{1/p}.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_lp_closure, def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:witness_add, lem:MemW1pWitness_restrict, lem:MemW1pWitness_smul, lem:witness_smooth_cpt, lem:weak_grad_norm_memLp, lem:zero_outside_tsupport, thm:zero_extend, thm:weak_grad_unique, thm:memW01p_of_compactly_supported, def:C_gns, cor:sobolev_W01p, def:CampanatoBall, def:HasCampanatoBound, thm:chain-rule-open, lem:smoothTransition_nnnorm_deriv_bounded, def:Cutoff, thm:Cutoff_exists, lem:MemW1pWitness_sub_const, lem:MemW1pWitness_mul_smooth_bounded, def:EllipticCoeff, lem:EllipticCoeff_ae_coercive_nonneg, lem:EllipticCoeff_mulVec_sq_le, lem:EllipticCoeff_quadratic_upper, def:bilinFormIntegrandOfCoeff, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff, lem:one_le_C_MoserAnchor, lem:moserDecayRatio_nonneg, thm:moser-preMoser, thm:weighted-cacc, def:superPowerCutoff}
+
+Apply Theorem~\ref{thm:weighted-cacc} with $\Psi(t) := t^{-p}$ on $(0,\infty)$
+(suitably truncated), so that $\Psi'(t) = -p\,t^{-p-1} \leq 0$ and
+$\Psi(t)^{2}/(-\Psi'(t)) = t^{-p-1}/p$. Choose a smooth cutoff $\eta$ with
+$\eta = 1$ on $\Bz{r}$, $\supp \eta \subseteq \Bz{R}$ where $R := (r+s)/2$,
+$0 \leq \eta \leq 1$, $\|\nabla \eta\|_{L^\infty} \leq C_\eta := 2\Mst/(s-r)$.
+The weighted Caccioppoli inequality applied to $\varphi := \eta$ then yields
+\begin{equation*}
+  \int_{\Bz{s}} \eta^{2}\,p\,u^{-p-1}\,\langle A\nabla u,\nabla u\rangle\,dx
+  \;\leq\;
+  \frac{4\Lambda}{p}
+  \int_{\Bz{s}} \|\nabla \eta\|^{2}\,u^{-p-1}\,dx.
+\end{equation*}
+Combined with the chain-rule identity
+$\nabla(\eta\,u^{-p/2}) = (\nabla \eta) u^{-p/2} - (p/2) \eta\,u^{-p/2-1}\nabla u$
+and the elementary $|a-b|^{2} \leq 2(a^{2}+b^{2})$ this gives, for the witness
+$v := \mathrm{PCI}_d(\eta,u,p)$, the energy bound
+\begin{equation*}
+  \int_{\Bz{s}} \|\nabla v\|^{2}\,dx
+  \;\leq\;
+  2\,C_\eta^{2}\,\Big(\Lambda\Big(\frac{p}{1+p}\Big)^{2}+1\Big)
+  \int_{\Bz{s}} |u^{-1}|^{p}\,dx;
+\end{equation*}
+this is the content of \leanname{superPowerCutoff\_energy\_bound}. Now apply
+the Sobolev inequality \leanname{sobolev\_prepare\_on\_ball} to $v$ on $\Bz{s}$
+and use $\eta = 1$ on $\Bz{r}$, exactly as in the proof of Theorem~\ref{thm:moser-preMoser}.
+The constant $8\Mst^{2}\,C_{\mathrm{gns}}^{2} \leq C_{\mathrm{MA}}$ absorbs the
+gradient bound, yielding the displayed reverse Holder inequality.
+\end{proof}
+
+\paragraph{Forward (low-power) case.}
+
+\begin{definition}[Forward low-power cutoff]
+\label{def:superPowerCutoffFwd}
+\lean{DeGiorgi.superPowerCutoffFwd}
+\leanok
+For smooth $\eta$, $u > 0$, and $p \in (0,1)$,
+\begin{equation*}
+  \mathrm{PCF}_d(\eta,u,p)(x) := \eta(x)\,|u(x)|^{p/2}.
+\end{equation*}
+\end{definition}
+
+\begin{theorem}[Forward low-power one-step gain]
+\label{thm:preMoser-fwd}
+\lean{DeGiorgi.supersolution_preMoser_forward}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:C_MoserAnchor, def:moserChi}
+Let $d>2$, $A$ as above, $u>0$ a supersolution, $0 < p < 1$, and
+$0 < r < s \leq 1$ with $\int_{\Bz{s}} |u|^{p}\,dx < \infty$. Then
+$|u|^{\chi p}$ is integrable on $\Bz{r}$ and
+\begin{multline*}
+  \Big(\int_{\Bz{r}} |u|^{\chi p}\,dx\Big)^{1/(\chi p)}
+  \\ \leq\;
+  \Big(\frac{C_{\mathrm{MA}}(d)}{(s-r)^{2}}\,
+    \Big(\Lambda\Big(\frac{p}{1-p}\Big)^{2}+1\Big)\Big)^{1/p}
+  \Big(\int_{\Bz{s}} |u|^{p}\,dx\Big)^{1/p}.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_lp_closure, def:MemW1p, def:MemW1pWitness, def:MemW01p, lem:witness_add, lem:MemW1pWitness_restrict, lem:MemW1pWitness_smul, lem:witness_smooth_cpt, lem:weak_grad_norm_memLp, lem:zero_outside_tsupport, thm:zero_extend, thm:weak_grad_unique, thm:memW01p_of_compactly_supported, def:C_gns, cor:sobolev_W01p, def:CampanatoBall, def:HasCampanatoBound, thm:chain-rule-open, lem:smoothTransition_nnnorm_deriv_bounded, def:Cutoff, thm:Cutoff_exists, lem:MemW1pWitness_sub_const, lem:MemW1pWitness_mul_smooth_bounded, def:EllipticCoeff, lem:EllipticCoeff_ae_coercive_nonneg, lem:EllipticCoeff_mulVec_sq_le, lem:EllipticCoeff_quadratic_upper, def:bilinFormIntegrandOfCoeff, lem:aestronglyMeasurable_bilinFormIntegrandOfCoeff, lem:one_le_C_MoserAnchor, lem:moserDecayRatio_nonneg, def:superPowerCutoffFwd}
+
+This time use $\Psi(t) := -t^{p}$ on $(0,\infty)$, so $\Psi'(t) = -p\,t^{p-1}
+\leq 0$ and $\Psi(t)^{2}/(-\Psi'(t)) = t^{p+1}/p$. (Note that for $p \in (0,1)$
+the function $t \mapsto t^{p}$ is concave with $\Psi'(0)=+\infty$, but
+truncation issues are absorbed in \leanname{superPowerCutoffFwd\_energy\_bound}.)
+The weighted Caccioppoli inequality with $\varphi := \eta$ supplies the
+analogous energy estimate
+\begin{equation*}
+  \int_{\Bz{s}} \|\nabla v\|^{2}\,dx
+  \;\leq\;
+  2 C_\eta^{2}\,\Big(\Lambda\Big(\frac{p}{1-p}\Big)^{2}+1\Big)
+  \int_{\Bz{s}} |u|^{p}\,dx
+\end{equation*}
+for $v := \mathrm{PCF}_d(\eta,u,p)$. Sobolev embedding then concludes as in the
+inverse case.
+\end{proof}
+
+\subsection{Stage one (inverse iteration)}
+
+We collect the inverse-power constants used in the iteration.
+
+\begin{definition}[Inverse iteration quantities]
+\label{def:superIterIntegralInv}
+\lean{DeGiorgi.superIterIntegralInv, DeGiorgi.superIterNormInv, DeGiorgi.superStepConstInv}
+\leanok
+\uses{def:ellipticityRatio, def:C_MoserAnchor, def:moserRadius, def:moserExponentSeq}
+For $u>0$, $p_0 > 0$, $n \in \N$, set
+\begin{align*}
+  I_n^{\mathrm{inv}}(u) &:= \int_{\Bz{r_n}} |u^{-1}|^{p_n}\,dx, \\
+  N_n^{\mathrm{inv}}(u) &:= \big(I_n^{\mathrm{inv}}(u)\big)^{1/p_n}, \\
+  \mathrm{S}_n^{\mathrm{inv}}(A,p_0) &:=
+   \Big(\frac{C_{\mathrm{MA}}(d)}{(r_n-r_{n+1})^{2}}\,
+     \Big(\Lambda\Big(\frac{p_n}{1+p_n}\Big)^{2}+1\Big)\Big)^{1/p_n}.
+\end{align*}
+The constant
+\begin{equation*}
+  C_{\mathrm{wH}}^{0}(d) :=
+  \begin{cases}
+    C_{\mathrm{Moser}}(d)\,(\chi^{2})^{\sum_{n\geq 0} n q^{n}}, & d > 2,\\
+    C_{\mathrm{Moser}}(d), & \text{otherwise},
+  \end{cases}
+\end{equation*}
+(\leanname{C\_weakHarnack0}) absorbs the extra geometric factor coming from the
+$(\chi^{2})^{i}$ term in the inverse step bound.
+\end{definition}
+
+\begin{lemma}[Step bound]
+\label{lem:stepInv-le}
+\lean{DeGiorgi.superStepConstInv_le}
+\leanok
+\uses{def:ellipticityRatio, def:superIterIntegralInv}
+For $d>2$ and $p_0 > 0$,
+\begin{equation*}
+  \mathrm{S}_n^{\mathrm{inv}}(A,p_0)
+  \;\leq\;
+  \Big(16\,C_{\mathrm{MA}}(d)\,(\Lambda p_0^{2}+1)\,(4\chi^{2})^{n}\Big)^{1/p_n}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:moserRadius, lem:moserRadius_zero, def:moserExponentSeq, lem:moserExponentSeq_zero}
+
+The factor $C_{\mathrm{MA}}/(r_n - r_{n+1})^{2} = 16\,C_{\mathrm{MA}}\,4^{n}$ as
+before. Using $p_n/(1+p_n) \leq p_n$ and $p_n^{2} = p_0^{2}\chi^{2n}$,
+\begin{equation*}
+  \Lambda\Big(\frac{p_n}{1+p_n}\Big)^{2}+1
+  \;\leq\; \Lambda p_n^{2}+1
+  \;\leq\; (\Lambda p_0^{2}+1)\,(\chi^{2})^{n}.
+\end{equation*}
+Multiplying gives the inner expression $16 C_{\mathrm{MA}}(\Lambda p_0^{2}+1)
+(4\chi^{2})^{n}$; raising to $1/p_n$ yields the claim.
+\end{proof}
+
+\begin{theorem}[Inverse iteration]
+\label{thm:iter-inv}
+\lean{DeGiorgi.supersolution_iteration_inverse}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:moserRadius, def:moserExponentSeq, def:superIterIntegralInv}
+For $d>2$, $u>0$ a supersolution with $\int_{\Bz{1}} |u^{-1}|^{p_0}\,dx < \infty$,
+and every $n \in \N$, $|u^{-1}|^{p_n}$ is integrable on $\Bz{r_n}$ and
+\begin{equation*}
+  N_n^{\mathrm{inv}}(u)
+  \;\leq\;
+  \prod_{i=0}^{n-1}\mathrm{S}_i^{\mathrm{inv}}(A,p_0)\;\cdot\; N_0^{\mathrm{inv}}(u).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserRadius_zero, lem:moserExponentSeq_zero, thm:preMoser-inv}
+
+Induction on $n$. The base case $n = 0$ uses $r_0 = 1$
+(\leanname{moserRadius\_zero}) and $p_0 = p_0$
+(\leanname{moserExponentSeq\_zero}): the integrability hypothesis for
+$|u^{-1}|^{p_0}$ on $\Bz{1}$ is exactly what is assumed, and the empty product
+is $1$ so the iteration bound reads $N_0^{\mathrm{inv}}(u) \le N_0^{\mathrm{inv}}(u)$.
+
+For the inductive step from $n$ to $n+1$, set $p_n := \mathrm{moserExponentSeq}\,d\,p_0\,n$
+and observe $p_n > 0$ by \leanname{moserExponentSeq\_pos} (using $d > 2$ and
+$p_0 > 0$). Apply the inverse-power one-step pre-estimate
+Theorem~\ref{thm:preMoser-inv}
+(\leanname{supersolution\_preMoser\_inverse}) with parameters $(p, r, s) =
+(p_n, r_{n+1}, r_n)$. The hypotheses required are: positivity of $p_n$ (from
+the previous remark), positivity of $r_{n+1}$ (\leanname{moserRadius\_pos}),
+the strict inequality $r_{n+1} < r_n$ (\leanname{moserRadius\_succ\_lt}), the
+upper bound $r_n \le 1$ (\leanname{moserRadius\_le\_one}), the strict
+positivity of $u$ on the unit ball, the supersolution property of $u$, and
+the integrability of $|u^{-1}|^{p_n}$ on $\Bz{r_n}$ (which is the inductive
+hypothesis after rewriting via $\mathrm{moserExponentSeq}\,d\,p_0\,n = p_n$).
+
+The pre-estimate produces:
+(i) integrability of $|u^{-1}|^{\chi p_n}$ on $\Bz{r_{n+1}}$, which by
+$\chi p_n = p_{n+1}$ (\leanname{moserExponentSeq\_succ}) is exactly the
+integrability assertion at level $n+1$; and
+(ii) the one-step bound
+$N_{n+1}^{\mathrm{inv}}(u) \le \mathrm{S}_n^{\mathrm{inv}}(A, p_0)\,
+N_n^{\mathrm{inv}}(u)$.
+Multiplying the inductive bound for $N_n^{\mathrm{inv}}$ by
+$\mathrm{S}_n^{\mathrm{inv}}$ and absorbing the additional factor into the
+range product
+$\prod_{i=0}^{n} \mathrm{S}_i^{\mathrm{inv}} = \bigl(\prod_{i=0}^{n-1} \mathrm{S}_i^{\mathrm{inv}}\bigr)
+\cdot \mathrm{S}_n^{\mathrm{inv}}$ closes the induction.
+\end{proof}
+
+\begin{lemma}[Geometric majorant]
+\label{lem:geom-maj-inv}
+\lean{DeGiorgi.supersolution_geometric_majorant_inv}
+\leanok
+\uses{def:ellipticityRatio, def:superIterIntegralInv}
+For $d>2$ and $p_0>0$,
+\begin{equation*}
+  \prod_{i=0}^{n-1}\mathrm{S}_i^{\mathrm{inv}}(A,p_0)
+  \;\leq\;
+  \big(C_{\mathrm{wH}}^{0}(d)\,(\Lambda p_0^{2}+1)^{d/2}\big)^{1/p_0}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, def:moserExponentSeq, lem:moserExponentSeq_zero, lem:stepInv-le}
+
+By Lemma~\ref{lem:stepInv-le}, the product is bounded by
+\begin{equation*}
+  \prod_{i=0}^{n-1}\big(K\,L\,(4\chi^{2})^{i}\big)^{1/p_i},
+\end{equation*}
+where $K := 16\,C_{\mathrm{MA}}(d)$, $L := \Lambda p_0^{2}+1$, $1/p_i = q^{i}/p_0$.
+Taking logs and using $\sum_{i<n} q^{i} \leq d/2$ (\leanname{moserDecayRatio\_sum\_le\_half\_dim})
+and $\sum_{i<n} i q^{i} \leq \sum_{i\geq 0} i q^{i}$
+(\leanname{moserDecayRatio\_weighted\_sum\_le\_tsum}), the product is at most
+\begin{equation*}
+  \big(K^{d/2}\,L^{d/2}\,(4\chi^{2})^{\sum_{i\geq 0} i q^{i}}\big)^{1/p_0}.
+\end{equation*}
+Since $K^{d/2}\,4^{\sum_{i\geq 0} i q^{i}} \leq C_{\mathrm{Moser}}(d)$ by definition
+of $C_{\mathrm{Moser}}$, and $(\chi^{2})^{\sum_{i\geq 0} i q^{i}}$ is exactly the
+extra factor included in $C_{\mathrm{wH}}^{0}(d)$, the product is bounded by
+$\big(C_{\mathrm{wH}}^{0}(d)\,L^{d/2}\big)^{1/p_0}$.
+\end{proof}
+
+\begin{theorem}[Inverse a.e.\ closeout]
+\label{thm:ae-closeout-inv}
+\lean{DeGiorgi.supersolution_ae_closeout_inv}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:moserChi, def:C_Moser}
+For $d>2$, $p_0 > 0$, $u>0$ a supersolution and $|u^{-1}|^{p_0}$ integrable on
+$\Bz{1}$, for almost every $x \in \Bz{1/2}$,
+\begin{equation*}
+  |u(x)^{-1}|^{p_0}
+  \;\leq\;
+  C_{\mathrm{wH}}^{0}(d)\,(\Lambda p_0^{2}+1)^{d/2}\,
+  \int_{\Bz{1}} |u^{-1}|^{p_0}\,dx.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:moserDecayRatio_nonneg, lem:C_MoserAnchor_le_C_Moser, def:moserRadius, lem:moserRadius_zero, def:moserExponentSeq, lem:moserExponentSeq_zero, lem:moser-closeout, def:superIterIntegralInv, thm:iter-inv, lem:geom-maj-inv}
+
+Combine Theorem~\ref{thm:iter-inv} with Lemma~\ref{lem:geom-maj-inv} to get,
+for every $n$,
+\begin{equation*}
+  N_n^{\mathrm{inv}}(u)
+  \;\leq\;
+  \big(C_{\mathrm{wH}}^{0}(d)\,(\Lambda p_0^{2}+1)^{d/2}\,I_0^{\mathrm{inv}}(u)\big)^{1/p_0}.
+\end{equation*}
+The Markov-type closeout argument of Lemma~\ref{lem:moser-closeout}, applied
+verbatim with $u_+$ replaced by $u^{-1}$ (and $1<p_0$ replaced by $p_0>0$, which
+only affects the choice of test exponent $q_n = 2\chi^{n}$ but not the
+convergence) yields the desired a.e.\ inequality.
+\end{proof}
+
+\begin{theorem}[Stage one weak Harnack (inverse)]
+\label{thm:wH-stage1-inv}
+\lean{DeGiorgi.weak_harnack_stage_one_inverse}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:moserChi, def:C_Moser}
+Let $d>2$, $A$ on $\Bz{1}$, $u>0$ on $\Bz{1}$ a supersolution, and $p_0 > 0$. Then
+\begin{multline*}
+  (\Lambda p_0^{2}+1)^{-d/2}\,
+  \Big(\int_{\Bz{1}} |u^{-1}|^{p_0}\,dx\Big)^{-1}
+  \\
+  \;\leq\; C_{\mathrm{wH}}^{0}(d)\;(\essinf_{\Bz{1/2}} u)^{p_0}.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:moserDecayRatio_nonneg, lem:C_MoserAnchor_le_C_Moser, thm:ae-closeout-inv, lem:meas-bd}
+
+If $|u^{-1}|^{p_0}$ is not integrable on $\Bz{1}$, the integral is taken to be
+$+\infty$ and the LHS is $0 \leq \mathrm{RHS}$.
+
+Otherwise, set $I := \int_{\Bz{1}} |u^{-1}|^{p_0}\,dx$ and
+$c_0 := C_{\mathrm{wH}}^{0}(d)\,(\Lambda p_0^{2}+1)^{d/2}\,I$. By
+Theorem~\ref{thm:ae-closeout-inv} we have $|u^{-1}|^{p_0} \leq c_0$ a.e.\ on
+$\Bz{1/2}$, equivalently $u^{p_0} \geq c_0^{-1}$ a.e., i.e.\
+$u \geq c_0^{-1/p_0}$ a.e.\ on $\Bz{1/2}$. Therefore
+$\essinf_{\Bz{1/2}} u \geq c_0^{-1/p_0}$, so
+$(\essinf_{\Bz{1/2}} u)^{p_0} \geq c_0^{-1}$. Multiplying by
+$C_{\mathrm{wH}}^{0}(d) \geq 0$ and using
+$L^{-d/2} I^{-1} = C_{\mathrm{wH}}^{0}(d)\,c_0^{-1}$ (where $L = \Lambda p_0^{2}+1$)
+gives the displayed inequality.
+\end{proof}
+
+\subsection{Stage two (forward low-power iteration)}
+
+The forward iteration is run only finitely many steps: starting from
+$p_0 := q\,\chi^{-m}$ for a target exponent $q \in (0,1)$ and a depth $m$
+chosen so that $p_0 \leq p$, we iterate $m+1$ times to reach the level $p_m =
+q$. The forward step constant
+\begin{equation*}
+  \mathrm{S}_n^{\mathrm{fwd}}(A,p_0) :=
+  \Big(\frac{C_{\mathrm{MA}}(d)}{(r_n-r_{n+1})^{2}}\,
+    \Big(\Lambda\Big(\frac{p_n}{1-p_n}\Big)^{2}+1\Big)\Big)^{1/p_n}
+\end{equation*}
+\leanname{superStepConstFwd} is finite as long as $p_n < 1$, which is
+guaranteed by $p_n \leq q < 1$ for $n \leq m$.
+
+\begin{lemma}[Forward depth]
+\label{lem:fwd-depth}
+\lean{DeGiorgi.exists_forward_iteration_depth}
+\leanok
+For $0 < p < q < 1$ there exists $m \in \N$ with
+\begin{equation*}
+  q\,\chi^{-m} < p \quad \text{and} \quad p \leq \chi\,\big(q\,\chi^{-m}\big).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:moserChi, lem:moserDecayRatio_nonneg}
+
+Since $\chi > 1$, $q\,\chi^{-m} \to 0$ as $m \to \infty$, so any sufficiently
+large $m$ satisfies the first inequality; choose the smallest such $m$, then
+$q\,\chi^{-(m-1)} \geq p$, equivalently $p \leq \chi\,(q\,\chi^{-m})$.
+\end{proof}
+
+\begin{lemma}[Forward step bound]
+\label{lem:superStepConstFwd_le}
+\lean{DeGiorgi.superStepConstFwd_le}
+\leanok
+\uses{def:ellipticityRatio}
+For $d>2$, $0 < q < 1$, $m \in \N$, $i \leq m$, and $p_0 := q\,\chi^{-m}$,
+\begin{equation*}
+  \mathrm{S}_i^{\mathrm{fwd}}(A,p_0)
+  \;\leq\;
+  \Big(16\,C_{\mathrm{MA}}(d)\,\Big(\frac{\Lambda p_0^{2}}{(1-q)^{2}}+1\Big)\,
+  (4\chi^{2})^{i}\Big)^{1/p_i}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:moserRadius, lem:moserRadius_zero, def:moserExponentSeq, lem:moserExponentSeq_zero}
+
+For $i \leq m$, $p_i = p_0\,\chi^{i} = q\,\chi^{i-m} \leq q$, hence
+$1 - p_i \geq 1 - q > 0$ and
+\begin{equation*}
+  \frac{p_i}{1-p_i} \leq \frac{p_i}{1-q}, \qquad
+  \Big(\frac{p_i}{1-p_i}\Big)^{2}\leq \frac{p_i^{2}}{(1-q)^{2}}
+  \leq \frac{p_0^{2}\chi^{2i}}{(1-q)^{2}}.
+\end{equation*}
+Inserting into $\mathrm{S}_i^{\mathrm{fwd}}$ and using
+$C_{\mathrm{MA}}/(r_i - r_{i+1})^{2} = 16\,C_{\mathrm{MA}}\,4^{i}$ gives the bound.
+\end{proof}
+
+\begin{theorem}[Forward iteration]
+\label{thm:iter-fwd}
+\lean{DeGiorgi.supersolution_iteration_forward}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution}
+For $d>2$, $u>0$ a supersolution, $0<q<1$, $m \in \N$, set $p_0 := q\,\chi^{-m}$.
+If $|u|^{p_0}$ is integrable on $\Bz{1}$, then for every $n \leq m+1$
+$|u|^{p_n}$ is integrable on $\Bz{r_n}$ and
+\begin{equation*}
+  N_n^{\mathrm{fwd}}(u)
+  \;\leq\;
+  \prod_{i=0}^{n-1} \mathrm{S}_i^{\mathrm{fwd}}(A,p_0)\;\cdot\;
+  N_0^{\mathrm{fwd}}(u).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:moserRadius, lem:moserRadius_zero, def:moserExponentSeq, lem:moserExponentSeq_zero, thm:preMoser-fwd}
+
+Induction on $n \leq m+1$. The base case is trivial. For the step, note that
+$p_n = p_0\,\chi^{n} = q\,\chi^{n-m}$, so for $n \leq m$ we have $p_n \leq q < 1$
+(this is what allows the application of Theorem~\ref{thm:preMoser-fwd}). The
+one-step bound gives $N_{n+1}^{\mathrm{fwd}}(u) \leq
+\mathrm{S}_n^{\mathrm{fwd}}(A,p_0)\,N_n^{\mathrm{fwd}}(u)$, and combining with
+the inductive hypothesis yields the displayed product bound.
+\end{proof}
+
+\begin{lemma}[Forward geometric majorant]
+\label{lem:geom-maj-fwd}
+\lean{DeGiorgi.supersolution_geometric_majorant_fwd}
+\leanok
+\uses{def:ellipticityRatio}
+With the notation above, for any $n \leq m+1$,
+\begin{equation*}
+  \prod_{i=0}^{n-1}\mathrm{S}_i^{\mathrm{fwd}}(A,p_0)
+  \;\leq\;
+  \Big(C_{\mathrm{wH}}^{0}(d)\,
+    \Big(\frac{\Lambda p_0^{2}}{(1-q)^{2}}+1\Big)^{d/2}\Big)^{1/p_0}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:C_MoserAnchor, lem:one_le_C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, def:moserRadius, def:moserExponentSeq, lem:moserExponentSeq_zero, lem:geom-maj-inv, lem:superStepConstFwd_le}
+
+Identical to the proof of Lemma~\ref{lem:geom-maj-inv}, with $\Lambda p_0^{2}+1$
+replaced by $\Lambda p_0^{2}/(1-q)^{2}+1$ throughout.
+\end{proof}
+
+\begin{definition}[Forward closeout constant]
+\label{def:C_weakHarnack0Forward}
+\lean{DeGiorgi.C_weakHarnack0Forward}
+\leanok
+\uses{def:moserChi, def:C_Moser}
+For $d>2$,
+\begin{equation*}
+  C_{\mathrm{wH,fwd}}^{0}(d) :=
+  \big(C_{\mathrm{wH}}^{0}(d)\,(|\Bz{1}|+1)\big)^{\chi}.
+\end{equation*}
+\end{definition}
+
+\begin{theorem}[Stage one weak Harnack (forward)]
+\label{thm:wH-stage1-fwd}
+\lean{DeGiorgi.weak_harnack_stage_one_forward}
+\leanok
+\uses{def:ellipticityRatio, def:IsSubsolution, def:C_weakHarnack0Forward}
+Let $d>2$, $A$ on $\Bz{1}$, $u>0$ a supersolution on $\Bz{1}$, and
+$0 < p < q < 1$. Then
+\begin{multline*}
+  \Big(\int_{\Bz{1/2}} |u|^{q d/(d-2)}\,dx\Big)^{p(d-2)/(qd)}
+  \\
+  \;\leq\;
+  C_{\mathrm{wH,fwd}}^{0}(d)\,
+  \Big(\frac{\Lambda p^{2}}{(1-q)^{2}}+1\Big)^{d\chi/2}
+  \int_{\Bz{1}} |u|^{p}\,dx.
+\end{multline*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:C_MoserAnchor, def:moserChi, lem:moserDecayRatio_nonneg, def:C_Moser, lem:C_MoserAnchor_le_C_Moser, def:moserRadius, lem:moserRadius_zero, def:moserExponentSeq, lem:moserExponentSeq_zero, lem:fwd-depth, thm:iter-fwd, lem:geom-maj-fwd}
+
+Set $\chi := d/(d-2)$, $q\chi := q d/(d-2)$. By Lemma~\ref{lem:fwd-depth} pick
+$m$ with $p_0 := q\chi^{-m} < p$ and $p \leq \chi p_0$, and note $p_0 < p < 1$.
+Theorem~\ref{thm:iter-fwd} with this $p_0$ at depth $n = m+1$ gives the iterated
+$L^{p_{m+1}} = L^{q\chi}$ bound on $\Bz{r_{m+1}}$, namely
+\begin{multline*}
+  \Big(\int_{\Bz{r_{m+1}}} |u|^{q\chi}\,dx\Big)^{1/(q\chi)}
+  \\ \leq\;
+  \prod_{i=0}^{m}\mathrm{S}_i^{\mathrm{fwd}}(A,p_0)\;\cdot\;
+  \Big(\int_{\Bz{1}} |u|^{p_0}\,dx\Big)^{1/p_0}.
+\end{multline*}
+By Lemma~\ref{lem:geom-maj-fwd}, the product is at most
+\begin{equation*}
+  \Big(C_{\mathrm{wH}}^{0}(d)\,
+    \big(\Lambda p_0^{2}/(1-q)^{2}+1\big)^{d/2}\Big)^{1/p_0}.
+\end{equation*}
+Use $\Bz{1/2} \subseteq \Bz{r_{m+1}}$ to restrict to $\Bz{1/2}$, raise the
+inequality to the $p$-th power, and absorb the change of base from $p_0$ to $p$
+via the volume comparison
+\leanname{weak\_harnack\_stage\_one\_forward\_power\_upgrade}: by Holder with
+exponents $p_0 < p \leq \chi p_0$ on the unit ball,
+\begin{equation*}
+  \Big(\int_{\Bz{1}} |u|^{p_0}\,dx\Big)^{1/p_0}
+  \leq
+  \Big(\int_{\Bz{1}} |u|^{p}\,dx\Big)^{1/p}\,
+  |\Bz{1}|^{1/p_0 - 1/p},
+\end{equation*}
+and consequently
+\begin{equation*}
+  \Big(\int_{\Bz{1}} |u|^{p_0}\,dx\Big)^{p/p_0}
+  \leq (|\Bz{1}|+1)^{\chi}\,\int_{\Bz{1}} |u|^{p}\,dx,
+\end{equation*}
+which absorbs the volume into $C_{\mathrm{wH,fwd}}^{0}(d)$. Together with
+$(\Lambda p_0^{2}/(1-q)^{2}+1)^{d/(2)\cdot p/p_0} \leq
+(\Lambda p^{2}/(1-q)^{2}+1)^{d\chi/2}$
+(monotonicity in both base and exponent, since $p/p_0 \leq \chi$ and
+$p_0^{2} \leq p^{2}$), the displayed inequality follows. The exponent
+$p(d-2)/(qd) = p/(q\chi)$ comes from raising the $L^{q\chi}$-norm to the
+$p$-th power.
+\end{proof}
+
+\begin{remark}[Reverse-Holder reformulation]
+Theorems~\ref{thm:wH-stage1-inv} and~\ref{thm:wH-stage1-fwd} are precisely the
+two halves of the weak Harnack inequality at this stage of the development:
+the first asserts a lower bound on $u$ in $\Bz{1/2}$ in terms of an inverse
+integral on $\Bz{1}$, while the second is a forward $L^{q\chi}$--$L^{p}$
+reverse Holder inequality on the same pair of balls. The crossover between
+the two stages, completing the weak Harnack inequality, is performed in the
+file \texttt{WeakHarnack.lean} using the constants $C_{\mathrm{wH}}^{0}(d)$
+and $C_{\mathrm{wH,fwd}}^{0}(d)$ assembled here.
+\end{remark}
+
+
+%% ========================================================================

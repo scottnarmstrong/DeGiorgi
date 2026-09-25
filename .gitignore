@@ -1,0 +1,6 @@
+.lake/
+*.bak
+blueprint/web/
+blueprint/print/
+blueprint/lean_decls
+blueprint/src/*.paux

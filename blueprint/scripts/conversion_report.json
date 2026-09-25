@@ -1,0 +1,12 @@
+{
+ "nodes": 348,
+ "with_lean_decl": 348,
+ "lean_tagged": 337,
+ "private_only_or_partly": 13,
+ "without_lean_decl": [],
+ "labels_added": 246,
+ "proof_stubs_added": 23,
+ "unresolved_header_names": [],
+ "edges": 1608,
+ "cycle_edges_removed": []
+}

@@ -1,0 +1,31 @@
+\chapter{Introduction}\label{sec:intro}
+%% ========================================================================
+
+This document is a complete natural-language translation of the Lean~4 formalization of the De~Giorgi--Nash--Moser regularity theory for uniformly elliptic divergence-form equations with bounded measurable coefficients. The formalization is completely sorry-free and built on top of Mathlib. The Lean source is available at \url{https://github.com/scottnarmstrong/DeGiorgi}.
+
+The main results formalized are:
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{Local boundedness} of weak subsolutions via De~Giorgi iteration;
+  \item \textbf{Weak Harnack inequality} for nonnegative weak supersolutions via Moser iteration;
+  \item \textbf{Harnack inequality} for weak solutions;
+  \item \textbf{Interior H\"older regularity} for weak solutions via Moser's method.
+\end{enumerate}
+
+Throughout, we work in dimension $d \ge 3$ with functions $u \colon \R^d \to \R$. We write $\Bz{r} = \{x \in \R^d : |x| < r\}$ for the open ball of radius~$r$ centered at the origin, and $\Ball{r}{x_0}$ for the ball centered at~$x_0$.
+
+Each definition and theorem includes a reference to its Lean name in \texttt{typewriter font}, enabling cross-referencing with the source code.
+
+\bigskip
+\noindent\textbf{Notation.} We adopt the following conventions:
+\begin{itemize}
+  \item $\nabla u$ denotes the weak gradient of~$u$;
+  \item $(u - k)_+ = \max(u - k, 0)$ denotes the positive part;
+  \item $\|f\|_{\Lp{p}(\Omega)}$ denotes the $\Lp{p}$ norm over~$\Omega$;
+  \item $\lambda, \Lambda > 0$ denote the ellipticity constants (lower and upper bounds);
+  \item $|E|$ denotes the Lebesgue measure of a measurable set~$E$;
+  \item $\fint_\Omega f\, dx = |\Omega|^{-1}\int_\Omega f\, dx$ denotes the average integral.
+\end{itemize}
+
+
+
+%% ========================================================================

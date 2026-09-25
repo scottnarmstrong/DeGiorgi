@@ -1,0 +1,932 @@
+\chapter{Functional Inequalities}\label{sec:functional}
+%% ========================================================================
+
+% Section 3: Functional Inequalities
+% Translation of DeGiorgi/{Poincare,SobolevPoincare,StampacchiaTruncation,Oscillation/*}.lean
+
+This section gathers the functional analytic inequalities used throughout the De Giorgi
+machinery: a representation--formula proof of the Poincar\'e inequality on the unit ball,
+the Sobolev--Poincar\'e refinement obtained via extension and Gagliardo--Nirenberg--Sobolev,
+the Stampacchia truncation lemma, and the BMO / John--Nirenberg / Campanato package
+underlying the oscillation theory. Throughout the section, $E = \R^d$ with $d \ge 1$
+(in most statements $d \ge 2$, supplied via a \texttt{NeZero} hypothesis), and $\Bz{r}$
+denotes the open ball of radius $r$ centred at the origin.
+
+\section{Poincar\'e inequality on the unit ball}
+
+\begin{definition}
+\label{def:C_poinc_val}
+\lean{DeGiorgi.C_poinc_val}
+\leanok
+For $d \in \N$, define the Poincar\'e constant
+\begin{equation*}
+C_{\mathrm{poinc}}(d) := 2^{d+1}\, d.
+\end{equation*}
+The lemma \leanname{C\_poinc\_val\_pos} records that $C_{\mathrm{poinc}}(d) > 0$ for
+$d > 0$.
+\end{definition}
+
+\begin{definition}
+\label{def:smoothGradNorm}
+\lean{DeGiorgi.smoothGradNorm}
+\leanok
+For a smooth scalar function $u : E \to \R$, the pointwise Euclidean gradient norm is
+\begin{equation*}
+\lvert \nabla u (x)\rvert
+:= \Bigl(\sum_{i=1}^d \bigl(\partial_i u(x)\bigr)^{2}\Bigr)^{1/2}.
+\end{equation*}
+\end{definition}
+
+The lemma \leanname{norm\_fderiv\_eq\_smoothGradNorm} identifies this expression with the
+operator norm of the Fr\'echet derivative $\lVert \mathrm{D}u(x)\rVert$, via the
+Riesz representation $\mathrm{D}u(x)\mapsto \nabla u (x)$ in
+$\R^d$. Auxiliary support lemmas
+\leanname{smoothGradNorm\_eq\_zero\_of\_notMem\_tsupport} and
+\leanname{support\_smoothGradNorm\_subset\_tsupport} record that the gradient vanishes
+outside the closed support of $u$.
+
+\begin{lemma}
+\label{lem:smoothCompactSupport_L2_bound_on_bounded_ge_two}
+\lean{DeGiorgi.smoothCompactSupport_L2_bound_on_bounded_ge_two}
+\leanok
+\uses{def:smoothGradNorm}
+Let $d \ge 2$ and let $\Omega \subseteq E$ be a bounded set. Then there exists
+$C < \infty$ such that for every smooth, compactly supported $u$ with $\supp u
+\subseteq \Omega$,
+\begin{equation*}
+\lVert u\rVert_{L^{2}(\Omega)}
+\le C\, \lVert \lvert\nabla u\rvert\rVert_{L^{2}(\Omega)}.
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+
+Let $R$ be such that $\Omega \subseteq \overline{B}(0,R)$ and $s = \overline{B}(0,R)$.
+When $d = 2$, the Mathlib Sobolev embedding
+\texttt{eLpNormLESNormFDerivOfLeConst} provides the constant
+$C_{\mathrm{sob}} = $ \texttt{eLpNormLESNormFDerivOfLeConst}\,$\R\,\mathrm{vol}\,s\,1\,2$
+giving
+$\lVert u\rVert_{L^{2}(s)} \le C_{\mathrm{sob}}\,\mathrm{vol}(s)^{1/1 - 1/2}
+\lVert \mathrm{D}u\rVert_{L^{1}(s)}^{}$ after raising the exponent. For $d \ge 3$ one
+applies the same Mathlib bound at the conjugate exponent $2$. In both cases we set
+$C := C_{\mathrm{sob}}\,\mathrm{vol}(s)^{1/1 - 1/2}$ and conclude using the inclusion
+$\supp u \subseteq \Omega \subseteq s$.
+\end{proof}
+
+The proof of the Poincar\'e inequality is via the classical representation formula
+through spherical means. We collect the auxiliary lemmas before the main statement.
+
+\begin{lemma}
+\label{lem:sphere_radial_integral_ball}
+\lean{DeGiorgi.sphere_radial_integral_ball}
+\leanok
+For $R > 0$ and a measurable, integrable, radial--bounded function $f$ on $\Ball{R}{x}$,
+\begin{equation*}
+\int_{\Ball{R}{x}} f(y)\, dy
+= \int_{0}^{R} \int_{\partial \Ball{r}{x}} f \, d\sigma_{r}\, dr.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:CampanatoBall, def:HasCampanatoBound}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:polar_identity_ball}
+\lean{DeGiorgi.polar_identity_ball, DeGiorgi.star_shaped_polar_identity}
+\leanok
+Polar coordinates expansion in $\Ball{R}{x}$: any $y \in \Ball{R}{x}$ can be written
+$y = x + r\omega$ with $r \in (0,R)$, $\omega \in S^{d-1}$, and the volume element
+factors as $dy = r^{d-1}\, dr\, d\sigma(\omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:sphere_radial_integral_ball, def:CampanatoBall, def:HasCampanatoBound}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:norm_sub_le_integral_fderiv_along_segment}
+\lean{DeGiorgi.norm_sub_le_integral_fderiv_along_segment}
+\leanok
+For $u \in C^{1}$ and any segment $[x,y] \subseteq E$,
+\begin{equation*}
+\lvert u(y) - u(x)\rvert
+\le \int_{0}^{1} \lvert \nabla u(x + t(y-x))\rvert\, \lvert y-x\rvert\, dt.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}
+\label{lem:integral_norm_rpow_neg_ball}
+\lean{DeGiorgi.integral_norm_rpow_neg_ball, DeGiorgi.riesz_kernel_integrable, DeGiorgi.riesz_kernel_L1_bound}
+\leanok
+For $R > 0$ and $0 < \alpha < d$ the function $z\mapsto \lvert z\rvert^{\alpha-d}$ is
+integrable on $\Ball{R}{0}$, and for $x \in \Ball{R}{0}$ the Riesz kernel satisfies
+\begin{equation*}
+\int_{\Ball{R}{0}} \lvert x - y\rvert^{1-d}\, dy
+\le d\, \mathrm{vol}(\Bz{1})\, (2R).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:CampanatoBall, def:HasCampanatoBound}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}[Representation formula]
+\label{lem:representation_formula_smooth}
+\lean{DeGiorgi.representation_formula_smooth}
+\leanok
+Let $u \in C^{\infty}$ and let $\bar u = \fint_{\Bz{1}} u$. For every $x \in \Bz{1}$,
+\begin{equation*}
+\lvert u(x) - \bar u\rvert
+\le \frac{2^{d}}{d\,\mathrm{vol}(\Bz{1})}\,
+\int_{\Bz{1}} \lvert \nabla u(y)\rvert\, \lvert x - y\rvert^{1-d}\, dy.
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+\uses{lem:sphere_radial_integral_ball, lem:polar_identity_ball, lem:norm_sub_le_integral_fderiv_along_segment, lem:integral_norm_rpow_neg_ball, def:CampanatoBall, def:HasCampanatoBound}
+
+For $\omega \in S^{d-1}$ and $r$ such that $x + r\omega \in \Bz{1}$ one writes
+$u(x+r\omega) - u(x) = \int_{0}^{r} \partial_{\omega} u(x + s\omega)\, ds$ and integrates
+in $r$ along radial segments inside $\Bz{1}$. Averaging this identity over $\omega$
+weighted by the chord length, and using
+\leanname{star\_shaped\_polar\_identity} to convert the spherical integral into a
+weighted volume integral with weight $\lvert x - y\rvert^{1-d}$, gives the stated
+pointwise estimate. The constant $2^{d}/(d\,\mathrm{vol}(\Bz{1}))$ comes from estimating
+the maximal chord length of $\Bz{1}$ from any point $x \in \Bz{1}$ by $2$.
+\end{proof}
+
+\begin{lemma}[Weighted power mean for set integrals]
+\label{lem:weighted_power_mean_setIntegral}
+\lean{DeGiorgi.weighted_power_mean_setIntegral}
+\leanok
+Let $p \ge 1$, let $w \ge 0$ be a weight on a measurable set $S$ with $W := \int_S w\, dy$
+finite, and let $f \ge 0$. Then
+\begin{equation*}
+\Bigl(\int_S f\,w\, dy\Bigr)^{p}
+\le W^{p-1}\, \int_S f^{p}\,w\, dy.
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+
+Normalise $w$ to a probability measure $d\nu = w/W\, dy$ and apply Jensen's inequality
+to the convex function $t \mapsto t^{p}$, then rescale.
+\end{proof}
+
+\begin{theorem}[Poincar\'e on the unit ball for smooth functions]
+\label{thm:poincare_smooth_unitBall}
+\lean{DeGiorgi.poincare_smooth_unitBall}
+\leanok
+\uses{def:C_poinc_val}
+Let $p \ge 1$ and $u \in C^{\infty}(E,\R)$. Then
+\begin{equation*}
+\Bigl\lVert u - \fint_{\Bz{1}} u \Bigr\rVert_{\Lp{p}(\Bz{1})}
+\le C_{\mathrm{poinc}}(d)\, \bigl\lVert \lvert\nabla u\rvert \bigr\rVert_{\Lp{p}(\Bz{1})}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{lem:integral_norm_rpow_neg_ball, lem:representation_formula_smooth, lem:weighted_power_mean_setIntegral}
+
+Set $B = \Bz{1}$, $\bar u = \fint_B u$, $f = u - \bar u$, $g = \lvert \nabla u\rvert$,
+$K(z) = \lvert z\rvert^{1-d}$ and
+\begin{equation*}
+h(x) = \int_B g(y)\, K(x-y)\, dy,\qquad
+M = d\,\mathrm{vol}(B)\cdot 2,\qquad
+C_{\mathrm{rep}} = \frac{2^{d}}{d\,\mathrm{vol}(B)}.
+\end{equation*}
+The representation formula yields $\lvert f(x)\rvert \le C_{\mathrm{rep}}\, h(x)$ pointwise on
+$B$. Therefore $\lVert f\rVert_{\Lp{p}(B)} \le C_{\mathrm{rep}}\,\lVert h\rVert_{\Lp{p}(B)}$.
+
+For the Young-type estimate $\lVert h\rVert_{\Lp{p}(B)} \le M\,\lVert g\rVert_{\Lp{p}(B)}$
+we apply the weighted power mean lemma to the kernel weight $w(y) = K(x-y)$, using the
+$L^{1}$ bound $\int_B K(x-y)\, dy \le M$ provided by \leanname{riesz\_kernel\_L1\_bound}.
+This gives
+\begin{equation*}
+h(x)^{p}
+\le M^{p-1}\, \int_B g(y)^{p}\, K(x-y)\, dy.
+\end{equation*}
+Integrating in $x \in B$, using Fubini and the same kernel bound in the $x$ variable,
+\begin{equation*}
+\int_B h(x)^{p}\, dx
+\le M^{p-1}\, \int_B g(y)^{p}\Bigl(\int_B K(x-y)\, dx\Bigr) dy
+\le M^{p}\, \int_B g(y)^{p}\, dy.
+\end{equation*}
+Taking $p$-th roots gives $\lVert h\rVert_{\Lp{p}(B)} \le M\,\lVert g\rVert_{\Lp{p}(B)}$.
+Combining,
+\begin{equation*}
+\lVert f\rVert_{\Lp{p}(B)}
+\le C_{\mathrm{rep}}\, M\, \lVert g\rVert_{\Lp{p}(B)}
+= 2^{d+1}\, d\, \lVert g\rVert_{\Lp{p}(B)}
+= C_{\mathrm{poinc}}(d)\,\lVert g\rVert_{\Lp{p}(B)}. \qedhere
+\end{equation*}
+\end{proof}
+
+A density argument lifts this to general $\Wkp{1}{p}(\Bz{1})$ functions.
+
+\begin{theorem}[Poincar\'e on the unit ball for $W^{1,p}$]
+\label{thm:poincare_unitBall_W1p_public}
+\lean{DeGiorgi.poincare_unitBall_W1p_public}
+\leanok
+\uses{def:MemW1pWitness, def:C_poinc_val}
+Let $1 < p < \infty$ and let $u \in \Wkp{1}{p}(\Bz{1})$ with weak gradient $G$. Then
+\begin{equation*}
+\Bigl\lVert u - \fint_{\Bz{1}} u \Bigr\rVert_{\Lp{p}(\Bz{1})}
+\le C_{\mathrm{poinc}}(d)\, \lVert \lvert G\rvert\rVert_{\Lp{p}(\Bz{1})}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{thm:poincare_smooth_unitBall, lem:eLpNorm_const_average_le, thm:wp-approx}
+
+Approximate $u$ by smooth $\psi_n \to u$ in $\Wkp{1}{p}(\Bz{1})$. Apply the smooth
+Poincar\'e inequality to each $\psi_n$, then pass to the limit using strong $L^{p}$
+convergence of $\psi_n - \fint \psi_n$ to $u - \fint u$ and of
+$\nabla \psi_n$ to $G$.
+\end{proof}
+
+\section{Sobolev--Poincar\'e on the unit ball}
+
+\begin{definition}
+\label{def:C_extensionGrad}
+\lean{DeGiorgi.C_sobolevPoincare}
+\leanok
+\uses{def:C_gns, def:C_poinc_val}
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.C\_extensionGrad}.)}\par
+For $d \ge 1$ and $p > 1$,
+\begin{align*}
+C_{\mathrm{ext\!-\!grad}}(d,p)
+  &:= 1 + C_{\mathrm{ubExt\,grad}}(d,p)\bigl(C_{\mathrm{poinc}}(d) + 1\bigr),\\
+C_{\mathrm{sobPoinc}}(d,p)
+  &:= C_{\mathrm{gns}}(d,p)\, C_{\mathrm{ext\!-\!grad}}(d,p),
+\end{align*}
+where $C_{\mathrm{gns}}$ is the whole-space Gagliardo--Nirenberg--Sobolev constant and
+$C_{\mathrm{ubExt\,grad}}$ comes from the unit-ball extension.
+\end{definition}
+
+\begin{lemma}[Subtracting a constant preserves $W^{1,p}$]
+\label{lem:memW1pWitness_sub_const_unitBall}
+\lean{DeGiorgi.memW1pWitness_sub_const_unitBall, DeGiorgi.memW1pWitness_sub_const_unitBall_weakGrad}
+\leanok
+\uses{def:MemW1pWitness}
+If $u \in \Wkp{1}{p}(\Bz{1})$ has weak gradient $G$, then for any $c \in \R$ the function
+$u - c$ is also in $\Wkp{1}{p}(\Bz{1})$ with the same weak gradient $G$.
+\end{lemma}
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_of_contDiff}
+
+$u - c \in L^{p}$ since $L^{p}$ is a vector space. Constants have zero weak gradient by
+$\int_{\Bz{1}} c\, \partial_i \varphi = 0$ for compactly supported $\varphi$, hence
+subtracting a constant from the test integral relation
+$\int u\,\partial_i \varphi = -\int G_i \varphi$ leaves it unchanged.
+\end{proof}
+
+\begin{lemma}[Jensen for averages]
+\label{lem:eLpNorm_const_average_le}
+\lean{DeGiorgi.eLpNorm_const_average_le}
+\leanok
+If $\mu$ is a finite measure, $1 \le p < \infty$ and $f \in L^{1}(\mu)$, then
+\begin{equation*}
+\Bigl\lVert x \mapsto \fint f\, d\mu \Bigr\rVert_{\Lp{p}(\mu)}
+\le \lVert f \rVert_{\Lp{p}(\mu)}.
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+
+Apply H\"older's inequality to bound the average $\lvert\fint f\rvert$ by the
+$L^{p}$ norm of $f$ times $\mu(X)^{1-1/p}$, then integrate.
+\end{proof}
+
+\begin{theorem}[Sobolev--Poincar\'e on $\Bz{1}$]
+\label{thm:sobolev_poincare_unitBall}
+\lean{DeGiorgi.sobolev_poincare_unitBall}
+\leanok
+\uses{def:MemW1pWitness, def:C_extensionGrad}
+Let $1 < p < d$ and $u \in \Wkp{1}{p}(\Bz{1})$ with weak gradient $G$, and write
+$p^{*} = dp/(d-p)$. Then
+\begin{equation*}
+\Bigl\lVert u - \fint_{\Bz{1}} u \Bigr\rVert_{\Lp{p^{*}}(\Bz{1})}
+\le C_{\mathrm{sobPoinc}}(d,p)\, \lVert\lvert G\rvert\rVert_{\Lp{p}(\Bz{1})}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{def:MemW01p, thm:weak_grad_unique, thm:memW01p_of_compactly_supported, def:C_gns, cor:sobolev_W01p, def:C_poinc_val, thm:poincare_smooth_unitBall, lem:memW1pWitness_sub_const_unitBall, lem:eLpNorm_const_average_le, thm:wp-approx, def:unitBallExtension, thm:Eext-W1p}
+
+Set $\bar u = \fint_{\Bz{1}} u$ and $v = u - \bar u$. By the previous lemma
+$v \in \Wkp{1}{p}(\Bz{1})$ with weak gradient $G$. Let
+$\widetilde v = \mathrm{ext}(v) \in \Wop{p}$ be the unit-ball extension, which has
+compact support, agrees with $v$ on $\Bz{1}$ and satisfies the lintegral gradient bound
+\begin{equation*}
+\int \lvert \nabla \widetilde v\rvert^{p}
+\le \int_{\Bz{1}} \lvert G\rvert^{p}
++ C_{\mathrm{ubExt\,grad}}(d,p)\,
+\Bigl(\int_{\Bz{1}} \lvert v\rvert^{p} + \int_{\Bz{1}} \lvert G\rvert^{p}\Bigr).
+\end{equation*}
+Combining this with Poincar\'e
+$\lVert v\rVert_{\Lp{p}(\Bz{1})} \le C_{\mathrm{poinc}}(d)\,\lVert\lvert G\rvert\rVert_{\Lp{p}(\Bz{1})}$
+and raising to the $p$-th power gives
+\begin{equation*}
+\lVert \lvert \nabla \widetilde v\rvert\rVert_{\Lp{p}(\R^{d})}
+\le C_{\mathrm{ext\!-\!grad}}(d,p)\,\lVert\lvert G\rvert\rVert_{\Lp{p}(\Bz{1})}
+\end{equation*}
+(this is the auxiliary lemma \leanname{extension\_gradient\_eLpNorm\_bound}, which uses
+the algebraic inequalities $a^{p}+b^{p} \le (a+b)^{p}$ for $p\ge 1$ to absorb the
+constants). The whole-space Gagliardo--Nirenberg--Sobolev inequality applied to
+$\widetilde v$ gives
+\begin{equation*}
+\lVert \widetilde v\rVert_{\Lp{p^{*}}(\R^{d})}
+\le C_{\mathrm{gns}}(d,p)\,
+\lVert \lvert\nabla \widetilde v\rvert\rVert_{\Lp{p}(\R^{d})}.
+\end{equation*}
+Restricting the left side to $\Bz{1}$, where $\widetilde v = v$, and chaining the two
+displayed estimates with the Poincar\'e bound yields the conclusion with constant
+$C_{\mathrm{sobPoinc}}(d,p) = C_{\mathrm{gns}}(d,p)\,C_{\mathrm{ext\!-\!grad}}(d,p)$.
+\end{proof}
+
+\begin{corollary}[Existential form]
+\label{cor:sobolev_poincare_unitBall}
+\lean{DeGiorgi.sobolev_poincare_unitBall'}
+\leanok
+\uses{def:HasWeakGrad, def:MemW1p}
+For $1 < p < d$ and $u$ in the predicate $\Wkp{1}{p}(\Bz{1})$ (existential form), there
+exist a weak gradient $G$ and a constant $C = C_{\mathrm{sobPoinc}}(d,p)$ realising the
+above Sobolev--Poincar\'e estimate.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1pWitness, def:C_extensionGrad, thm:sobolev_poincare_unitBall}
+See the Lean formalization.
+\end{proof}
+
+\begin{corollary}[Smooth version]
+\label{cor:sobolev_poincare_smooth_unitBall}
+\lean{DeGiorgi.sobolev_poincare_smooth_unitBall}
+\leanok
+\uses{def:C_extensionGrad}
+For $1 < p < d$ and $u \in C^{\infty}(E,\R)$,
+\begin{equation*}
+\Bigl\lVert u - \fint_{\Bz{1}} u \Bigr\rVert_{\Lp{p^{*}}(\Bz{1})}
+\le C_{\mathrm{sobPoinc}}(d,p)\,\lVert\lvert\nabla u\rvert\rVert_{\Lp{p}(\Bz{1})}.
+\end{equation*}
+\end{corollary}
+\begin{proof}
+\leanok
+\uses{lem:weak_of_contDiff, def:MemW1pWitness, thm:sobolev_poincare_unitBall}
+
+Build the canonical $W^{1,p}$ witness for the smooth $u$ via
+\leanname{smooth\_memW1pWitness\_unitBall} and apply the previous theorem; the weak
+gradient agrees a.e.\ with the classical gradient on $\Bz{1}$.
+\end{proof}
+
+\section{Stampacchia truncation}
+
+\begin{lemma}
+\label{lem:deriv_ne_zero_implies_isolated_zero}
+\lean{DeGiorgi.deriv_ne_zero_implies_isolated_zero}
+\leanok
+Let $f : \R \to \R$ be differentiable at $x$ with $f(x)=0$ and $f'(x) = c \neq 0$. Then
+there exists $\delta > 0$ such that $f(x+h) \neq 0$ for all $h$ with $0 < \lvert h\rvert < \delta$.
+\end{lemma}
+\begin{proof}
+\leanok
+
+The little-$o$ definition of differentiability gives, for sufficiently small $h$,
+$\lvert f(x+h) - c h\rvert \le (\lvert c\rvert/2)\, \lvert h\rvert$. With $f(x)=0$
+the reverse triangle inequality yields $\lvert f(x+h)\rvert \ge (\lvert c\rvert/2)\,
+\lvert h\rvert > 0$.
+\end{proof}
+
+\begin{corollary}
+\label{cor:HasDerivAt_deriv_eq_zero_of_zero_and_not_isolated}
+\lean{DeGiorgi.HasDerivAt.deriv_eq_zero_of_zero_and_not_isolated}
+\leanok
+If $f$ is differentiable at $x$ with $f(x) = 0$ and $x$ is a non-isolated zero, then
+$f'(x) = 0$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{lem:deriv_ne_zero_implies_isolated_zero}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}[Isolated points are countable]
+\label{lem:countable_isolated}
+\lean{DeGiorgi.countable_isolated}
+\leanok
+For any $S \subseteq \R$, the set of isolated points of $S$ is countable.
+\end{lemma}
+\begin{proof}
+\leanok
+
+Each isolated point $x$ admits a rational interval $(p,q) \ni x$ inside which $x$ is the
+only point of $S$. Map $x \mapsto (p,q) \in \Q^{2}$; the map is well-defined and
+injective on isolated points.
+\end{proof}
+
+\begin{lemma}[1D Stampacchia, a.e.\ form]
+\label{lem:deriv_eq_zero_ae_on_zeroSet}
+\lean{DeGiorgi.deriv_eq_zero_ae_on_zeroSet}
+\leanok
+If $f : \R \to \R$ is differentiable a.e., then $f' = 0$ a.e.\ on $\{f = 0\}$.
+\end{lemma}
+\begin{proof}
+\leanok
+\uses{lem:deriv_ne_zero_implies_isolated_zero, lem:countable_isolated}
+
+The bad set $\{f = 0,\ f' \neq 0\}$ is contained in the union of the points where $f$
+is not differentiable (a null set by hypothesis) and the set of isolated zeros of
+$\{f = 0\}$, which is countable by the previous lemma. Both have measure zero.
+\end{proof}
+
+\begin{lemma}[Du Bois-Reymond fundamental lemma]
+\label{lem:du_bois_reymond}
+\lean{DeGiorgi.du_bois_reymond}
+\leanok
+Let $g \in L^{1}(a,b)$ satisfy $\int_a^b g\,\varphi' = 0$ for every test function
+$\varphi \in C_c^{\infty}(a,b)$. Then $g$ is constant a.e.
+\end{lemma}
+\begin{proof}
+\leanok
+\uses{def:CampanatoBall, def:HasCampanatoBound}
+
+Fix $\psi_0 \in C_c^{\infty}(a,b)$ with $\int \psi_0 = 1$ and let
+$c = \int g\,\psi_0$. For any test $\eta$ write $\eta = \eta_0 + \alpha \psi_0$ where
+$\alpha = \int\eta$ and $\int \eta_0 = 0$. Since $\eta_0$ has zero integral, it is the
+derivative of a test function $\varphi$ (antiderivative lemma), so the hypothesis gives
+$\int g \eta_0 = 0$, hence $\int g\,\eta = c\,\int\eta$. Equivalently
+$\int (g - c)\eta = 0$ for all test $\eta$, so by the fundamental lemma of the calculus
+of variations $g = c$ a.e.
+\end{proof}
+
+\begin{lemma}[$W^{1,1}$ AC representative]
+\label{lem:w11_ae_eq_ac_representative}
+\lean{DeGiorgi.w11_ae_eq_ac_representative}
+\leanok
+Let $u, g \in L^{1}(a,b)$ with the weak-derivative relation
+$\int u\,\varphi' = -\int g\,\varphi$ for all $\varphi \in C_c^{\infty}(a,b)$. Then there
+is a constant $C$ such that
+\begin{equation*}
+u(x) = C + \int_a^{x} g(t)\, dt \qquad \text{for a.e. } x \in (a,b).
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+\uses{lem:du_bois_reymond}
+
+Let $F(x) = \int_a^{x} g$. By integration by parts for absolutely continuous functions,
+$F$ has weak derivative $g$. Hence $u - F$ has zero weak derivative, and du Bois-Reymond
+gives $u - F = C$ a.e.
+\end{proof}
+
+\begin{theorem}[1D Stampacchia for $W^{1,1}$]
+\label{thm:stampacchia_1d}
+\lean{DeGiorgi.stampacchia_1d}
+\leanok
+Under the hypotheses of the previous lemma, $g(x) = 0$ for a.e.\ $x \in (a,b)$
+with $u(x) = 0$.
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{lem:deriv_eq_zero_ae_on_zeroSet, lem:w11_ae_eq_ac_representative}
+
+Replace $u$ by its absolutely continuous representative $F(x) = C + \int_a^x g$. Then
+$F' = g$ a.e.\ by the Lebesgue differentiation theorem for locally integrable
+functions, and \leanname{deriv\_eq\_zero\_ae\_on\_zeroSet} applied to $F$ yields
+$F' = 0$ a.e.\ on $\{F = 0\}$, i.e.\ $g = 0$ a.e.\ on $\{u = 0\}$.
+\end{proof}
+
+\begin{theorem}[$d$-dimensional Stampacchia]
+\label{thm:weakGrad_ae_eq_zero_on_zeroSet}
+\lean{DeGiorgi.weakGrad_ae_eq_zero_on_zeroSet}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1p}
+Let $\Omega \subseteq E$ be open and $u \in \Wkp{1}{2}(\Omega)$ with weak gradient
+$G : \Omega \to \R^{d}$. Then for each $i \in \{1,\dots,d\}$, $G_i(x) = 0$ for a.e.\
+$x \in \Omega$ with $u(x) = 0$.
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{thm:chain-rule-open}
+
+Set $h_i(x) = \mathbf{1}_{\{u = 0\}}(x)\, G_i(x)$. We show $h_i = 0$ a.e.\ on $\Omega$
+by reducing to the variational fundamental lemma: for any test function
+$\psi \in C_c^{\infty}(\Omega)$ the integral $\int \psi\, h_i$ vanishes. By Fubini's
+theorem, the line restrictions of $u$ along the $i$-th coordinate axis lie in
+$W^{1,1}$ for a.e.\ line, with weak derivative the line restriction of $G_i$. The 1D
+Stampacchia theorem applied on each line gives $G_i = 0$ a.e.\ on
+$\{u = 0\}$ along almost every line. Recombining via Fubini gives the result.
+\end{proof}
+
+\section{BMO and the John--Nirenberg geometry}
+
+\begin{definition}[BMO seminorm]
+\label{def:bmoNorm}
+\lean{DeGiorgi.bmoNorm}
+\leanok
+For $u : E \to \R$ and $U \subseteq E$,
+\begin{equation*}
+\lVert u\rVert_{\mathrm{BMO}(U)}
+:= \sup\Bigl\{\, \fint_{\Ball{r}{x_0}} \bigl|\, u - \tfrac{1}{|B|}\!\int_{\Ball{r}{x_0}} u\,\bigr|
+\;:\; \overline{\Ball{r}{x_0}} \subseteq U,\ r > 0\,\Bigr\}.
+\end{equation*}
+\end{definition}
+
+\begin{definition}[John--Nirenberg constants]
+\label{def:C_JN}
+\lean{DeGiorgi.C_JN, DeGiorgi.C_iter}
+\leanok
+\begin{equation*}
+C_{\mathrm{JN}}(d) := 16 \cdot 36^{d}, \qquad C_{\mathrm{iter}} := 1024.
+\end{equation*}
+Both are strictly positive (\leanname{C\_JN\_pos}, \leanname{C\_iter\_pos}).
+\end{definition}
+
+\begin{definition}
+\label{def:JNBall}
+\lean{DeGiorgi.JNBall}
+\leanok
+For $x_0 \in E$, $R > 0$, a \emph{JN-ball} is a record consisting of a centre
+$c \in \Ball{R}{x_0}$ and a radius $0 < \rho \le R$. Its \emph{carrier} is
+$\Ball{\rho}{c}$ and its \emph{five-fold enlargement} is $\Ball{5\rho}{c}$.
+\end{definition}
+
+\begin{lemma}[Vitali $5r$-covering]
+\label{lem:vitali_covering_lemma}
+\lean{DeGiorgi.vitali_covering_lemma}
+\leanok
+Given a family of balls $(\Ball{r_i}{x_i})_{i \in \iota}$ with $r_i > 0$ uniformly bounded
+above, there is a countable subfamily $S \subseteq \iota$ such that the carriers
+$(\Ball{r_i}{x_i})_{i \in S}$ are pairwise disjoint, every original ball meets some
+selected ball whose radius is at least half that of the original, and
+$\bigcup_{i \in \iota} \Ball{r_i}{x_i} \subseteq \bigcup_{i \in S} \Ball{5 r_i}{x_i}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}[Geometric absorption]
+\label{lem:ball_subset_fivefold_of_inter_nonempty}
+\lean{DeGiorgi.ball_subset_fivefold_of_inter_nonempty}
+\leanok
+If $\Ball{\rho}{a} \subseteq \Ball{r}{c}$, $\Ball{r}{c} \cap \Ball{s}{d} \neq \emptyset$
+and $r \le 2 s$, then $\Ball{\rho}{a} \subseteq \Ball{5 s}{d}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}[Iteration of one-step decay]
+\label{lem:john_nirenberg_iteration_decay_iterate}
+\lean{DeGiorgi.john_nirenberg_iteration_decay_iterate, DeGiorgi.john_nirenberg_iteration}
+\leanok
+Let $E_{\ell} \subseteq B$ be an antitone family of measurable subsets of a measurable
+set $B$ with $\mathrm{vol}(B) < \infty$. Suppose there exist $A > 0$ and
+$0 < \theta < 1$ with
+\begin{equation*}
+\mathrm{vol}(E_{\ell + A}) \le \theta\, \mathrm{vol}(E_{\ell})
+\quad\text{for all } \ell > 0.
+\end{equation*}
+Then for every $\ell > 0$,
+\begin{equation*}
+\mathrm{vol}(E_{\ell})
+\le \frac{1}{\theta}\, \mathrm{vol}(B)\,
+\exp\!\Bigl(-\ell\, \frac{-\log \theta}{A}\Bigr).
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+
+Iterating one-step decay $n$ times gives
+$\mathrm{vol}(E_{\ell_0 + n A}) \le \theta^{n}\,\mathrm{vol}(E_{\ell_0})$. Choose
+$n = \lceil \ell/A\rceil - 1$, so $\ell_0 = \ell - n A \in (0, A]$, and bound
+$\theta^{n} \le (1/\theta)\, \exp(-\ell\,(-\log\theta)/A)$ using
+$n \ge \ell/A - 1$ and $\theta^{x} = \exp(x\log\theta)$.
+\end{proof}
+
+\begin{theorem}[John--Nirenberg from one-step decay]
+\label{thm:john_nirenberg_iteration}
+\lean{DeGiorgi.john_nirenberg_iteration}
+\leanok
+Let $u : E \to \R$ be measurable and let $x_0, r$ with $r > 0$. If for some $A,\theta$
+with $A > 0$, $0 < \theta < 1$ the sublevel sets of $|u - \fint_{\Ball{r}{x_0}} u|$
+satisfy
+\begin{equation*}
+\mathrm{vol}\bigl\{ x \in \Ball{r}{x_0} : \lvert u - \tfrac{1}{|B|}\!\int_{\Ball{r}{x_0}} u\rvert > \ell + A\bigr\}
+\le \theta\, \mathrm{vol}\bigl\{ x \in \Ball{r}{x_0} : \lvert u - \tfrac{1}{|B|}\!\int_{\Ball{r}{x_0}} u\rvert > \ell\bigr\}
+\end{equation*}
+for all $\ell > 0$, then for every $t > 0$,
+\begin{equation*}
+\mathrm{vol}\bigl\{ x \in \Ball{r}{x_0} : \lvert u - \tfrac{1}{|B|}\!\int_{\Ball{r}{x_0}} u\rvert > t\bigr\}
+\le \frac{1}{\theta}\, \mathrm{vol}(\Ball{r}{x_0})\,
+\exp\!\Bigl(-t\,\frac{-\log\theta}{A}\Bigr).
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:john_nirenberg_iteration_decay_iterate}
+See the Lean formalization.
+\end{proof}
+
+\begin{lemma}[Indicator BMO]
+\label{lem:indicator_bmo_bound}
+\lean{DeGiorgi.indicator_bmo_bound}
+\leanok
+If $u$ has BMO seminorm at most $M$ on every closed sub-ball of $\Ball{r}{x_0}$, then
+the same bound holds for the function $\mathbf{1}_{\Ball{r}{x_0}}\, u$ on those sub-balls,
+since the average over $\Ball{s}{z} \subseteq \Ball{r}{x_0}$ coincides with that of $u$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+See the Lean formalization.
+\end{proof}
+
+\section{Simple iteration lemma}
+
+\begin{lemma}
+\label{lem:simple_iteration_lemma}
+\lean{DeGiorgi.simple_iteration_lemma}
+\leanok
+\uses{def:C_JN}
+Let $A_{\mathrm{iter}} \ge 0$ and let $\rho : \R \to \R$ satisfy on $[1/2, 1)$:
+\begin{enumerate}
+\item $\rho \ge 0$;
+\item $\sup_{1/2 \le t < 1}(1-t)^{2}\,\rho(t) < \infty$;
+\item for all $1/2 \le s < t < 1$,
+$\rho(s) \le \tfrac{1}{2}\rho(t) + A_{\mathrm{iter}}(t-s)^{-2}$.
+\end{enumerate}
+Then $\rho(1/2) \le C_{\mathrm{iter}}\, A_{\mathrm{iter}}$.
+\end{lemma}
+\begin{proof}
+\leanok
+
+Let $M$ be a non-negative upper bound for $(1-t)^{2}\rho(t)$. With the choice
+$t = (3s+1)/4$, one has $t-s = (1-s)/4$ and $1-t = 3(1-s)/4$, so multiplying the
+contraction by $(1-s)^{2}$ and using $(1-s)^{2}\,(t-s)^{-2} = 16$ gives
+\begin{equation*}
+(1-s)^{2}\,\rho(s) \le \tfrac{8}{9}\,(1-t)^{2}\rho(t) + 16\, A_{\mathrm{iter}}
+\le \tfrac{8}{9}\, M + 16\, A_{\mathrm{iter}}.
+\end{equation*}
+Taking the supremum over $s$ shows $M \mapsto \tfrac{8}{9}M + 16 A_{\mathrm{iter}}$ also
+bounds $(1-t)^{2}\rho(t)$. Iterating $n$ times gives the bound
+$M_n = (8/9)^{n} M + (1-(8/9)^{n})\cdot 144\, A_{\mathrm{iter}}$, which tends to
+$144\,A_{\mathrm{iter}}$. Evaluating at $s = 1/2$ where $(1-s)^{2} = 1/4$, we get
+$\rho(1/2) \le 4 M_n \to 576\, A_{\mathrm{iter}} \le C_{\mathrm{iter}}\,A_{\mathrm{iter}}$.
+\end{proof}
+
+\section{Local John--Nirenberg theorem}
+
+\begin{lemma}[Geometric decay step]
+\label{lem:john_nirenberg_level_set_decay}
+\lean{DeGiorgi.john_nirenberg_level_set_decay}
+\leanok
+\uses{def:JNBall, def:CampanatoBall}
+Let $E_{\ell+A} \subseteq E_{\ell}$ be measurable sets with $\mathrm{vol}(E_{\ell}) < \infty$
+and let $(B_i)$ be a countable family of pairwise disjoint JN-balls with carriers
+$\bigcup_i B_i^{\mathrm{car}} \subseteq E_{\ell}$ and 5-fold enlargements covering
+$E_{\ell}$. If
+\begin{equation*}
+\mathrm{vol}(E_{\ell+A} \cap B_i^{\mathrm{car}}) \le \tfrac{1}{2}\, \mathrm{vol}(B_i^{\mathrm{car}})
+\quad \text{for every } i,
+\end{equation*}
+then
+\begin{equation*}
+\mathrm{vol}(E_{\ell+A}) \le \Bigl(1 - \frac{1}{2 \cdot 5^{d}}\Bigr)\, \mathrm{vol}(E_{\ell}).
+\end{equation*}
+\end{lemma}
+\begin{proof}
+\leanok
+
+Let $U = \bigcup_i B_i^{\mathrm{car}}$. By disjointness and the 5-fold cover,
+$\mathrm{vol}(U) \ge 5^{-d}\, \mathrm{vol}(E_{\ell})$. The hypothesis on each carrier
+sums to $\mathrm{vol}(E_{\ell+A}\cap U) \le \tfrac{1}{2}\,\mathrm{vol}(U)$. Splitting
+$E_{\ell+A} = (E_{\ell+A}\cap U) \cup (E_{\ell+A}\setminus U)$ and using
+$E_{\ell+A}\setminus U \subseteq E_{\ell}\setminus U$ and the lower bound on
+$\mathrm{vol}(U)$ gives the stated estimate.
+\end{proof}
+
+\begin{theorem}[Iterated decay from a base level]
+\label{thm:john_nirenberg_from_base}
+\lean{DeGiorgi.john_nirenberg_from_base, DeGiorgi.level_set_family_from_base}
+\leanok
+If a measurable antitone family $E_{\ell} \subseteq B$ satisfies the one-step decay
+$\mathrm{vol}(E_{\ell+A}) \le \theta\,\mathrm{vol}(E_{\ell})$ only for $\ell \ge A$, then
+for every $t > 0$,
+\begin{equation*}
+\mathrm{vol}(E_{t}) \le \frac{1}{\theta^{2}}\, \mathrm{vol}(B)\,
+\exp\!\Bigl(-t\,\frac{-\log\theta}{A}\Bigr).
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{lem:john_nirenberg_iteration_decay_iterate, lem:MemW1pWitness_sub_const}
+
+For $t > A$ apply \leanname{john\_nirenberg\_iteration} to the shifted family
+$F_s = E_{s+A}$, picking up an extra factor $1/\theta$ from the shift; the bound
+$\theta^{n} \le (1/\theta) \exp(\dots)$ contributes another $1/\theta$, totalling
+$1/\theta^{2}$. For $t \le A$ the trivial inclusion
+$E_{t} \subseteq B$ already lies below the right-hand side because the exponential factor
+is bounded below by $\theta$.
+\end{proof}
+
+\begin{theorem}[Local John--Nirenberg]
+\label{thm:john_nirenberg_local}
+\lean{DeGiorgi.john_nirenberg_local}
+\leanok
+\uses{def:C_JN}
+Let $R > 0$, $M > 0$, and $u$ measurable on $\Ball{6R}{x_0}$ with the BMO bound
+\begin{equation*}
+\fint_{\Ball{s}{z}} \Bigl|\, u - \fint_{\Ball{s}{z}} u\, \Bigr|\, dy \le M
+\end{equation*}
+for every closed sub-ball $\overline{\Ball{s}{z}} \subseteq \Ball{6R}{x_0}$. Then for every
+$t > 0$,
+\begin{equation*}
+\mathrm{vol}\Bigl\{ x \in \Ball{R}{x_0} : \Bigl|\,u(x) - \fint_{\Ball{R}{x_0}} u\,\Bigr| > t\Bigr\}
+\le C_{\mathrm{JN}}(d)\, \mathrm{vol}(\Ball{R}{x_0})\,
+\exp\!\Bigl(-\frac{t}{C_{\mathrm{JN}}(d)\,M}\Bigr).
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{def:JNBall, lem:vitali_covering_lemma, lem:ball_subset_fivefold_of_inter_nonempty, thm:john_nirenberg_from_base, def:CampanatoBall, thm:Cutoff_exists}
+
+Set $w(x) = |u(x) - \fint_{\Ball{R}{x_0}} u|$, $\theta = 1/2$, $A = 8\cdot 25^{d}\, M$.
+For each $\ell \ge A$, apply a Calder\'on--Zygmund stopping-time / Vitali selection
+inside $\Ball{R}{x_0}$ on the level set $\{w > \ell\}$ to extract a disjoint family of
+JN-balls $(B_i)$ whose 5-fold enlargements cover the level set (up to a null set), with
+the property that on each parent ball the average of $w$ does not exceed $\ell$. The
+BMO hypothesis applied on each $B_i$ then yields
+\begin{equation*}
+\mathrm{vol}(\{w > \ell + A\}\cap B_i^{\mathrm{car}})
+\le \tfrac{1}{2}\, \mathrm{vol}(B_i^{\mathrm{car}}),
+\end{equation*}
+because raising $w$ by $A$ over the parent average exceeds the BMO control of the
+oscillation. Lemma \leanname{john\_nirenberg\_level\_set\_decay} converts this into the
+geometric decay $\mathrm{vol}(\{w > \ell + A\}) \le \theta\, \mathrm{vol}(\{w > \ell\})$ for
+all $\ell \ge A$. Theorem \leanname{john\_nirenberg\_from\_base} then yields the
+exponential bound, where $-\log\theta/A = \log 2 / (8\cdot 25^{d}\, M)$ and the
+constants combine into $C_{\mathrm{JN}}(d) = 16\cdot 36^{d}$.
+\end{proof}
+
+\section{Campanato characterisation of H\"older spaces}
+
+\begin{definition}
+\label{def:CampanatoBall}
+\lean{DeGiorgi.CampanatoBall, DeGiorgi.campanatoBallValue, DeGiorgi.campanatoSeminorm}
+\leanok
+For $x_0 \in E$ and $R > 0$, a \emph{Campanato ball} is a pair $(c,\rho)$ with
+$0 < \rho \le R$ and $\Ball{\rho}{c} \subseteq \Ball{R}{x_0}$. For $\alpha > 0$ define
+\begin{equation*}
+N_{\alpha}(u; c,\rho)
+:= \rho^{-\alpha}\, \fint_{\Ball{\rho}{c}}
+\Bigl|\, u(x) - \fint_{\Ball{\rho}{c}} u\, \Bigr|\, dx,
+\end{equation*}
+and the Campanato seminorm
+\begin{equation*}
+[u]_{\mathcal{L}^{\alpha}(\Ball{R}{x_0})}
+:= \sup_{(c,\rho)\,\text{Campanato ball}} N_{\alpha}(u;c,\rho).
+\end{equation*}
+\end{definition}
+
+\begin{definition}
+\label{def:HasCampanatoBound}
+\lean{DeGiorgi.HasCampanatoBound}
+\leanok
+\uses{def:CampanatoBall}
+We write $\mathrm{HasCampanatoBound}(u; x_0, R, \alpha, C)$ if $u$ is locally integrable on every
+admissible sub-ball and $N_{\alpha}(u; c, \rho) \le C$ for every Campanato ball
+$(c,\rho) \subseteq \Ball{R}{x_0}$.
+\end{definition}
+
+\begin{definition}[Dyadic ball averages and limits]
+\label{def:dyadicBallAverage}
+\lean{DeGiorgi.dyadicBallAverage, DeGiorgi.dyadicBallAverageLimit}
+\leanok
+For $\rho > 0$ set
+\begin{gather*}
+a_n(x) := \fint_{\Ball{\rho/2^{n}}{x}} u\, dz, \\
+\widetilde u(x) := \lim_{n\to\infty} a_n(x)
+\end{gather*}
+when the limit exists; $\widetilde u$ is the candidate H\"older representative.
+\end{definition}
+
+\begin{definition}
+\label{def:C_campanato_holder}
+\lean{DeGiorgi.C_campanato_holder}
+\leanok
+\begin{equation*}
+C_{\mathrm{Camp\to H\ddot ol}}(d,\alpha) := \frac{2^{d+3}}{1 - 2^{-\alpha}}.
+\end{equation*}
+\end{definition}
+
+The chain of lemmas
+\leanname{abs\_ballAverage\_half\_sub\_ballAverage\_le},
+\leanname{ballAverage\_sub\_ballAverage\_sameRadius\_le\_campanato},
+\leanname{dyadicBallAverage\_step\_le\_campanato},
+\leanname{dyadicBallAverage\_step\_le\_geometric},
+\leanname{dyadicBallAverage\_cauchy},
+\leanname{tendsto\_dyadicBallAverageLimit},
+\leanname{dyadicBallAverage\_tail\_le}
+establishes that the dyadic averages form a
+Cauchy sequence with geometric ratio $2^{-\alpha}$, and converge to a limit
+$\widetilde u$ with quantitative tail control. Lemmas
+\leanname{dyadicBallAverageLimit\_holder\_small} and
+\leanname{dyadicBallAverageLimit\_holder\_large}
+give pointwise H\"older estimates on the
+limit in the regimes $|x-y| \le \rho$ and $|x-y| > \rho$ respectively.
+
+\begin{theorem}[Campanato implies H\"older]
+\label{thm:campanato_implies_holder}
+\lean{DeGiorgi.campanato_implies_holder}
+\leanok
+\uses{def:HasCampanatoBound, def:C_campanato_holder}
+Let $0 < \alpha \le 1$, $R > 0$ and $\mathrm{HasCampanatoBound}(u; x_0, R, \alpha, C_{\mathrm{camp}})$.
+Then there is a function $v : E \to \R$ that agrees with $u$ a.e.\ on $\Ball{R}{x_0}$ and
+satisfies, for all $x, y \in \Ball{R/2}{x_0}$,
+\begin{equation*}
+\bigl|v(x) - v(y)\bigr|
+\le C_{\mathrm{Camp\to H\ddot ol}}(d,\alpha)\, C_{\mathrm{camp}}\, \lvert x - y\rvert^{\alpha}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{def:CampanatoBall, def:dyadicBallAverage}
+
+Take $\rho = R/2$ and define $v(x) := \widetilde u(x)$ for $x \in \Ball{R/2}{x_0}$ and
+$v(x) := u(x)$ otherwise. By
+\leanname{ae\_eq\_dyadicBallAverageLimit\_on\_halfBall}, $\widetilde u = u$ a.e.\ on
+$\Ball{R/2}{x_0}$, so $v = u$ a.e.\ on $\Ball{R}{x_0}$. For $x, y \in \Ball{R/2}{x_0}$,
+split into the cases $|x - y| \le \rho$ and $|x - y| > \rho$, applying the corresponding
+H\"older estimate for the dyadic limit. Both cases yield the same bound with constant
+$C_{\mathrm{Camp\to H\ddot ol}}(d,\alpha)\, C_{\mathrm{camp}}$.
+\end{proof}
+
+\begin{lemma}[H\"older implies Campanato bound]
+\label{lem:holder_hasCampanatoBound}
+\lean{DeGiorgi.holder_hasCampanatoBound}
+\leanok
+\uses{def:HasCampanatoBound}
+If $u$ is $\alpha$-H\"older on $\Ball{R}{x_0}$ with constant $C_{\mathrm{H\ddot ol}}$, then
+$\mathrm{HasCampanatoBound}(u; x_0, R, \alpha, C_{\mathrm{H\ddot ol}}\cdot 2^{\alpha})$.
+\end{lemma}
+\begin{proof}
+\leanok
+
+On any Campanato ball $\Ball{\rho}{y}$, for any $x, z \in \Ball{\rho}{y}$ we have
+$|x - z| \le 2\rho$, so the H\"older bound gives
+\begin{equation*}
+|u(x) - u(z)| \le C_{\mathrm{H\ddot ol}}\,\lvert x - z\rvert^{\alpha}
+\le C_{\mathrm{H\ddot ol}}\,(2\rho)^{\alpha}.
+\end{equation*}
+Averaging over $z \in \Ball{\rho}{y}$ via $\overline u = \fint_{\Ball{\rho}{y}} u(z)\,dz$
+yields
+\begin{equation*}
+|u(x) - \overline u| \le \fint_{\Ball{\rho}{y}} |u(x) - u(z)|\,dz
+\le C_{\mathrm{H\ddot ol}}\,(2\rho)^{\alpha}.
+\end{equation*}
+Multiplying by $\rho^{-\alpha}$ gives
+$N_{\alpha}(u; y, \rho) \le C_{\mathrm{H\ddot ol}}\, 2^{\alpha}$.
+\end{proof}
+
+\begin{theorem}[H\"older implies Campanato seminorm bound]
+\label{thm:holder_implies_campanato}
+\lean{DeGiorgi.holder_implies_campanato}
+\leanok
+\uses{def:CampanatoBall}
+If $u$ is $\alpha$-H\"older on $\Ball{R}{x_0}$ with constant $C_{\mathrm{H\ddot ol}}$, then
+\begin{equation*}
+[u]_{\mathcal{L}^{\alpha}(\Ball{R}{x_0})} \le C_{\mathrm{H\ddot ol}}\, 2^{\alpha}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+\leanok
+\uses{def:HasCampanatoBound, lem:holder_hasCampanatoBound}
+
+Combine the previous lemma with
+\leanname{HasCampanatoBound.campanatoSeminorm\_le}.
+\end{proof}
+
+
+%% ========================================================================

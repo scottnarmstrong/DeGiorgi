@@ -1,0 +1,2005 @@
+\chapter{Ball Extension, Approximation, and Supporting Tools}\label{sec:extension}
+%% ========================================================================
+
+% Section 4: Ball Extension, Approximation, and Supporting Tools.
+% Faithful translation of the De Giorgi formalization.
+
+This section collects the analytic infrastructure underlying the De Giorgi
+development: a Sobolev chain rule on open sets, smooth approximation of
+$W^{1,p}$ functions on the unit ball, an explicit unit-ball extension operator
+together with its $L^p$ and $W^{1,p}$ estimates, the positive-part machinery,
+and a small toolkit for $L^p$ limits, finite covers, and pointwise component
+analysis. Throughout we work in the Euclidean space $E := \R^d$ with $d \ge 1$.
+
+\section{Sobolev chain rule}
+
+The first goal is the chain rule for compositions $\Phi \circ u$ when $u$ is a
+$W^{1,2}$ function and $\Phi$ is a smooth scalar function with bounded
+derivative.
+
+\begin{theorem}
+\label{thm:chain-rule-unitBall}
+\lean{DeGiorgi.sobolev_chain_rule_unitBall}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1pWitness}
+Let $u \in W^{1,2}(\Bz{1})$ with weak gradient $\nabla u$ packaged as a
+\leanname{MemW1pWitness}, let $i \in \{1,\dots,d\}$, and let $\Phi \in
+C^{\infty}(\R)$ satisfy $\Phi(0)=0$ and $|\Phi'(t)| \le M$ for all $t \in \R$.
+Then $\partial_i \Phi(u) = \Phi'(u)\,\partial_i u$ in the weak sense on
+$\Bz{1}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_of_contDiff, thm:w12-approx}
+
+Let $M$ be the prescribed bound on $|\Phi'|$, so $M \ge 0$. Since $\Bz{1}$ has
+finite Lebesgue measure, by \leanname{exists\_smooth\_W12\_approx\_on\_unitBall}
+there is a sequence $\psi_n \in C^{\infty}_c(\R^d)$ with
+\begin{align*}
+\eLpNormText{\psi_n - u}_{L^2(\Bz{1})} &\to 0,\\
+\eLpNormText{\partial_i \psi_n - \partial_i u}_{L^2(\Bz{1})} &\to 0.
+\end{align*}
+Passing to a subsequence (still denoted $\psi_n$) we may also assume $\psi_n
+\to u$ a.e.\ on $\Bz{1}$ via
+\leanname{exists\_ae\_tendsto\_of\_eLpNorm\_tendsto}.
+
+Since each $\psi_n$ is smooth and compactly supported, the classical chain
+rule and integration by parts yield, for every test function
+$\varphi \in C^{\infty}_c(\Bz{1})$,
+\begin{multline*}
+\int_{\Bz{1}} \Phi(\psi_n)\, \partial_i \varphi \,dx
+= -\int_{\Bz{1}} \Phi'(\psi_n)\, \partial_i \psi_n\, \varphi \,dx.
+\end{multline*}
+We pass to the limit on each side.
+
+\emph{Left-hand side.} The function $\Phi$ is $M$-Lipschitz because $\Phi'$
+is bounded and $\Phi$ is differentiable. Hence
+$|\Phi(\psi_n(x)) - \Phi(u(x))| \le M\, |\psi_n(x)-u(x)|$ pointwise, so
+\begin{equation*}
+\eLpNormText{\Phi(\psi_n)-\Phi(u)}_{L^2(\Bz{1})}
+\le M\, \eLpNormText{\psi_n - u}_{L^2(\Bz{1})}
+\to 0.
+\end{equation*}
+The function $\partial_i \varphi$ lies in $L^2(\Bz{1})$ (it is bounded and
+compactly supported), so by H\"older's inequality
+$\int_{\Bz{1}} \Phi(\psi_n)\,\partial_i \varphi \,dx \to
+\int_{\Bz{1}} \Phi(u)\,\partial_i\varphi \,dx$.
+
+\emph{Right-hand side.} Decompose
+\begin{equation*}
+\Phi'(\psi_n)\,\partial_i \psi_n - \Phi'(u)\,\partial_i u
+= \Phi'(\psi_n)\,(\partial_i \psi_n - \partial_i u)
++ (\Phi'(\psi_n) - \Phi'(u))\,\partial_i u.
+\end{equation*}
+The first term is bounded in $L^2$-norm by
+$M\,\eLpNormText{\partial_i \psi_n - \partial_i u}_{L^2(\Bz{1})}\to 0$.
+For the second term, $\Phi'$ is continuous and $\psi_n \to u$ a.e., so
+$\Phi'(\psi_n) \to \Phi'(u)$ a.e.\ with uniform bound $M$. The dominated
+convergence theorem applied to $|\Phi'(\psi_n) - \Phi'(u)|^2 |\partial_i u|^2$
+(dominated by $4M^2 |\partial_i u|^2 \in L^1$) yields convergence of the
+second term in $L^2$. Multiplying by $\varphi \in L^\infty_c$ and integrating
+gives convergence of the right-hand side to
+$-\int_{\Bz{1}} \Phi'(u)\,\partial_i u\, \varphi\,dx$. The chain-rule
+identity follows.
+\end{proof}
+
+\begin{theorem}
+\label{thm:chain-rule-open}
+\lean{DeGiorgi.sobolev_chain_rule}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega \subseteq \R^d$ be open, $u \in W^{1,2}(\Omega)$, and let $g \in
+L^2(\Omega)$ be a representative of $\partial_i u$ in the weak sense. Let
+$\Phi \in C^\infty(\R)$ with $\Phi(0)=0$ and $|\Phi'| \le M$. Then
+$\Phi'(u)\,g$ is a weak $i$-th partial derivative of $\Phi(u)$ on $\Omega$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_partial_unique, def:MemW1p, def:MemW1pWitness, lem:MemW1pWitness_restrict, thm:chain-rule-unitBall, lem:rescale-witness}
+
+Let $\nabla u$ be the canonical weak gradient extracted from the witness
+$u \in W^{1,2}(\Omega)$, and write $g_i := (\nabla u)_i$. By uniqueness of
+weak partial derivatives in $L^1_{\mathrm{loc}}$, we have $g = g_i$ a.e.\ on
+$\Omega$, so it suffices to prove the statement with $g_i$ in place of $g$
+(the difference of integrands vanishes a.e.\ in the test integral).
+
+Local integrability of $\Phi(u)$ and of $\Phi'(u)\,g_i$ follows from the
+$M$-Lipschitz bound $|\Phi(t)| \le M|t|$ and from $|\Phi'(u)\,g_i| \le M|g_i|$,
+combined with the local integrability of $u$ and $g_i$.
+
+It now suffices to verify the weak derivative identity locally, that is, on
+each ball $\Ball{r}{x_0} \subseteq \Omega$
+(\leanname{HasWeakPartialDeriv'\_of\_local}). On such a ball, restrict the
+witness to obtain $u \in W^{1,2}(\Ball{r}{x_0})$ and apply
+Theorem~\ref{thm:chain-rule-unitBall} (after rescaling to the unit ball via
+\leanname{MemW1pWitness.rescale\_to\_unitBall}). The conclusion is the chain
+rule for $\Phi(u)$ on $\Ball{r}{x_0}$, and gluing across all balls produces
+the desired global identity on $\Omega$.
+\end{proof}
+
+\section{Smooth approximation on the unit ball}
+
+We now produce smooth, compactly supported approximations of any $W^{1,p}$
+function on the unit ball, with control on both function and gradient errors.
+The construction proceeds in three layers: (i) a Lipschitz cutoff profile
+$\eta_{r,R}$, (ii) inward dilation, and (iii) convolution with a mollifier.
+
+\begin{definition}
+\label{def:myCutoff}
+\lean{DeGiorgi.myCutoff}
+\leanok
+For $x_0 \in E$ and $0 < r < R$, define the radial cutoff profile
+\begin{equation*}
+\eta_{x_0,r,R}(x) := \mathrm{st}\!\left(\frac{R - \|x - x_0\|}{R - r}\right),
+\end{equation*}
+where $\mathrm{st}$ is Mathlib's \emph{smooth transition function}, satisfying
+$0 \le \mathrm{st} \le 1$, $\mathrm{st}(t) = 1$ for $t \ge 1$, and
+$\mathrm{st}(t) = 0$ for $t \le 0$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:smoothTransition_nnnorm_deriv_bounded}
+\lean{DeGiorgi.Mst}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.smoothTransition\_nnnorm\_deriv\_bounded}.)}\par
+There is a constant $\Mst < \infty$ with $\|\mathrm{st}'(t)\| \le \Mst$ for
+all $t \in \R$. Consequently $\mathrm{st}$ is $\Mst$-Lipschitz.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+The derivative $\mathrm{st}'$ is continuous and supported in $[0,1]$, hence
+attains a maximum on this compact interval; outside $[0,1]$ it vanishes. Set
+$\Mst$ to that maximum value.
+\end{proof}
+
+\begin{lemma}
+\label{lem:cutoff-properties}
+\lean{DeGiorgi.myCutoff_eq_one, DeGiorgi.myCutoff_eq_zero, DeGiorgi.myCutoff_lipschitz, DeGiorgi.myCutoff_fderiv_bound}
+\leanok
+\uses{def:myCutoff, lem:smoothTransition_nnnorm_deriv_bounded}
+Let $0 < r < R$. Then:
+\begin{enumerate}
+\item $\eta_{x_0,r,R}(x) = 1$ for $x \in \Ball{r}{x_0}$;
+\item $\eta_{x_0,r,R}(x) = 0$ for $x \notin \overline{\Ball{R}{x_0}}$;
+\item $\eta_{x_0,r,R}$ is $C^\infty$ on $E$;
+\item $\eta_{x_0,r,R}$ is $\Mst (R-r)^{-1}$-Lipschitz;
+\item $\|D\eta_{x_0,r,R}(x)\| \le \Mst (R-r)^{-1}$ for all $x \in E$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+For (i): if $x \in \Ball{r}{x_0}$ then $\|x - x_0\| < r$ and so
+$(R - \|x - x_0\|)/(R-r) > 1$, hence $\mathrm{st}$ takes the value $1$.
+For (ii): if $\|x-x_0\| > R$ then the argument is negative, hence
+$\mathrm{st}$ vanishes. Smoothness follows from
+$\mathrm{st} \in C^\infty(\R)$ together with smoothness of the radial
+argument away from $x_0$, and constancy near $x_0$. The radial map
+$x \mapsto (R - \|x-x_0\|)/(R-r)$ is $1/(R-r)$-Lipschitz, so the composition
+with the $\Mst$-Lipschitz $\mathrm{st}$ gives (iv); (v) follows by the
+operator-norm bound for derivatives of Lipschitz maps.
+\end{proof}
+
+\begin{definition}
+\label{def:Cutoff}
+\lean{DeGiorgi.Cutoff}
+\leanok
+\uses{lem:smoothTransition_nnnorm_deriv_bounded}
+A \emph{cutoff structure} on $\Ball{r}{x_0}$ inside $\Ball{R}{x_0}$ is a tuple
+$\eta = (\eta, \mathrm{smooth}, \text{nonneg}, \text{le\_one}, \text{eq\_one},
+\text{support}, \text{grad\_bound})$ where $\eta : E \to \R$ is
+$C^\infty$, takes values in $[0,1]$, equals $1$ on $\Ball{r}{x_0}$, has
+$\tsupport \eta \subseteq \overline{\Ball{R}{x_0}}$, and satisfies the
+gradient bound $\|D\eta(x)\| \le \Mst (R-r)^{-1}$.
+\end{definition}
+
+\begin{theorem}
+\label{thm:Cutoff_exists}
+\lean{DeGiorgi.Cutoff.exists}
+\leanok
+\uses{def:Cutoff}
+For every $0 < r < R$, the set of cutoff structures on $\Ball{r}{x_0}$ inside
+$\Ball{R}{x_0}$ is nonempty.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:CampanatoBall, def:HasCampanatoBound, def:myCutoff, lem:cutoff-properties}
+
+The bundle constructed from $\eta_{x_0,r,R}$ together with the lemmas of
+\ref{lem:cutoff-properties} is such a cutoff structure.
+\end{proof}
+
+\begin{theorem}
+\label{thm:lp-approx-cc}
+\lean{DeGiorgi.Lp_approx_by_continuous_compactly_supported}
+\leanok
+Let $1 \le p < \infty$ and $f \in \Lp{p}(\R^d)$. For every $\delta > 0$ there
+exists a continuous compactly supported function $g$ with
+$\eLpNormText{f-g}_{L^p} < \delta$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+This is the standard density of $C_c$ in $L^p$ for $p < \infty$. Choose
+$0 < \varepsilon < \delta$ in $\R$, apply the Mathlib lemma
+\leanname{exist\_eLpNorm\_sub\_le} to obtain a smooth compactly supported
+$g$ with $\eLpNormText{f-g}_{L^p} \le \varepsilon < \delta$.
+\end{proof}
+
+\subsection*{Rescaling}
+
+\begin{definition}
+\label{def:unitBallDilate}
+\lean{DeGiorgi.unitBallDilate}
+\leanok
+For $\lambda > 0$ and $u : E \to \R$, define
+$\unitBallDilate_\lambda u(x) := u(\lambda^{-1} x)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:smul_inv_mem_unitBall}
+\lean{DeGiorgi.smul_inv_mem_unitBall}
+\leanok
+If $\lambda > 1$ and $x \in \Bz{1}$, then $\lambda^{-1} x \in \Bz{1}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+$\|\lambda^{-1}x\| = \lambda^{-1}\|x\| \le \|x\| < 1$ since $\lambda^{-1} < 1$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:rescale-witness}
+\lean{DeGiorgi.MemW1pWitness.rescale_to_unitBall}
+\leanok
+\uses{def:MemW1pWitness}
+Let $\hw \in W^{1,p}(\Ball{R}{x_0})$ with weak gradient $G$. Then the
+function $z \mapsto u(x_0 + Rz)$ is in $W^{1,p}(\Bz{1})$ with weak
+gradient $z \mapsto R\,G(x_0 + Rz)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+
+Let $T(z) := x_0 + Rz$, a measurable embedding with
+$T^{-1}(\Ball{R}{x_0}) = \Bz{1}$ and pushforward measure
+$T_\sharp \mathrm{vol} = R^{-d}\, \mathrm{vol}$. The change of variables
+yields $\eLpNormText{u\circ T}_{L^p(\Bz{1})}^p = R^{-d}
+\eLpNormText{u}_{L^p(\Ball{R}{x_0})}^p$, hence $u\circ T \in L^p(\Bz{1})$.
+For the weak derivative, let $\varphi \in C^\infty_c(\Bz{1})$ and define
+$\psi(x) := \varphi(R^{-1}(x - x_0))$. Then $\psi \in C^\infty_c(\Ball{R}{x_0})$
+and $\partial_i \varphi(z) = R\, \partial_i \psi(x_0 + Rz)$. Substituting
+into the test definition for $G_i$ at $\psi$, performing the change of
+variables, and dividing by the Jacobian yields the test definition with
+$z \mapsto R\,G_i(x_0+Rz)$ at $\varphi$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:eLpNorm_rescale_to_unitBall}
+\lean{DeGiorgi.eLpNorm_rescale_to_unitBall}
+\leanok
+For $0 < R$, $p \in [1,\infty)$,
+\begin{equation*}
+\eLpNormText{u(x_0 + R\cdot)}_{L^p(\Bz{1})}
+= R^{-d/p}\,\eLpNormText{u}_{L^p(\Ball{R}{x_0})}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Direct application of the change-of-variables formula for the affine map
+$T$ above, using $|\det DT| = R^d$.
+\end{proof}
+
+\subsection*{Inward and outward dilation}
+
+\begin{definition}
+\label{def:MemW1pWitness_unitBallDilate}
+\lean{DeGiorgi.MemW1pWitness.unitBallDilate}
+\leanok
+\uses{def:MemW1pWitness, def:unitBallDilate, lem:rescale-witness}
+Let $\lambda > 1$ and $u \in W^{1,p}(\Bz{1})$. The inward dilate
+$\unitBallDilate_\lambda u(x) = u(\lambda^{-1}x)$ defines a function in
+$W^{1,p}(\Bz{1})$ obtained by restricting $u$ to $\Ball{\lambda^{-1}}{0}$
+and rescaling by Lemma~\ref{lem:rescale-witness}.
+\end{definition}
+
+\begin{theorem}
+\label{thm:exists_unitBallCutoff_inside}
+\lean{DeGiorgi.exists_unitBallCutoff_inside}
+\leanok
+\uses{def:Cutoff}
+Let $\lambda > 1$. There exists a cutoff structure $\eta$ on
+$\Ball{1}{0}$ inside $\Ball{(1+\lambda)/2}{0}$ with
+$\tsupport \eta \subseteq \Ball{\lambda}{0}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:Cutoff_exists}
+
+Apply \leanname{Cutoff.exists} with $r=1$, $R=(1+\lambda)/2$. The support
+inclusion follows from $(1+\lambda)/2 < \lambda$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:dilate-large}
+\lean{DeGiorgi.MemW1pWitness.unitBallDilate_largeBall}
+\leanok
+\uses{def:MemW1pWitness, def:unitBallDilate}
+Let $\lambda > 1$ and $u \in W^{1,p}(\Bz{1})$. Then
+$\unitBallDilate_\lambda u \in W^{1,p}(\Ball{\lambda}{0})$ with weak
+gradient $x \mapsto \lambda^{-1}(\nabla u)(\lambda^{-1}x)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:rescale-witness}
+
+Use the measurable embedding $S(x) := \lambda^{-1}x$, push forward via
+$\Ball{\lambda}{0}$, and apply the analogous test-function calculation as
+in Lemma~\ref{lem:rescale-witness} with the radial scaling factor
+$\lambda^{-1}$.
+\end{proof}
+
+\subsection*{One-shot smooth approximation}
+
+\begin{theorem}
+\label{thm:oneshot}
+\lean{DeGiorgi.exists_smooth_W1p_oneShot_on_unitBall}
+\leanok
+\uses{def:MemW1pWitness}
+Let $1 < p < \infty$, $u \in W^{1,p}(\Bz{1})$, and $\varepsilon > 0$. Then
+there exists $\psi \in C^\infty_c(E)$ with
+\begin{align*}
+\eLpNormText{\psi - u}_{L^p(\Bz{1})} &< \varepsilon, \\
+\eLpNormText{\partial_i \psi - \partial_i u}_{L^p(\Bz{1})} &< \varepsilon
+\quad (i=1,\dots,d).
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{prop:witness_mul_smooth_bounded, lem:zero_outside_tsupport, thm:smooth_approx_local, def:CampanatoBall, def:HasCampanatoBound, lem:smoothTransition_nnnorm_deriv_bounded, def:Cutoff, thm:lp-approx-cc, def:unitBallDilate, lem:smul_inv_mem_unitBall, lem:eLpNorm_rescale_to_unitBall, thm:exists_unitBallCutoff_inside, lem:dilate-large}
+
+Choose $\delta_u, \delta_G > 0$ small enough so that for any
+$\lambda \in (1, 1+\delta/2)$ with $\delta := \min(1,\delta_u,\delta_G)$,
+the inward dilate $\unitBallDilate_\lambda u$ approximates $u$ in $L^p(\Bz{1})$
+to within $\varepsilon/2$, and similarly each rescaled gradient component is
+within $\varepsilon/2$ of $(\nabla u)_i$. (Existence of such $\delta$ uses
+strong-$L^p$-continuity of dilations.) Set $\lambda := 1 + \delta/2 \in (1,2)$.
+
+Apply Lemma~\ref{lem:dilate-large} to get
+$u_\lambda := \unitBallDilate_\lambda u \in W^{1,p}(\Ball{\lambda}{0})$.
+Multiply $u_\lambda$ by a cutoff structure $\eta$ on $\Bz{1}$ inside
+$\Ball{(1+\lambda)/2}{0}$ from \leanname{exists\_unitBallCutoff\_inside}; this
+produces a $W^{1,p}$ function $\eta\, u_\lambda$ supported strictly inside
+$\Ball{\lambda}{0}$, agreeing with $u_\lambda$ on $\Bz{1}$.
+
+Convolve $\eta\, u_\lambda$ with a standard mollifier of radius $\rho$ small
+enough that the support of the result lies inside $\Ball{\lambda}{0}$ and the
+$L^p$ approximation error in both function and gradient is controlled by
+$\varepsilon/4$. The result $\psi$ is smooth, compactly supported, and
+satisfies, by the triangle inequality,
+\begin{align*}
+\eLpNormText{\psi - u}_{L^p(\Bz{1})}
+&\le \eLpNormText{\psi - \eta u_\lambda}_{L^p(\Bz{1})}
++ \eLpNormText{\eta u_\lambda - u}_{L^p(\Bz{1})} \\
+&< \varepsilon/4 + \varepsilon/2 < \varepsilon,
+\end{align*}
+and analogously for the gradient components, where on $\Bz{1}$ the cutoff
+$\eta$ equals $1$, hence $\eta u_\lambda = u_\lambda$ and the gradient
+error reduces to a sum of two terms each less than $\varepsilon/2$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:wp-approx}
+\lean{DeGiorgi.exists_smooth_W1p_approx_on_unitBall}
+\leanok
+\uses{def:MemW1pWitness}
+Let $1 < p < \infty$ and $u \in W^{1,p}(\Bz{1})$. There exists a sequence
+$\psi_n \in C^\infty_c(E)$ such that $\psi_n \to u$ in $L^p(\Bz{1})$ and
+$\partial_i \psi_n \to \partial_i u$ in $L^p(\Bz{1})$ for each $i$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:oneshot}
+
+The one-shot Theorem~\ref{thm:oneshot} produces, for any $\varepsilon > 0$, a
+single $\psi \in C^\infty_c(E)$ whose $L^p(\Bz{1})$ distance to $u$ and whose
+componentwise $L^p(\Bz{1})$ distance from $\partial_i u$ are both strictly
+less than $\varepsilon$. Apply this with the sequence
+$\varepsilon_n := (n+1)^{-1}$ and use the axiom of choice
+(\leanname{Classical.choose}) to extract a witness
+$\psi_n \in C^\infty_c(E)$ for each $n$. By construction, the smoothness and
+compact support of $\psi_n$ are inherited from the one-shot output, and we
+have the strict bounds
+\begin{equation*}
+  \eLpNormText{\psi_n - u}_{L^p(\Bz{1})}
+    < \mathrm{ENNReal.ofReal}(\varepsilon_n),
+\end{equation*}
+together with the analogous bound for each gradient component
+$(\fderiv{\psi_n}{x})(e_i) - (\nabla u)_i$.
+
+To upgrade these strict numerical bounds to convergence in $L^p$, observe
+that $1/(n+1) \to 0$ in $\R$
+(\leanname{tendsto\_one\_div\_add\_atTop\_nhds\_zero\_nat}), so
+$\mathrm{ENNReal.ofReal}(\varepsilon_n) \to 0$ in $[0,\infty]$. Each function
+error is dominated by these vanishing constants, so the squeeze theorem
+\leanname{tendsto\_of\_tendsto\_of\_tendsto\_of\_le\_of\_le}, applied with the
+constant zero sequence as a lower bound, yields convergence to $0$. The same
+argument applied componentwise to each
+$\partial_i \psi_n - (\nabla u)_i$ gives the gradient convergence.
+\end{proof}
+
+\begin{theorem}
+\label{thm:w12-approx}
+\lean{DeGiorgi.exists_smooth_W12_approx_on_unitBall}
+\leanok
+\uses{def:MemW1pWitness}
+The previous theorem holds in particular for $p = 2$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:wp-approx}
+
+Direct specialization of Theorem~\ref{thm:wp-approx} using $\ENNRealofReal(2)
+= 2$ (after coercing the witness through the trivial isomorphism between the
+two encodings of the exponent).
+\end{proof}
+
+\section{The unit-ball extension operator}
+
+\subsection*{Definitions and elementary algebra}
+
+\begin{definition}
+\label{def:unitBallRetraction}
+\lean{DeGiorgi.unitBallRetraction}
+\leanok
+Define $r : E \to E$ by
+\begin{equation*}
+r(x) := \begin{cases}
+x & \text{if } \|x\| \le 1, \\
+\|x\|^{-2}\, x & \text{if } 1 < \|x\| < 2, \\
+0 & \text{if } \|x\| \ge 2.
+\end{cases}
+\end{equation*}
+On the annulus $1 < \|x\| < 2$, $r(x)$ is the spherical inversion centred at
+the origin with radius $1$.
+\end{definition}
+
+\begin{definition}
+\label{def:unitBallCutoff}
+\lean{DeGiorgi.unitBallCutoff}
+\leanok
+Define $\chi : E \to \R$ by $\chi(x) := \min(1, \max(2 - \|x\|, 0))$.
+\end{definition}
+
+\begin{definition}
+\label{def:unitBallExtension}
+\lean{DeGiorgi.unitBallExtension}
+\leanok
+\uses{def:unitBallRetraction, def:unitBallCutoff}
+For $u : E \to \R$, define
+\begin{equation*}
+\Eext u (x) := \chi(x)\, u(r(x)).
+\end{equation*}
+\end{definition}
+
+\begin{lemma}
+\label{lem:unitBallExtension_zero}
+\lean{DeGiorgi.unitBallExtension_zero, DeGiorgi.unitBallExtension_add, DeGiorgi.unitBallExtension_sub}
+\leanok
+\uses{def:unitBallExtension}
+The map $u \mapsto \Eext u$ is $\R$-linear: $\Eext 0 = 0$,
+$\Eext{(u+v)} = \Eext u + \Eext v$, and $\Eext{(u-v)} = \Eext u - \Eext v$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Pointwise from the definition: each is a multiplication of $\chi(x)$ by a
+linear combination of values of $u$ and $v$ at $r(x)$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:unitBallRetraction_eq_self_of_norm_le_one}
+\lean{DeGiorgi.unitBallRetraction_eq_self_of_norm_le_one, DeGiorgi.unitBallRetraction_eq_self_of_mem_ball}
+\leanok
+\uses{def:unitBallRetraction}
+If $\|x\| \le 1$ then $r(x) = x$. In particular if $x \in \Bz{1}$ then
+$r(x) = x$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Direct from the first branch of the definition.
+\end{proof}
+
+\begin{lemma}
+\label{lem:Eext-restrict}
+\lean{DeGiorgi.unitBallExtension_eq_of_mem_ball}
+\leanok
+\uses{def:unitBallExtension}
+If $x \in \Bz{1}$ then $\Eext u(x) = u(x)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallCutoff, lem:unitBallRetraction_eq_self_of_norm_le_one}
+
+Then $r(x) = x$ and $2 - \|x\| > 1$, so $\chi(x) = 1$, giving
+$\Eext u (x) = 1 \cdot u(x)$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:unitBallRetraction_eq_smul_of_annulus}
+\lean{DeGiorgi.unitBallRetraction_eq_smul_of_annulus}
+\leanok
+\uses{def:unitBallRetraction}
+If $1 < \|x\| < 2$ then $r(x) = \|x\|^{-2} x$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Second branch of the definition.
+\end{proof}
+
+\begin{lemma}
+\label{lem:unitBallCutoff_eq_zero_of_two_le_norm}
+\lean{DeGiorgi.unitBallCutoff_eq_zero_of_two_le_norm, DeGiorgi.unitBallExtension_eq_zero_of_two_le_norm}
+\leanok
+\uses{def:unitBallCutoff, def:unitBallExtension}
+If $\|x\| \ge 2$ then $\chi(x) = 0$ and $\Eext u (x) = 0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+$2 - \|x\| \le 0$, so $\max(2-\|x\|,0) = 0$ and $\min(1,0) = 0$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:unitBallExtension_hasCompactSupport}
+\lean{DeGiorgi.unitBallExtension_hasCompactSupport}
+\leanok
+\uses{def:unitBallExtension}
+$\Eext u$ has compact support contained in $\overline{\Ball{2}{0}}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:unitBallCutoff_eq_zero_of_two_le_norm}
+
+$\Eext u$ vanishes outside $\overline{\Ball{2}{0}}$ by the previous lemma,
+and $\overline{\Ball{2}{0}}$ is compact.
+\end{proof}
+
+\subsection*{Geometry of inversion}
+
+\begin{definition}
+\label{def:unitBallOuterShell}
+\lean{DeGiorgi.unitBallOuterShell, DeGiorgi.unitBallInnerShell}
+\leanok
+Set
+\begin{equation*}
+\Sigma^{\mathrm{out}} := \{x \in E : 1 < \|x\| < 2\},
+\qquad
+\Sigma^{\mathrm{in}} := \{x \in E : 1/2 < \|x\| < 1\}.
+\end{equation*}
+Both are open and measurable.
+\end{definition}
+
+\begin{lemma}
+\label{lem:unitBallRetraction_eq_inversion_of_mem_outerShell}
+\lean{DeGiorgi.unitBallRetraction_eq_inversion_of_mem_outerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+For $x \in \Sigma^{\mathrm{out}}$, $r(x)$ equals the spherical inversion of
+$x$ in the unit sphere centred at the origin, i.e. $r(x) = x/\|x\|^2$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallRetraction, lem:unitBallRetraction_eq_smul_of_annulus}
+
+Combine \leanname{unitBallRetraction\_eq\_smul\_of\_annulus} with the formula
+for the Euclidean inversion centred at $0$ with radius $1$, which is
+$y \mapsto y/\|y\|^2$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:inversion_mem_unitBallInnerShell_of_mem_outerShell}
+\lean{DeGiorgi.inversion_mem_unitBallInnerShell_of_mem_outerShell, DeGiorgi.inversion_mem_unitBallOuterShell_of_mem_innerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+The Euclidean inversion $I(x) := x/\|x\|^2$ maps
+$\Sigma^{\mathrm{out}}$ bijectively onto $\Sigma^{\mathrm{in}}$ and vice
+versa.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+If $1 < \|x\| < 2$ then $\|I(x)\| = 1/\|x\| \in (1/2, 1)$, hence
+$I(x) \in \Sigma^{\mathrm{in}}$. The opposite direction is symmetric, and
+$I \circ I = \mathrm{id}$ on $E\setminus\{0\}$ gives the bijection.
+\end{proof}
+
+\begin{lemma}
+\label{lem:inversion_image_unitBallOuterShell}
+\lean{DeGiorgi.inversion_image_unitBallOuterShell, DeGiorgi.inversion_image_unitBallInnerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+(\leanname{inversion\_image\_unitBallOuterShell},
+\leanname{inversion\_image\_unitBallInnerShell})\\
+$I(\Sigma^{\mathrm{out}}) = \Sigma^{\mathrm{in}}$ and
+$I(\Sigma^{\mathrm{in}}) = \Sigma^{\mathrm{out}}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:inversion_mem_unitBallInnerShell_of_mem_outerShell}
+
+Set equalities follow from the previous lemma together with the involution
+$I^2 = \mathrm{id}$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:injOn_inversion_unitBallOuterShell}
+\lean{DeGiorgi.injOn_inversion_unitBallOuterShell, DeGiorgi.injOn_inversion_unitBallInnerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+(\leanname{injOn\_inversion\_unitBallOuterShell},
+\leanname{injOn\_inversion\_unitBallInnerShell})\\
+The map $I$ is injective on $\Sigma^{\mathrm{out}}$ and on $\Sigma^{\mathrm{in}}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Both shells are subsets of $E\setminus\{0\}$, on which $I$ is a bijective
+involution.
+\end{proof}
+
+\begin{lemma}
+\label{lem:hasFDerivWithinAt_inversion_unitBallInnerShell}
+\lean{DeGiorgi.hasFDerivWithinAt_inversion_unitBallInnerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+For $x \in \Sigma^{\mathrm{in}}$, $I$ is differentiable at $x$ within
+$\Sigma^{\mathrm{in}}$, and the Mathlib derivative formula for spherical
+inversion applies.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+$x \neq 0$ since $\|x\| > 1/2$, so the standard inversion derivative
+(\leanname{EuclideanGeometry.hasFDerivAt\_inversion})
+provides a Fr\'echet derivative at $x$, which restricts to the within-set
+derivative.
+\end{proof}
+
+\begin{lemma}
+\label{lem:det-jacobian}
+\lean{DeGiorgi.abs_det_fderiv_inversion_zero_one}
+\leanok
+For $x \in E \setminus \{0\}$,
+\begin{equation*}
+\bigl|\det DI(x)\bigr| = \bigl(1/\|x\|\bigr)^{2d}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+By the closed form of the inversion derivative,
+\begin{equation*}
+DI(x) = (1/\|x\|)^2 \, R_{(\R x)^\perp},
+\end{equation*}
+where $R_{(\R x)^\perp}$ is the reflection across the orthogonal complement of
+$\R x$. The determinant of this reflection equals $(-1)^{d-1}$ since the
+fixed subspace has dimension $d-1$. Therefore
+\begin{equation*}
+\det DI(x) = (1/\|x\|)^{2d}\,\det R = (-1)^{d-1}(1/\|x\|)^{2d},
+\end{equation*}
+whose absolute value is $(1/\|x\|)^{2d}$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:abs_det_fderiv_inversion_zero_one_le_of_mem_innerShell}
+\lean{DeGiorgi.abs_det_fderiv_inversion_zero_one_le_of_mem_innerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+For $x \in \Sigma^{\mathrm{in}}$, $|\det DI(x)| \le 2^{2d}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:det-jacobian}
+
+$\|x\| > 1/2$ gives $1/\|x\| < 2$, so $(1/\|x\|)^{2d} < 2^{2d}$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:cov-shell}
+\lean{DeGiorgi.lintegral_outerShell_comp_inversion_le}
+\leanok
+\uses{def:unitBallOuterShell}
+For any measurable $\Phi : E \to \R_{\ge 0}^\infty$,
+\begin{equation*}
+\int_{\Sigma^{\mathrm{out}}} \Phi(I(y))\,dy
+\le 2^{2d}\,\int_{\Sigma^{\mathrm{in}}} \Phi(x)\,dx.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:inversion_image_unitBallOuterShell, lem:injOn_inversion_unitBallOuterShell, lem:hasFDerivWithinAt_inversion_unitBallInnerShell, lem:det-jacobian, lem:abs_det_fderiv_inversion_zero_one_le_of_mem_innerShell}
+
+By the change-of-variables formula for the differentiable injection $I$ on
+$\Sigma^{\mathrm{in}}$ onto $\Sigma^{\mathrm{out}}$,
+\begin{equation*}
+\int_{\Sigma^{\mathrm{out}}} \Phi(I(y))\,dy
+= \int_{\Sigma^{\mathrm{in}}} |\det DI(x)|\, \Phi(I(I(x)))\,dx
+= \int_{\Sigma^{\mathrm{in}}} |\det DI(x)|\, \Phi(x)\,dx,
+\end{equation*}
+using $I^2 = \mathrm{id}$. Now Lemma~\ref{lem:det-jacobian} together with the
+bound from the inner shell gives $|\det DI(x)| \le 2^{2d}$ a.e., and the
+result follows.
+\end{proof}
+
+\begin{lemma}
+\label{lem:unitBallCutoff_eq_two_sub_norm_of_mem_outerShell}
+\lean{DeGiorgi.unitBallCutoff_eq_two_sub_norm_of_mem_outerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+For $x \in \Sigma^{\mathrm{out}}$, $\chi(x) = 2 - \|x\|$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallCutoff}
+
+$0 < 2 - \|x\| < 1$, so the $\min$ and $\max$ in the definition reduce to
+$2 - \|x\|$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:norm-DI}
+\lean{DeGiorgi.norm_fderiv_inversion_zero_one, DeGiorgi.norm_fderiv_inversion_le_one_of_mem_outerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+For $x \neq 0$, $\|DI(x)\| \le (1/\|x\|)^2$. In particular, for
+$x \in \Sigma^{\mathrm{out}}$ we have $\|DI(x)\| \le 1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+$DI(x) = (1/\|x\|)^2 R$ with $R$ a reflection of operator norm $1$, so
+$\|DI(x)\| \le (1/\|x\|)^2$. For $\|x\| \ge 1$ this is at most $1$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:hasFDerivAt_unitBallCutoff_of_mem_outerShell}
+\lean{DeGiorgi.hasFDerivAt_unitBallCutoff_of_mem_outerShell, DeGiorgi.norm_fderiv_unitBallCutoff_of_mem_outerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+(\leanname{hasFDerivAt\_unitBallCutoff\_of\_mem\_outerShell},
+\leanname{norm\_fderiv\_unitBallCutoff\_of\_mem\_outerShell})\\
+For $x \in \Sigma^{\mathrm{out}}$, $\chi$ is differentiable at $x$ with
+$D\chi(x) = -D(\|\cdot\|)(x)$, and $\|D\chi(x)\| = 1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallCutoff, lem:unitBallCutoff_eq_two_sub_norm_of_mem_outerShell}
+
+On $\Sigma^{\mathrm{out}}$, $\chi$ agrees with $y \mapsto 2 - \|y\|$, which
+is smooth on $E\setminus\{0\}$. Differentiating gives
+$D\chi = -D\|\cdot\|$, and the norm of the gradient of the Euclidean norm at
+any nonzero point equals $1$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:Eext-grad-bound}
+\lean{DeGiorgi.norm_fderiv_unitBallExtension_le_of_mem_outerShell}
+\leanok
+\uses{def:unitBallOuterShell}
+Let $u \in C^1(E)$. For $x \in \Sigma^{\mathrm{out}}$,
+\begin{equation*}
+\|D\Eext u(x)\|
+\le |u(I(x))| + \|Du(I(x))\|.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallCutoff, def:unitBallExtension, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:norm-DI, lem:hasFDerivAt_unitBallCutoff_of_mem_outerShell}
+
+On $\Sigma^{\mathrm{out}}$, $\Eext u(y) = \chi(y)\, u(I(y))$. By the product
+rule and the chain rule,
+\begin{equation*}
+D\Eext u (x) = \chi(x)\, Du(I(x))\circ DI(x) + u(I(x))\, D\chi(x).
+\end{equation*}
+Apply $\|\chi(x)\| \le 1$, $\|DI(x)\| \le 1$ (Lemma~\ref{lem:norm-DI}), and
+$\|D\chi(x)\| = 1$ (previous lemma) and the operator-norm submultiplicativity
+to obtain
+$\|D\Eext u(x)\| \le \|Du(I(x))\| + |u(I(x))|$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:ball_zero_two_eq_ball_zero_one_union_outerShell_union_sphere}
+\lean{DeGiorgi.ball_zero_two_eq_ball_zero_one_union_outerShell_union_sphere}
+\leanok
+\uses{def:unitBallOuterShell}
+The ball $\Ball{2}{0}$ decomposes as
+$\Bz{1} \cup \Sigma^{\mathrm{out}} \cup \mathrm{S}_1$, where $\mathrm{S}_1$ is
+the unit sphere; the union is disjoint up to the sphere, which has measure
+zero.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+A point $y$ with $\|y\| < 2$ is either in $\Bz{1}$ if $\|y\| < 1$, on the
+sphere if $\|y\| = 1$, or in $\Sigma^{\mathrm{out}}$ if $1 < \|y\| < 2$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:fderiv_unitBallExtension_eq_of_mem_ball}
+\lean{DeGiorgi.fderiv_unitBallExtension_eq_of_mem_ball}
+\leanok
+\uses{def:unitBallExtension}
+For $u$ differentiable and $x \in \Bz{1}$, $D\Eext u (x) = Du(x)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:Eext-restrict}
+
+On $\Bz{1}$, $\Eext u$ agrees with $u$ (Lemma~\ref{lem:Eext-restrict}).
+Locally constant cutoff and identity retraction give the derivative
+identity.
+\end{proof}
+
+\subsection*{Smooth-input extension estimates}
+
+\begin{theorem}
+\label{thm:smooth-extension-estimate}
+\lean{DeGiorgi.smooth_unitBallExtension_W1p_estimate}
+\leanok
+\uses{def:unitBallExtension}
+Let $1 \le p < \infty$ and $u \in C^1(E)$. Then
+\begin{align*}
+\int_{\Ball{2}{0}} |\Eext u (x)|^p\,dx
+&\le (1 + 2^{2d})\, \int_{\Bz{1}} |u(x)|^p\,dx, \\
+\int_{\Ball{2}{0}} \|D\Eext u (x)\|^p\,dx
+&\le \int_{\Bz{1}} \|Du(x)\|^p\,dx \\
+&\quad + 2^{2d}\,2^{p-1}\,\biggl(\int_{\Bz{1}} |u(x)|^p\,dx
++ \int_{\Bz{1}} \|Du(x)\|^p\,dx\biggr).
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallCutoff, lem:Eext-restrict, def:unitBallOuterShell, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:cov-shell, lem:Eext-grad-bound, lem:ball_zero_two_eq_ball_zero_one_union_outerShell_union_sphere, lem:fderiv_unitBallExtension_eq_of_mem_ball}
+
+Decompose $\Ball{2}{0} = \Bz{1} \cup \Sigma^{\mathrm{out}} \cup \mathrm{S}_1$,
+the sphere having measure zero. On $\Bz{1}$, $\Eext u = u$ and
+$D\Eext u = Du$, so the integrals over $\Bz{1}$ contribute exactly the
+$u$-side. On $\Sigma^{\mathrm{out}}$, use the shell formula
+$\Eext u (x) = (2-\|x\|)\, u(I(x))$ with $|2-\|x\|| \le 1$. By
+Lemma~\ref{lem:cov-shell},
+\begin{equation*}
+\int_{\Sigma^{\mathrm{out}}} |u(I(x))|^p\,dx
+\le 2^{2d}\,\int_{\Sigma^{\mathrm{in}}} |u(x)|^p\,dx
+\le 2^{2d}\,\int_{\Bz{1}} |u(x)|^p\,dx,
+\end{equation*}
+which yields the function-side bound.
+
+For the gradient side, use Lemma~\ref{lem:Eext-grad-bound} to dominate
+\begin{equation*}
+\|D\Eext u(x)\|^p \le 2^{p-1}\,(|u(I(x))|^p + \|Du(I(x))\|^p)
+\quad (x \in \Sigma^{\mathrm{out}}),
+\end{equation*}
+via the convexity inequality $(a+b)^p \le 2^{p-1}(a^p+b^p)$. Apply
+Lemma~\ref{lem:cov-shell} to each of the two integrands and combine with
+the contribution from $\Bz{1}$, where $D\Eext u = Du$.
+\end{proof}
+
+\subsection*{Smooth approximation of the extension on a rough input}
+
+\begin{definition}
+\label{def:unitBallShellFormula}
+\lean{DeGiorgi.unitBallShellFormula}
+\leanok
+For $u : E \to \R$, set
+\begin{equation*}
+\unitBallShellFormula u(x) := (2 - \|x\|)\, u(I(x)).
+\end{equation*}
+For $x \in \Sigma^{\mathrm{out}}$, $\Eext u (x) = \unitBallShellFormula u(x)$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:contDiffOn_unitBallShellFormula}
+\lean{DeGiorgi.contDiffOn_unitBallShellFormula}
+\leanok
+\uses{def:unitBallShellFormula}
+If $u \in C^1(E)$, then the function $\unitBallShellFormula u$ is of
+class $C^1$ on $\Sigma^{\mathrm{out}}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallOuterShell}
+
+$x \mapsto 2 - \|x\|$ and $x \mapsto I(x)$ are $C^1$ on $\Sigma^{\mathrm{out}}$
+(both away from $0$), and $u$ is $C^1$ on $E$. Composition and product give
+the result.
+\end{proof}
+
+\begin{definition}
+\label{def:smoothUnitBallExtensionGrad}
+\lean{DeGiorgi.smoothUnitBallExtensionGrad}
+\leanok
+\uses{def:unitBallExtension}
+For $u : E \to \R$ smooth, define
+$\smoothUnitBallExtensionGrad u (x) \in \R^d$ by its components
+\begin{equation*}
+  (\smoothUnitBallExtensionGrad u(x))_i := (D\Eext u (x))(e_i).
+\end{equation*}
+\end{definition}
+
+\begin{theorem}
+\label{thm:loc-global}
+\lean{DeGiorgi.exists_global_smooth_W1p_approx_of_localizedWitness}
+\leanok
+\uses{def:MemW1pWitness}
+Let $\Omega \subseteq E$ be open, $1 < p < \infty$, and let $u \in W^{1,p}(\Omega)$
+have compact support contained in $\Omega$. Then there is a sequence $\psi_n
+\in C^\infty_c(E)$ with
+\begin{equation*}
+\eLpNormText{\psi_n - u}_{L^p(E)} \to 0
+\quad\text{and}\quad
+\eLpNormText{\partial_i \psi_n - \mathbf{1}_\Omega (\partial_i u)}_{L^p(E)} \to 0
+\end{equation*}
+for each $i$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW01p, lem:zero_outside_tsupport, thm:zero_extend, thm:weak_grad_unique, thm:smooth_approx_univ, thm:memW01p_of_compactly_supported}
+
+Since $\tsupport u$ is compact and contained in $\Omega$, the criterion
+\leanname{memW01p\_of\_memW1p\_of\_tsupport\_subset} promotes the local
+$W^{1,p}(\Omega)$ membership of $u$ to a $W^{1,p}_0(\Omega)$ membership: $u$
+admits an approximating sequence of compactly supported smooth functions
+inside $\Omega$. Pushing this through the zero-extension construction
+\leanname{zeroExtend\_memW01p\_p} produces a global $W^{1,p}(E)$ witness for
+the trivial extension of $u$ whose weak gradient is $\mathbf{1}_\Omega
+\nabla u$, since classical partial derivatives of the zero-extended smooth
+approximants vanish off $\Omega$ and converge in $L^p(E)$ to the indicator
+of the original gradient.
+
+The global density theorem
+Theorem~\ref{thm:smooth_approx_univ}
+(\leanname{exists\_smooth\_compactSupport\_W1p\_approx\_univ}) applied to the
+extended witness on the open set $E$ then produces a sequence
+$\psi_n \in C^\infty_c(E)$ with $\psi_n \to u$ in $L^p(E)$ and
+$\partial_i \psi_n \to (\mathbf{1}_\Omega \nabla u)_i$ in $L^p(E)$ for each
+component $i$. The compactness of $\tsupport u$ ensures that the gradient
+limit is concentrated on $\Omega$, exactly as stated. The Lean source
+additionally records a Fatou-type semicontinuity bound: a subsequence of the
+$\psi_n$ converges a.e., and Fatou's lemma on $\|\cdot\|^p$ bounds the
+$L^p$-energy of the limiting gradient by the liminf of the energies of the
+approximants.
+\end{proof}
+
+\subsection*{Smooth blends and approximation control}
+
+\begin{definition}
+\label{def:SmoothApproximationInternal_sphereOneBlend}
+\lean{DeGiorgi.SmoothApproximationInternal.sphereOneBlend, DeGiorgi.SmoothApproximationInternal.sphereTwoBlend}
+\leanok
+\uses{def:myCutoff}
+For $\varepsilon > 0$, define $\sigma^1_\varepsilon(x), \sigma^2_\varepsilon(x)
+\in [0,1]$ via the smooth transition
+\begin{equation*}
+\sigma^1_\varepsilon(x) := \mathrm{st}\!\left(\frac{\|x\|-1+\varepsilon}{2\varepsilon}\right),
+\qquad
+\sigma^2_\varepsilon(x) := 1 - \mathrm{st}\!\left(\frac{\|x\|-2+\varepsilon}{2\varepsilon}\right),
+\end{equation*}
+which transition smoothly across the spheres $\|x\|=1$ and $\|x\|=2$.
+\end{definition}
+
+\begin{definition}
+\label{def:SmoothApproximationInternal_smoothUnitBallExtensionApprox}
+\lean{DeGiorgi.SmoothApproximationInternal.smoothUnitBallExtensionApprox}
+\leanok
+\uses{def:unitBallShellFormula, def:SmoothApproximationInternal_sphereOneBlend}
+For $\varepsilon > 0$ and $\psi : E \to \R$ smooth, define
+\begin{multline*}
+\smoothUnitBallExtensionApprox_\varepsilon \psi (x)
+:= \sigma^1_\varepsilon(x) \cdot \unitBallShellFormula \psi(x) \cdot \sigma^2_\varepsilon(x) \\
++ (1 - \sigma^1_\varepsilon(x))\, \psi(x).
+\end{multline*}
+On the inner core $\|x\| \le 1 - \varepsilon$ this equals $\psi(x)$, on the
+outer core $1 + \varepsilon \le \|x\| \le 2 - \varepsilon$ it equals
+$\unitBallShellFormula \psi(x)$, and outside $\|x\| \ge 2 + \varepsilon$ it
+vanishes. The blend region is contained in two thin annuli around the
+spheres of radius $1$ and $2$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:SmoothApproximationInternal_smoothUnitBallExtensionApprox_co}
+\lean{DeGiorgi.SmoothApproximationInternal.smoothUnitBallExtensionApprox_contDiff, DeGiorgi.SmoothApproximationInternal.smoothUnitBallExtensionApprox_hasCompactSupport}
+\leanok
+\uses{def:SmoothApproximationInternal_smoothUnitBallExtensionApprox}
+(\leanname{smoothUnitBallExtensionApprox\_contDiff},
+\leanname{smoothUnitBallExtensionApprox\_hasCompactSupport})\\
+For $\psi$ smooth and $0 < \varepsilon < 1$, $\smoothUnitBallExtensionApprox_\varepsilon
+\psi$ is $C^\infty$ and has compact support contained in
+$\overline{\Ball{2+\varepsilon}{0}}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:myCutoff, lem:cutoff-properties, def:unitBallShellFormula, def:SmoothApproximationInternal_sphereOneBlend}
+
+Each of the two summands is smooth: the shell formula factor is smooth on
+$E \setminus\{0\}$ and is multiplied by $\sigma^1_\varepsilon$, which
+vanishes near the origin (since $\sigma^1_\varepsilon(x) = 0$ when
+$\|x\| \le 1-\varepsilon$). The compact support follows from
+$\sigma^2_\varepsilon$ vanishing for $\|x\| \ge 2+\varepsilon$.
+\end{proof}
+
+\begin{definition}
+\label{def:SmoothApproximationInternal_unitBallApproxEps}
+\lean{DeGiorgi.SmoothApproximationInternal.unitBallApproxEps}
+\leanok
+$\varepsilon_n := (n+5)^{-1}$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:SmoothApproximationInternal_unitBallApproxEps_pos}
+\lean{DeGiorgi.SmoothApproximationInternal.unitBallApproxEps_pos, DeGiorgi.SmoothApproximationInternal.unitBallApproxEps_lt_one, DeGiorgi.SmoothApproximationInternal.unitBallApproxEps_le_one_fifth, DeGiorgi.SmoothApproximationInternal.tendsto_unitBallApproxEps, DeGiorgi.SmoothApproximationInternal.unitBallApproxEps_antitone}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallApproxEps}
+$\varepsilon_n > 0$, $\varepsilon_n < 1$, $\varepsilon_n \le 1/5$, $\varepsilon_n
+\to 0$, and $(\varepsilon_n)$ is antitone.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+All follow from $n \mapsto (n+5)^{-1}$.
+\end{proof}
+
+\begin{definition}
+\label{def:SmoothApproximationInternal_unitBallBadAnnulusOne}
+\lean{DeGiorgi.SmoothApproximationInternal.unitBallBadAnnulusOne, DeGiorgi.SmoothApproximationInternal.unitBallBadAnnulusTwo}
+\leanok
+$\mathrm{Ann}^1_\varepsilon := \{x : 1-\varepsilon < \|x\| < 1 + \varepsilon\}$
+and $\mathrm{Ann}^2_\varepsilon := \{x : 2-\varepsilon < \|x\| < 2+\varepsilon\}$.
+Both are measurable, and antitone in $\varepsilon$ (with respect to inclusion
+on $(0,1)$).
+\end{definition}
+
+\begin{lemma}
+\label{lem:SmoothApproximationInternal_iInter_unitBallBadAnnulusOne_eq_}
+\lean{DeGiorgi.SmoothApproximationInternal.iInter_unitBallBadAnnulusOne_eq_sphere, DeGiorgi.SmoothApproximationInternal.iInter_unitBallBadAnnulusTwo_eq_sphere, DeGiorgi.SmoothApproximationInternal.tendsto_measure_unitBallBadAnnulusOne, DeGiorgi.SmoothApproximationInternal.tendsto_measure_unitBallBadAnnulusTwo}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallBadAnnulusOne}
+(\leanname{iInter\_unitBallBadAnnulusOne\_eq\_sphere},
+\leanname{iInter\_unitBallBadAnnulusTwo\_eq\_sphere},
+\leanname{tendsto\_measure\_unitBallBadAnnulusOne},
+\leanname{tendsto\_measure\_unitBallBadAnnulusTwo})\\
+$\bigcap_{n} \mathrm{Ann}^j_{\varepsilon_n} = \mathrm{S}_j$ for $j = 1, 2$, and
+$|\mathrm{Ann}^j_{\varepsilon_n}| \to 0$ as $n \to \infty$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallApproxEps, lem:SmoothApproximationInternal_unitBallApproxEps_pos, def:SmoothApproximationInternal_sphereOneControl, lem:SmoothApproximationInternal_badAnnulusOne_subset_sphereOneCo}
+
+A point lies in every $\mathrm{Ann}^j_{\varepsilon_n}$ iff $\|x\| = j$, since
+the annulus shrinks to the sphere as $\varepsilon \to 0$. The measure of the
+sphere is zero (Mathlib: \leanname{Measure.addHaar\_sphere}), so by continuity
+of measure from above the annulus measures vanish.
+\end{proof}
+
+\begin{definition}
+\label{def:SmoothApproximationInternal_sphereOneControl}
+\lean{DeGiorgi.SmoothApproximationInternal.sphereOneControl, DeGiorgi.SmoothApproximationInternal.sphereTwoControl}
+\leanok
+Compact buffer sets around the unit and double spheres,
+$\mathrm{Buf}^1 := \{x : 4/5 \le \|x\| \le 6/5\}$ and
+$\mathrm{Buf}^2 := \{x : 9/5 \le \|x\| \le 11/5\}$. Both are compact.
+\end{definition}
+
+\begin{lemma}
+\label{lem:SmoothApproximationInternal_badAnnulusOne_subset_sphereOneCo}
+\lean{DeGiorgi.SmoothApproximationInternal.badAnnulusOne_subset_sphereOneControl, DeGiorgi.SmoothApproximationInternal.badAnnulusTwo_subset_sphereTwoControl, DeGiorgi.SmoothApproximationInternal.isCompact_sphereOneControl, DeGiorgi.SmoothApproximationInternal.isCompact_sphereTwoControl}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallBadAnnulusOne, def:SmoothApproximationInternal_sphereOneControl}
+For all $n$, $\mathrm{Ann}^j_{\varepsilon_n} \subseteq \mathrm{Buf}^j$, and
+both buffers are compact.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallApproxEps, lem:SmoothApproximationInternal_unitBallApproxEps_pos}
+
+$\varepsilon_n \le 1/5$, so $j - \varepsilon_n \ge j - 1/5$ and similarly
+above. Compactness is by closedness and boundedness.
+\end{proof}
+
+\begin{theorem}
+\label{thm:SmoothApproximationInternal_exists_fderiv_bound_on_compact}
+\lean{DeGiorgi.SmoothApproximationInternal.exists_fderiv_bound_on_compact, DeGiorgi.SmoothApproximationInternal.exists_norm_bound_on_compact}
+\leanok
+For any continuous $f$ (resp.\ $C^1$ $f$) on $E$, $f$ (resp.\ $\|Df\|$) is
+bounded on every compact set.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+Continuous functions attain bounded values on compact sets.
+\end{proof}
+
+\begin{theorem}
+\label{thm:SmoothApproximationInternal_exists_shellFormula_fderiv_bound}
+\lean{DeGiorgi.SmoothApproximationInternal.exists_shellFormula_fderiv_bound}
+\leanok
+\uses{def:SmoothApproximationInternal_sphereOneControl}
+For any smooth $\psi$, the derivative $D \unitBallShellFormula \psi$ is bounded
+on the compact set $\mathrm{Buf}^2$, hence on each $\mathrm{Ann}^2_{\varepsilon_n}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallShellFormula, lem:SmoothApproximationInternal_badAnnulusOne_subset_sphereOneCo, thm:SmoothApproximationInternal_exists_fderiv_bound_on_compact}
+
+Smoothness of $\unitBallShellFormula \psi$ on $\Sigma^{\mathrm{out}}$ extends
+to smoothness on a neighborhood of $\mathrm{Buf}^2$, where $\|x\| \in
+[9/5, 11/5] \subseteq (0, 2 + \delta)$, so the result follows from
+\leanname{exists\_norm\_bound\_on\_compact}.
+\end{proof}
+
+\begin{lemma}
+\label{lem:smoothapprox-pointwise}
+\lean{DeGiorgi.SmoothApproximationInternal.tendsto_smoothUnitBallExtensionApprox_pointwise, DeGiorgi.SmoothApproximationInternal.tendsto_fderiv_smoothUnitBallExtensionApprox_pointwise}
+\leanok
+\uses{def:SmoothApproximationInternal_smoothUnitBallExtensionApprox}
+For $\psi \in C^\infty(E)$ and $x$ outside the unit and double spheres,
+$\smoothUnitBallExtensionApprox_{\varepsilon_n} \psi (x) \to \Eext \psi (x)$
+and $D\smoothUnitBallExtensionApprox_{\varepsilon_n} \psi (x) \to D\Eext\psi(x)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:myCutoff, lem:cutoff-properties, def:unitBallCutoff, def:unitBallExtension, lem:Eext-restrict, lem:unitBallCutoff_eq_zero_of_two_le_norm, def:unitBallOuterShell, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:unitBallCutoff_eq_two_sub_norm_of_mem_outerShell, def:unitBallShellFormula, def:SmoothApproximationInternal_sphereOneBlend, def:SmoothApproximationInternal_unitBallApproxEps, lem:SmoothApproximationInternal_unitBallApproxEps_pos}
+
+Eventually $x$ lies in either $\Bz{1}$ (so the inner branch picks up $\psi(x)
+= \Eext \psi(x)$), or in $\Sigma^{\mathrm{out}}$ separated from both spheres
+(so the outer branch agrees with $\unitBallShellFormula \psi(x) = \Eext\psi(x)$
+and similarly for derivatives), or in $\|x\| > 2$ where the cutoff vanishes.
+The blends become trivial in the limit and the derivative converges by
+smoothness.
+\end{proof}
+
+\begin{definition}
+\label{def:SmoothApproximationInternal_unitBallBadSet}
+\lean{DeGiorgi.SmoothApproximationInternal.unitBallBadSet}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallBadAnnulusOne}
+$\mathrm{Bad}_\varepsilon := \mathrm{Ann}^1_\varepsilon \cup
+\mathrm{Ann}^2_\varepsilon$.
+\end{definition}
+
+\begin{lemma}
+\label{lem:SmoothApproximationInternal_tendsto_measure_unitBallBadSet}
+\lean{DeGiorgi.SmoothApproximationInternal.tendsto_measure_unitBallBadSet}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallBadSet}
+$|\mathrm{Bad}_{\varepsilon_n}| \to 0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallApproxEps, def:SmoothApproximationInternal_unitBallBadAnnulusOne, lem:SmoothApproximationInternal_iInter_unitBallBadAnnulusOne_eq_}
+
+Sub-additivity together with the previous annulus convergence.
+\end{proof}
+
+\begin{lemma}
+\label{lem:SmoothApproximationInternal_smoothUnitBallExtensionApprox_eq}
+\lean{DeGiorgi.SmoothApproximationInternal.smoothUnitBallExtensionApprox_eq_unitBallExtension_of_not_mem_badSet}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallBadSet}
+For $\psi$ smooth and $x \notin \mathrm{Bad}_{\varepsilon_n}$,
+$\smoothUnitBallExtensionApprox_{\varepsilon_n} \psi (x) = \Eext \psi(x)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:myCutoff, def:unitBallCutoff, def:unitBallExtension, lem:Eext-restrict, def:unitBallOuterShell, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:unitBallCutoff_eq_two_sub_norm_of_mem_outerShell, def:unitBallShellFormula, def:SmoothApproximationInternal_sphereOneBlend, def:SmoothApproximationInternal_smoothUnitBallExtensionApprox, def:SmoothApproximationInternal_unitBallApproxEps, lem:SmoothApproximationInternal_unitBallApproxEps_pos, def:SmoothApproximationInternal_unitBallBadAnnulusOne}
+
+Outside the bad set, $x$ falls cleanly into one of: inner core, outer core,
+or the exterior $\|x\|>2+\varepsilon$, on each of which the blends become
+constant ($0$ or $1$) and the formula collapses to $\Eext\psi$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:err-bound}
+\lean{DeGiorgi.SmoothApproximationInternal.exists_shellFormula_error_bound}
+\leanok
+\uses{def:SmoothApproximationInternal_unitBallBadAnnulusOne}
+For any smooth $\psi$, there is a constant $K$ depending only on $\psi$
+such that
+\begin{equation*}
+\bigl|\smoothUnitBallExtensionApprox_{\varepsilon_n} \psi(x) - \Eext\psi(x)\bigr|
+\le K\,\varepsilon_n
+\end{equation*}
+for all $x \in E$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallShellFormula, def:SmoothApproximationInternal_unitBallApproxEps, lem:SmoothApproximationInternal_unitBallApproxEps_pos, def:SmoothApproximationInternal_sphereOneControl, thm:SmoothApproximationInternal_exists_shellFormula_fderiv_bound}
+
+Outside $\mathrm{Bad}_{\varepsilon_n}$, both sides agree (so the error is
+zero). On $\mathrm{Bad}_{\varepsilon_n}$, both sides differ from each other
+only in the blend region, which has width $\sim \varepsilon_n$, and within a
+ball of radius $\varepsilon_n$ around any point of the bad annulus the
+shell formula is Lipschitz with constant uniformly controlled by the
+$C^1$-bound of $\psi$ on the buffer compact $\mathrm{Buf}^2$. Taking the
+mean-value bound on segments inside $\mathrm{Buf}^j$ yields the linear
+control.
+\end{proof}
+
+\begin{theorem}
+\label{thm:SmoothApproximationInternal_exists_fun_error_bound_badSet}
+\lean{DeGiorgi.SmoothApproximationInternal.exists_fun_error_bound_badSet}
+\leanok
+\uses{def:SmoothApproximationInternal_smoothUnitBallExtensionApprox}
+For each smooth $\psi$, there is $K$ such that
+\begin{equation*}
+\eLpNormText{\smoothUnitBallExtensionApprox_{\varepsilon_n}\psi - \Eext\psi}_{L^p(E)}
+\le K\,\varepsilon_n\,|\mathrm{Bad}_{\varepsilon_n}|^{1/p}
+\to 0.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:CampanatoBall, def:HasCampanatoBound, def:myCutoff, lem:cutoff-properties, def:unitBallRetraction, def:unitBallCutoff, def:unitBallExtension, lem:unitBallRetraction_eq_self_of_norm_le_one, lem:unitBallCutoff_eq_zero_of_two_le_norm, def:unitBallOuterShell, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:unitBallCutoff_eq_two_sub_norm_of_mem_outerShell, def:unitBallShellFormula, def:SmoothApproximationInternal_sphereOneBlend, def:SmoothApproximationInternal_unitBallApproxEps, lem:SmoothApproximationInternal_unitBallApproxEps_pos, def:SmoothApproximationInternal_unitBallBadAnnulusOne, def:SmoothApproximationInternal_sphereOneControl, lem:SmoothApproximationInternal_badAnnulusOne_subset_sphereOneCo, thm:SmoothApproximationInternal_exists_fderiv_bound_on_compact, def:SmoothApproximationInternal_unitBallBadSet, lem:SmoothApproximationInternal_smoothUnitBallExtensionApprox_eq, thm:err-bound}
+
+From Theorem~\ref{thm:err-bound} the pointwise difference
+$|\smoothUnitBallExtensionApprox_{\varepsilon_n}\psi(x) - \Eext\psi(x)|$ is
+bounded by $C\,\varepsilon_n \cdot \mathbf{1}_{\mathrm{Bad}_{\varepsilon_n}}(x)$
+for some constant $C$ depending only on $\psi$. Pointwise both sides are
+also dominated by the constant $C$ on the closed ball $\overline{\Ball{9/4}{0}}$:
+outside the ball of radius $9/4$ both
+$\smoothUnitBallExtensionApprox_{\varepsilon_n}\psi$ and $\Eext\psi$ vanish
+(using \leanname{sphereOneControl\_subset\_closedBall},
+\leanname{sphereTwoControl\_subset\_closedBall} for the bad annuli together
+with \leanname{unitBallExtension\_hasCompactSupport}). Hence the family of
+differences is uniformly $L^p$-dominated by the constant times indicator
+$C\,\mathbf{1}_{\overline{\Ball{9/4}{0}}}$, which lies in $L^p(E)$ since the
+underlying ball has finite Lebesgue measure
+(\leanname{measure\_closedBall\_lt\_top}).
+
+Since the bad annuli shrink to the spheres of radii $1$ and $2$ and the Haar
+measure of those spheres is zero (\leanname{Measure.addHaar\_sphere}),
+\leanname{tendsto\_measure\_unitBallBadSet} gives
+$|\mathrm{Bad}_{\varepsilon_n}| \to 0$. Combining the pointwise bound with
+the dominated convergence theorem in $L^p$, against the constant dominating
+indicator, yields
+\begin{equation*}
+  \eLpNormText{\smoothUnitBallExtensionApprox_{\varepsilon_n}\psi
+    - \Eext\psi}_{L^p(E)}
+  \le K\,\varepsilon_n\,|\mathrm{Bad}_{\varepsilon_n}|^{1/p}
+  \to 0,
+\end{equation*}
+where $K$ is the constant from Theorem~\ref{thm:err-bound}, and the
+$|\mathrm{Bad}_{\varepsilon_n}|^{1/p}$ factor arises from H\"older's inequality
+applied to the indicator on the bad set.
+\end{proof}
+
+\subsection*{The smoothing theorem on a smooth input}
+
+\begin{theorem}
+\label{thm:smooth-input-smoothing}
+\lean{DeGiorgi.smooth_input_unitBallExtension_smoothing}
+\leanok
+\uses{def:unitBallExtension}
+Let $\psi \in C^\infty(E)$ have compact support, $1 < p < \infty$. Then there
+is a sequence
+\begin{equation*}
+  \Psi_n := \smoothUnitBallExtensionApprox_{\varepsilon_n}\psi \in C^\infty_c(E)
+\end{equation*}
+such that:
+\begin{enumerate}
+\item $\Psi_n \to \Eext \psi$ in $L^p(E)$;
+\item $\partial_i \Psi_n \to (\smoothUnitBallExtensionGrad\psi)_i$ in $L^p(E)$
+for each $i$;
+\item the $L^p$ norm of $\Psi_n$ is bounded uniformly by the smooth-input
+extension estimate of Theorem~\ref{thm:smooth-extension-estimate}.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1pWitness, lem:smoothTransition_nnnorm_deriv_bounded, lem:unitBallCutoff_eq_zero_of_two_le_norm, lem:unitBallExtension_hasCompactSupport, def:unitBallOuterShell, lem:fderiv_unitBallExtension_eq_of_mem_ball, thm:smooth-extension-estimate, def:unitBallShellFormula, def:smoothUnitBallExtensionGrad, thm:loc-global, lem:smoothapprox-pointwise, thm:err-bound, thm:hasWeakPartials_of_global_smoothApprox}
+
+The first item is Theorem~\ref{thm:err-bound} together with control of the
+bad set's measure. For the second, the same blend-region argument applies to
+$D\Psi_n - D\Eext\psi$: by Lemma~\ref{lem:smoothapprox-pointwise}, the
+derivatives converge pointwise outside the spheres of radii $1$ and $2$ to
+the smooth extension derivatives, while the bad-set contributions are
+controlled by the uniform $C^1$ bounds on the buffer compacts. Item (3) is
+an application of Theorem~\ref{thm:smooth-extension-estimate} to $\psi$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:hasWeakPartials_of_global_smoothApprox}
+\lean{DeGiorgi.hasWeakPartials_of_global_smoothApprox}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $1 < p < \infty$, let $f \in L^p(E)$ have a candidate gradient $G \in
+L^p(E; \R^d)$, and assume there exist $\Psi_n \in C^\infty_c(E)$ with
+$\Psi_n \to f$ and $\partial_i \Psi_n \to G_i$ in $L^p(E)$ for each $i$. Then
+$G_i$ is the weak $i$-th partial derivative of $f$ on $E$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_of_contDiff, lem:weak_lp_closure}
+
+For $\varphi \in C^\infty_c(E)$, the integration-by-parts identity
+$\int \Psi_n\, \partial_i \varphi = -\int (\partial_i \Psi_n)\, \varphi$
+holds for each smooth $\Psi_n$. Pass to the limit using $L^p \times L^q$
+duality with $1/p + 1/q = 1$ (note $\partial_i\varphi \in L^q$ and
+$\varphi \in L^q$ since both are bounded compactly supported), giving
+$\int f\, \partial_i \varphi = -\int G_i\, \varphi$, the weak derivative
+identity.
+\end{proof}
+
+\subsection*{The main extension theorems}
+
+\begin{theorem}
+\label{thm:global-approx-extension}
+\lean{DeGiorgi.exists_smooth_global_approx_of_unitBallExtension}
+\leanok
+\uses{def:MemW1pWitness, def:unitBallExtension}
+Let $1 < p < \infty$ and $u \in W^{1,p}(\Bz{1})$. There exists
+$G_{\mathrm{ext}} : E \to \R^d$ with the following properties.
+\begin{enumerate}
+\item $\Eext u \in L^p(E)$ and each component of $G_{\mathrm{ext}}$ lies in
+$L^p(E)$.
+\item Function-side estimate:
+\begin{equation*}
+\int_E |\Eext u(x)|^p\,dx
+\le \CunitBallExtensionFun(d)\,\int_{\Bz{1}} |u(x)|^p\,dx,
+\end{equation*}
+with $\CunitBallExtensionFun(d) := 1 + 2^{2d}$.
+\item Gradient-side estimate:
+\begin{multline*}
+\int_E \|G_{\mathrm{ext}}(x)\|^p\,dx
+\le \int_{\Bz{1}} \|\nabla u(x)\|^p\,dx \\
++ \CunitBallExtensionGrad(d, p)\,\biggl(\int_{\Bz{1}} |u(x)|^p\,dx
++ \int_{\Bz{1}} \|\nabla u(x)\|^p\,dx\biggr),
+\end{multline*}
+with $\CunitBallExtensionGrad(d,p) := 2^{2d}\cdot 2^{p-1}$.
+\item There exists a sequence $\Phi_n \in C^\infty_c(E)$ with
+$\Phi_n \to \Eext u$ and $\partial_i \Phi_n \to (G_{\mathrm{ext}})_i$ in
+$L^p(E)$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_partial_unique, lem:weak_lp_closure, lem:smoothTransition_nnnorm_deriv_bounded, thm:wp-approx, def:unitBallCutoff, lem:unitBallExtension_zero, lem:Eext-restrict, lem:unitBallCutoff_eq_zero_of_two_le_norm, lem:unitBallExtension_hasCompactSupport, def:unitBallOuterShell, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:cov-shell, lem:ball_zero_two_eq_ball_zero_one_union_outerShell_union_sphere, lem:fderiv_unitBallExtension_eq_of_mem_ball, thm:smooth-extension-estimate, def:unitBallShellFormula, def:smoothUnitBallExtensionGrad, thm:loc-global, thm:smooth-input-smoothing, thm:hasWeakPartials_of_global_smoothApprox, lem:aestronglyMeasurable_unitBallExtension_of_memLp, thm:ae_eq_of_tendsto_eLpNorm_sub, thm:scalar-cauchy}
+
+Apply Theorem~\ref{thm:wp-approx} to obtain $\psi_n \in C^\infty_c(E)$ with
+$\psi_n \to u$ and $\partial_i \psi_n \to (\nabla u)_i$ in $L^p(\Bz{1})$.
+For each $\psi_n$, apply Theorem~\ref{thm:smooth-input-smoothing}, producing
+a smooth extension sequence $\Phi_{n,m} \in C^\infty_c(E)$ approximating
+$\Eext \psi_n$ in $W^{1,p}(E)$, and the smooth-input estimates of
+Theorem~\ref{thm:smooth-extension-estimate}.
+
+The smooth-input bound gives, by linearity of $\Eext$,
+\begin{gather*}
+\eLpNormText{\Eext \psi_n - \Eext \psi_m}_{L^p(E)}
+\le (1 + 2^{2d})^{1/p}\,\eLpNormText{\psi_n - \psi_m}_{L^p(\Bz{1})},
+\end{gather*}
+\begin{multline*}
+\eLpNormText{D\Eext \psi_n - D\Eext\psi_m}_{L^p(E)}
+\le \eLpNormText{D\psi_n - D\psi_m}_{L^p(\Bz{1})} \\
++ C\,\bigl(\eLpNormText{\psi_n - \psi_m}_{L^p(\Bz{1})}
++ \eLpNormText{D\psi_n - D\psi_m}_{L^p(\Bz{1})}\bigr).
+\end{multline*}
+Since $(\psi_n)$ is Cauchy in $W^{1,p}(\Bz{1})$, the smooth-extension
+sequence $\Eext\psi_n$ is Cauchy in $L^p(E)$, and the candidate gradient
+sequence $\smoothUnitBallExtensionGrad \psi_n$ is Cauchy in
+$L^p(E;\R^d)$. By the bare-function $L^p$ completeness theorems
+(Theorems~\leanname{scalar\_cauchy\_to\_limit} and
+\leanname{exists\_pi\_limit\_of\_cauchy\_eLpNorm}), there exist $L^p$ limits $f^*$
+and $G_{\mathrm{ext}}$. By construction $f^* = \Eext u$ a.e.\ and the
+estimates pass to the limit by lower semicontinuity of the $L^p$-norm under
+weak/strong convergence and the smooth-input estimates applied to each
+$\psi_n$. Finally, a diagonal extraction from $(\Phi_{n,m})$ produces the
+sequence required in (4).
+\end{proof}
+
+\begin{lemma}
+\label{lem:aestronglyMeasurable_unitBallExtension_of_memLp}
+\lean{DeGiorgi.aestronglyMeasurable_unitBallExtension_of_memLp}
+\leanok
+\uses{def:unitBallExtension}
+If $u \in L^p(\Bz{1})$ then $\Eext u$ is a.e.\ strongly measurable on $E$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:unitBallRetraction, def:unitBallCutoff, lem:unitBallRetraction_eq_self_of_norm_le_one, lem:unitBallCutoff_eq_zero_of_two_le_norm, def:unitBallOuterShell, lem:unitBallRetraction_eq_inversion_of_mem_outerShell, lem:inversion_mem_unitBallInnerShell_of_mem_outerShell}
+
+Choose a strongly measurable representative $u'$ of $u$. Then $\Eext u'$ is
+measurable: it is a composition of measurable maps. Now $\Eext u =
+\Eext u'$ a.e.\ on $E$, by checking three cases.
+\begin{itemize}
+\item On $\Bz{1}$, $\Eext = \mathrm{id}$, so equality reduces to $u = u'$
+a.e.
+\item On $\|x\| \ge 2$, both vanish.
+\item On $\Sigma^{\mathrm{out}}$, $\Eext u(x) = \chi(x)\, u(I(x))$. The
+inversion $I$ is a smooth diffeomorphism between $\Sigma^{\mathrm{out}}$ and
+$\Sigma^{\mathrm{in}}$. The set where $u \neq u'$ on $\Sigma^{\mathrm{in}}$
+has measure zero, and its image under $I$ also has measure zero by
+\leanname{addHaar\_image\_eq\_zero\_of\_differentiableOn\_of\_addHaar\_eq\_zero}.
+\end{itemize}
+The sphere $\mathrm{S}_1$ has measure zero, hence does not affect the a.e.
+identity. Strong measurability of $\Eext u$ then follows from a.e. equality
+to a measurable function.
+\end{proof}
+
+\begin{theorem}
+\label{thm:Eext-W1p}
+\lean{DeGiorgi.exists_unitBall_W1p_extension}
+\leanok
+\uses{def:MemW1pWitness, def:unitBallExtension}
+Let $1 < p < \infty$ and $u \in W^{1,p}(\Bz{1})$. There is a $W^{1,p}$
+witness $\hwExt$ for $\Eext u$ on $E$ with the following properties:
+\begin{enumerate}
+\item $\Eext u$ has compact support in $\overline{\Ball{2}{0}}$;
+\item $\Eext u(x) = u(x)$ for $x \in \Bz{1}$;
+\item the function-side bound from Theorem~\ref{thm:global-approx-extension} (2);
+\item the gradient-side bound from Theorem~\ref{thm:global-approx-extension} (3).
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:Eext-restrict, lem:unitBallExtension_hasCompactSupport, thm:hasWeakPartials_of_global_smoothApprox, thm:global-approx-extension}
+
+Combine Theorem~\ref{thm:global-approx-extension} (existence of
+$G_{\mathrm{ext}}$ together with the approximating sequence) with the previous
+two lemmas. The witness package follows from
+\leanname{hasWeakPartials\_of\_global\_smoothApprox}, the support inclusion from
+\leanname{unitBallExtension\_hasCompactSupport}, and the agreement on $\Bz{1}$
+from \leanname{unitBallExtension\_eq\_of\_mem\_ball}.
+\end{proof}
+
+\begin{theorem}
+\label{thm:exists_unitBall_W1p_extension}
+\lean{DeGiorgi.exists_unitBall_W1p_extension'}
+\leanok
+\uses{def:MemW1pWitness}
+A weakened formulation: for $u \in W^{1,p}(\Bz{1})$, there exists $u_{\mathrm{ext}}
+\in W^{1,p}(E)$ with compact support and $u_{\mathrm{ext}} = u$ on $\Bz{1}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:Eext-W1p}
+
+Project away the explicit constants from Theorem~\ref{thm:Eext-W1p}.
+\end{proof}
+
+\section{Positive-part machinery}
+
+\begin{theorem}
+\label{thm:MemW1pWitness_weakGrad_ae_eq_zero_on_zeroSet}
+\lean{DeGiorgi.MemW1pWitness.weakGrad_ae_eq_zero_on_zeroSet}
+\leanok
+\uses{def:MemW1pWitness}
+Let $u \in W^{1,2}(\Omega)$ on an open set $\Omega \subseteq E$. Then for
+each $i$, $(\nabla u)_i = 0$ a.e.\ on the zero set $\{u = 0\}\cap \Omega$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1p, thm:weakGrad_ae_eq_zero_on_zeroSet}
+
+Choose a measurable representative $u'$ of $u$. Apply Stampacchia's zero-set
+theorem (\leanname{HasWeakPartialDeriv.toStampacchia}) to the witness with
+the measurable representative, then transfer back via a.e.\ equality.
+\end{proof}
+
+\begin{lemma}
+\label{lem:MemW1pWitness_sub_const}
+\lean{DeGiorgi.MemW1pWitness.sub_const}
+\leanok
+\uses{def:MemW1pWitness}
+On a finite-measure open set $\Omega$, if $u \in W^{1,2}(\Omega)$ then
+$u - c \in W^{1,2}(\Omega)$ with the same weak gradient.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:HasWeakPartialDeriv, lem:weak_of_contDiff}
+
+Constants have weak gradient zero on $\Omega$. Subtract pointwise and use
+that the test integral splits, the contribution from the constant being
+zero.
+\end{proof}
+
+\begin{lemma}
+\label{lem:MemW1pWitness_mul_smooth_bounded}
+\lean{DeGiorgi.MemW1pWitness.mul_smooth_bounded}
+\leanok
+\uses{def:MemW1pWitness}
+Let $u \in W^{1,2}(\Omega)$ and $\eta \in C^\infty(E)$ with
+$|\eta| \le C_0$ and $\|D\eta\| \le C_1$. Then $\eta\, u \in W^{1,2}(\Omega)$
+with weak gradient $\eta\, \nabla u + u\, \nabla \eta$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_product_rule}
+
+The function-side $L^2$ membership follows from $|\eta\, u| \le C_0\,|u|$.
+For each component, the candidate $(\eta\, (\nabla u)_i + (\partial_i \eta)\,u)$
+is in $L^2$ by similar bounds. The weak-derivative identity follows from
+the product rule for weak derivatives, \leanname{HasWeakPartialDeriv.mul\_smooth}.
+\end{proof}
+
+\begin{theorem}
+\label{thm:HasWeakPartialDeriv_of_eLpNormApprox}
+\lean{DeGiorgi.HasWeakPartialDeriv.of_eLpNormApprox}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega$ be open, $i$ an index, $f \in L^2(\Omega)$ with candidate
+$g \in L^2(\Omega)$, and let $\psi_n$ be smooth functions whose pointwise
+weak partial derivatives $g_n$ converge to $g$ in $L^2(\Omega)$ and whose
+values converge to $f$ in $L^2(\Omega)$. Then $g$ is the weak $i$-th
+partial derivative of $f$ on $\Omega$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+Fix a smooth compactly supported test $\varphi$ on $\Omega$, and write
+$d\varphi(x) := (\fderiv{\varphi}{x})(e_i)$. The integration-by-parts identity for the
+smooth approximants reads
+\begin{equation*}
+  \int_{\Omega} \psi_n \cdot d\varphi\,dx
+    = -\int_{\Omega} g_n \cdot \varphi\,dx,
+\end{equation*}
+which is built into the hypothesis $\mathrm{HasWeakPartialDeriv}\,i\,g_n\,\psi_n\,\Omega$.
+
+Both $\varphi$ and $d\varphi$ are continuous with compact support, hence in
+$L^2(\Omega)$. By the elementary $L^2$-pairing limit
+\leanname{tendsto\_integral\_mul\_of\_eLpNorm\_tendsto\_zero}: if
+$h_n - h \to 0$ in $L^2$ and $k$ is a fixed $L^2$ function, then
+$\int k\,(h_n - h) \to 0$. Applying this with $k = d\varphi$ and
+$h_n - h = \psi_n - f$ gives
+\begin{equation*}
+  \int_{\Omega} d\varphi\,(\psi_n - f)\,dx \to 0,
+\end{equation*}
+and similarly with $k = \varphi$ and $h_n - h = g_n - g$ gives
+$\int_{\Omega} \varphi\,(g_n - g)\,dx \to 0$. Adding the IBP identity and
+$\int f\cdot d\varphi$ to the first limit gives
+\begin{equation*}
+  \int_{\Omega} \psi_n\cdot d\varphi\,dx \to \int_{\Omega} f \cdot d\varphi\,dx.
+\end{equation*}
+Likewise the right-hand side of IBP converges to $-\int_{\Omega} g\cdot\varphi\,dx$.
+Passing to the limit in the smooth IBP identity therefore yields
+$\int f\,d\varphi = -\int g\,\varphi$, which is the defining identity for $g$
+to be the weak $i$-th partial derivative of $f$ on $\Omega$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:tendsto_eLpNorm_indicator_diff_mul_of_tendsto_eLpNorm}
+\lean{DeGiorgi.tendsto_eLpNorm_indicator_diff_mul_of_tendsto_eLpNorm}
+\leanok
+Let $\psi_n \to u$ in $L^2(\Omega)$, with $u \in L^2(\Omega)$ and $G \in
+L^2(\Omega)$ such that $G$ vanishes a.e.\ on $\{u = 0\}$. Then
+\begin{equation*}
+\eLpNormText{(\mathbf{1}_{\{\psi_n > 0\}} - \mathbf{1}_{\{u > 0\}})\,G}_{L^2(\Omega)}
+\to 0.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:ae-subseq}
+
+Write $F_n(x) := (\mathbf{1}_{\{\psi_n > 0\}}(x) - \mathbf{1}_{\{u > 0\}}(x))\,G(x)$.
+The pointwise inequality $|F_n(x)| \le |G(x)|$ is immediate from the fact that
+each indicator lies in $\{0,1\}$, so the family $(F_n)$ is uniformly dominated
+by $|G| \in L^2(\Omega)$. Each $F_n$ is a.e.\ strongly measurable: the sets
+$\{\psi_n > 0\}$ and $\{u > 0\}$ are null measurable since $\psi_n$ and $u$
+are a.e.\ strongly measurable (the comparison with the constant $0$ is
+handled by \leanname{AEStronglyMeasurable.nullMeasurableSet\_lt}), and $G$
+is in $L^2$.
+
+Vitali convergence in $L^2$ requires uniform integrability and uniform
+tightness of the family $(F_n)$. Both are inherited from the constant family
+$\{G\}$, which is uniformly integrable and uniformly tight by
+\leanname{MeasureTheory.unifIntegrable\_const} and
+\leanname{MeasureTheory.unifTight\_const} applied to the singleton
+$\{G\} \subset L^2$. The pointwise domination $|F_n| \le |G|$ then transfers
+both properties to $(F_n)$ via $\eLpNormText{\mathbf{1}_S F_n}_{L^2} \le
+\eLpNormText{\mathbf{1}_S G}_{L^2}$ for any measurable set $S$.
+
+It remains to show $F_n \to 0$ in measure. By \leanname{tendsto\_of\_subseq\_tendsto},
+it suffices that every subsequence of $(F_n)$ admits an a.e.\ convergent
+sub-subsequence with limit $0$. Given any subsequence, the $L^2$ hypothesis
+$\psi_{n_k} \to u$ in $L^2$ supplies an a.e.\ convergent sub-sub-sequence
+(\leanname{exists\_subseq\_tendsto\_ae\_of\_tendsto\_eLpNorm}). On the
+sub-subsequence: at points where $u(x) > 0$, eventually $\psi_{n_{k_j}}(x) > 0$,
+so both indicators equal $1$ and $F_{n_{k_j}}(x) \to 0$; at points where
+$u(x) < 0$ both indicators eventually equal $0$; at points where $u(x) = 0$
+the hypothesis hzero gives $G(x) = 0$ a.e., so $F_{n_{k_j}}(x) = 0$.
+This produces an a.e.\ vanishing sub-subsequence. Combining with the Vitali
+convergence theorem (uniform integrability + uniform tightness +
+convergence in measure $\Rightarrow$ $L^2$ convergence) yields the desired
+$\eLpNormText{F_n}_{L^2} \to 0$.
+\end{proof}
+
+\begin{definition}
+\label{def:MemW1pWitness_posPart_of_aux}
+\lean{DeGiorgi.MemW1pWitness.posPart_of_aux}
+\leanok
+\uses{def:HasWeakPartialDeriv, def:MemW1pWitness, lem:indicator_component_memLp, lem:posPartGrad, thm:HasWeakPartialDeriv_of_eLpNormApprox, thm:tendsto_eLpNorm_indicator_diff_mul_of_tendsto_eLpNorm}
+Given $u \in W^{1,2}(\Omega)$ with smooth approximation data $(\psi_n)$ and
+the zero-set vanishing hypothesis from
+\leanname{MemW1pWitness.weakGrad\_ae\_eq\_zero\_on\_zeroSet}, the positive part
+$u^+ := \max(u,0) \in W^{1,2}(\Omega)$ has weak gradient
+\begin{equation*}
+(\nabla u^+)_i(x) := \begin{cases}
+(\nabla u)_i(x) & \text{if } u(x) > 0, \\
+0 & \text{otherwise}.
+\end{cases}
+\end{equation*}
+\end{definition}
+
+\begin{theorem}
+\label{thm:MemW1pWitness_posPart}
+\lean{DeGiorgi.MemW1pWitness.posPart}
+\leanok
+\uses{def:MemW1pWitness}
+On a finite-measure open set $\Omega$, if $u \in W^{1,2}(\Omega)$ comes
+equipped with a smooth approximation, then $u^+ \in W^{1,2}(\Omega)$ with
+the gradient described above.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1pWitness_posPart_of_aux}
+
+Apply \leanname{posPart\_of\_aux} with the zero-set vanishing input supplied by
+\leanname{weakGrad\_ae\_eq\_zero\_on\_zeroSet}. The proof of the auxiliary
+theorem proceeds in three steps.
+\begin{enumerate}
+\item Define $g(x) := \mathbf{1}_{\{u > 0\}}\, (\nabla u)_i(x) \in L^2(\Omega)$
+and $g^{\psi_n}(x) := \mathbf{1}_{\{\psi_n > 0\}}\,(\partial_i \psi_n)(x)$.
+\item Each $g^{\psi_n}$ is the classical weak partial derivative of
+$\max(\psi_n, 0)$ by
+\leanname{weakPartialDeriv\_positivePart\_of\_contDiff} (since $\psi_n$ is
+$C^1$).
+\item Show $\max(\psi_n, 0) \to u^+$ in $L^2(\Omega)$ by
+\leanname{tendsto\_eLpNorm\_positivePart\_sub} and $g^{\psi_n} \to g$ in
+$L^2(\Omega)$ by combining
+\leanname{tendsto\_eLpNorm\_indicator\_diff\_mul\_of\_tendsto\_eLpNorm} (which uses
+the zero-set hypothesis) with the $L^2$ convergence
+$\partial_i \psi_n \to (\nabla u)_i$.
+\item Apply Theorem~\leanname{HasWeakPartialDeriv.of\_eLpNormApprox} to deduce
+that $g$ is a weak $i$-th partial derivative of $u^+$ on $\Omega$.
+\end{enumerate}
+\end{proof}
+
+\section{$L^p$ function toolkit}
+
+\begin{theorem}
+\label{thm:memLp_of_tendsto_eLpNorm}
+\lean{BareFunction.memLp_of_tendsto_eLpNorm}
+\leanok
+Let $1 \le p \le \infty$, let $f_n \in L^p(\mu)$, and let $g$ be a.e.
+strongly measurable. If $\eLpNormText{f_n - g}_{L^p} \to 0$, then
+$g \in L^p(\mu)$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:Cutoff_exists}
+
+For some $N$, $\eLpNormText{f_N - g}_{L^p} < 1$. The triangle inequality
+gives $\eLpNormText{g}_{L^p} \le \eLpNormText{f_N}_{L^p} + 1 < \infty$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:ae_eq_of_tendsto_eLpNorm_sub}
+\lean{BareFunction.ae_eq_of_tendsto_eLpNorm_sub}
+\leanok
+Lp limits are unique up to a.e.\ equality.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+$\eLpNormText{g_1 - g_2}_{L^p} \le \eLpNormText{f_n - g_1}_{L^p} +
+\eLpNormText{f_n - g_2}_{L^p} \to 0$, so $\eLpNormText{g_1 - g_2}_{L^p} = 0$,
+and $g_1 - g_2 = 0$ a.e.
+\end{proof}
+
+\begin{theorem}
+\label{thm:scalar-cauchy}
+\lean{BareFunction.scalar_cauchy_to_limit}
+\leanok
+Let $1 \le p < \infty$, $E$ second-countable complete, and let $f_n \in
+L^p(\mu; E)$ be a Cauchy sequence in $L^p$. There exists $g \in L^p(\mu; E)$
+with $\eLpNormText{f_n - g}_{L^p}\to 0$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+Standard Riesz-Fischer construction. Extract a subsequence $f_{M(k)}$ with
+$\eLpNormText{f_{M(k)} - f_{M(k+1)}}_{L^p} \le 2^{-(k+1)}$ via a controlled
+$L^p$-Cauchy sub-extraction. Apply Mathlib's
+\leanname{Lp.cauchy\_complete\_eLpNorm} to obtain a limit $g$ for the
+subsequence. Upgrade to convergence of the full sequence by combining the
+sub-sequence convergence with the original Cauchy property and a $\varepsilon/2$
+triangle argument.
+\end{proof}
+
+\begin{theorem}
+\label{thm:eLpNorm_pi_le_sum_component}
+\lean{BareFunction.eLpNorm_pi_le_sum_component, BareFunction.eLpNorm_pi_component_le, BareFunction.aestronglyMeasurable_pi_component, BareFunction.aestronglyMeasurable_pi_of_components, BareFunction.memLp_pi_component}
+\leanok
+(\leanname{eLpNorm\_pi\_le\_sum\_component},
+\leanname{eLpNorm\_pi\_component\_le},
+\leanname{aestronglyMeasurable\_pi\_component},
+\leanname{aestronglyMeasurable\_pi\_of\_components},
+\leanname{memLp\_pi\_component})\\
+For $F : \alpha \to \R^d$ and $1 \le p \le \infty$:
+\begin{enumerate}
+\item $\eLpNormText{F}_{L^p} \le \sum_i \eLpNormText{F_i}_{L^p}$;
+\item $\eLpNormText{F_i}_{L^p} \le \eLpNormText{F}_{L^p}$;
+\item $F$ is a.e.\ strongly measurable iff each component is;
+\item $F \in L^p$ iff each component is.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+For the first item, the pointwise vector-norm bound on $\R^d$ reads
+$\|F(x)\| \le \sum_i \|F(x)_i\|$ (\leanname{pi\_norm\_le\_sum\_norms}); applying
+$\eLpNormText{\cdot}_{L^p}$ and using monotonicity of the eLpNorm under
+pointwise inequalities of nonnegative functions
+(\leanname{eLpNorm\_mono\_real}) bounds $\eLpNormText{F}_{L^p}$ above by
+$\eLpNormText{x \mapsto \sum_i \|F(x)_i\|}_{L^p}$. Iterating the Minkowski
+triangle inequality \leanname{eLpNorm\_add\_le} for $1 \le p \le \infty$ over
+the finite index set bounds this in turn by
+$\sum_i \eLpNormText{x \mapsto \|F(x)_i\|}_{L^p}$, and then
+$\eLpNormText{x \mapsto \|F(x)_i\|}_{L^p} = \eLpNormText{F_i}_{L^p}$ since the
+eLpNorm of $\|h\|$ equals that of $h$ (\leanname{eLpNorm\_norm}).
+
+For the single-component bound $\eLpNormText{F_i}_{L^p} \le
+\eLpNormText{F}_{L^p}$, the pointwise inequality $\|F(x)_i\| \le \|F(x)\|$
+holds for any vector in $\R^d$ (the $i$-th component is dominated by the
+sup norm, hence by any equivalent norm), and again $\eLpNormText{\cdot}_{L^p}$
+is monotone. Strong measurability componentwise follows by composition with
+the continuous projection $\R^d \to \R$ (\leanname{continuous\_apply}); the
+converse direction assembles the components into a measurable function via
+the product topology on $\R^d$. Membership in $L^p$ in either direction now
+follows from the two norm comparisons together with strong measurability.
+\end{proof}
+
+\begin{theorem}
+\label{thm:tendsto_eLpNorm_pi_component}
+\lean{BareFunction.tendsto_eLpNorm_pi_component}
+\leanok
+Vector $L^p$ convergence implies componentwise $L^p$ convergence.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:eLpNorm_pi_le_sum_component}
+
+Component norms are bounded by vector norms.
+\end{proof}
+
+\begin{theorem}
+\label{thm:exists_pi_limit_of_cauchy_eLpNorm}
+\lean{BareFunction.exists_pi_limit_of_cauchy_eLpNorm}
+\leanok
+A Cauchy sequence $G_n : \alpha \to \R^d$ in $L^p$ admits a limit
+$G_{\mathrm{ext}} \in L^p(\alpha; \R^d)$ with both vector and componentwise
+$L^p$-convergence.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:memLp_of_tendsto_eLpNorm, thm:scalar-cauchy, thm:eLpNorm_pi_le_sum_component, thm:tendsto_eLpNorm_pi_component}
+
+For each component, the projected sequence is scalar-valued $L^p$-Cauchy
+(by the previous comparisons). Apply Theorem~\ref{thm:scalar-cauchy} to each
+component, assemble the resulting limits into the vector function, and
+verify the vector $L^p$ convergence by the componentwise sum bound.
+\end{proof}
+
+\begin{theorem}
+\label{thm:ae-subseq}
+\lean{DeGiorgi.exists_subseq_tendsto_ae_of_tendsto_eLpNorm}
+\leanok
+Let $f_n, g \in L^2(\mu)$ with $\eLpNormText{f_n - g}_{L^2} \to 0$. There is
+a subsequence $f_{n_k}$ with $f_{n_k} \to g$ a.e.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+$L^2$ convergence implies convergence in measure
+(\leanname{tendstoInMeasure\_of\_tendsto\_eLpNorm}), and convergence in measure
+yields an a.e.\ convergent subsequence
+(\leanname{TendstoInMeasure.exists\_seq\_tendsto\_ae}).
+\end{proof}
+
+\section{Finite covering}
+
+\begin{theorem}
+\label{thm:exists_finite_inner_ball_cover}
+\lean{DeGiorgi.exists_finite_inner_ball_cover}
+\leanok
+Let $0 < r$, $0 < \rho$, and $r + 2\rho < R$. Then there is a finite set
+$T \subseteq \overline{\Ball{r}{x_0}}$ such that
+\begin{equation*}
+\overline{\Ball{r}{x_0}} \subseteq \bigcup_{c \in T} \Ball{\rho}{c},
+\quad
+\overline{\Ball{2\rho}{c}} \subseteq \Ball{R}{x_0} \text{ for all } c \in T.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+The closed ball $\overline{\Ball{r}{x_0}}$ is compact in the finite-dimensional
+Euclidean space $E$ (\leanname{isCompact\_closedBall}), and the family
+$\{\Ball{\rho}{c}: c \in \overline{\Ball{r}{x_0}}\}$ is an open cover of
+$\overline{\Ball{r}{x_0}}$ since each centre $c$ is contained in its own ball
+of radius $\rho > 0$ (\leanname{Metric.ball\_mem\_nhds}). By compactness
+(\leanname{IsCompact.elim\_nhds\_subcover}) we extract a finite subset
+$T \subseteq \overline{\Ball{r}{x_0}}$ for which the union of the
+$\Ball{\rho}{c}$ over $c \in T$ still covers $\overline{\Ball{r}{x_0}}$.
+
+It remains to verify the buffered containment
+$\overline{\Ball{2\rho}{c}} \subseteq \Ball{R}{x_0}$ for each $c \in T$. Since
+$c$ lies in $\overline{\Ball{r}{x_0}}$ we have $\dist(c,x_0) \le r$, and any
+$x \in \overline{\Ball{2\rho}{c}}$ satisfies $\dist(x,c) \le 2\rho$. By the
+triangle inequality
+\begin{equation*}
+  \dist(x, x_0) \le \dist(x, c) + \dist(c, x_0) \le 2\rho + r < R,
+\end{equation*}
+where the strict inequality is exactly the buffer hypothesis $r + 2\rho < R$.
+Hence $x \in \Ball{R}{x_0}$, completing the proof.
+\end{proof}
+
+\begin{theorem}
+\label{thm:finite-cover-card}
+\lean{DeGiorgi.exists_finite_inner_ball_cover_with_card}
+\leanok
+Under the same hypotheses, the cover can be chosen with cardinality bounded
+by $\lceil(4r/\rho + 1)^d\rceil$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:exists_finite_inner_ball_cover}
+
+First obtain a fine cover by $\rho/4$-balls from the previous theorem. Apply
+the maximality argument
+\leanname{exists\_maximal\_separated\_subfinset} to extract a $(\rho/2)$-separated
+subset $T \subseteq S$. The disjoint $\rho/4$-balls around the centers of $T$
+all lie inside $\Ball{r + \rho/4}{x_0}$. By volume comparison,
+\begin{equation*}
+|T|\,(\rho/4)^d\, \omega_d \le (r + \rho/4)^d \omega_d,
+\quad\text{i.e.}\quad
+|T| \le (4r/\rho + 1)^d.
+\end{equation*}
+Take ceilings.
+\end{proof}
+
+\begin{theorem}
+\label{thm:exists_halfBall_cover_by_eighth_balls}
+\lean{DeGiorgi.exists_halfBall_cover_by_eighth_balls}
+\leanok
+There is a finite cover of $\overline{\Ball{1/2}{0}}$ by balls of radius
+$1/8$, of cardinality at most $17^d$, such that the doubled balls of radius
+$1/4$ each lie inside $\Bz{1}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:finite-cover-card}
+
+Apply Theorem~\ref{thm:finite-cover-card} with $r = 1/2$, $\rho = 1/8$,
+$R = 1$. The cardinality bound becomes $\lceil (4\cdot(1/2)/(1/8) + 1)^d
+\rceil = \lceil 17^d\rceil = 17^d$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:ae_on_set_of_ae_on_finite_cover}
+\lean{DeGiorgi.ae_on_set_of_ae_on_finite_cover}
+\leanok
+If $S \subseteq \bigcup_{i \in T} U_i$ and the property $P(x)$ holds a.e.\
+on each $U_i$, then $P$ holds a.e.\ on $S$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+The a.e.\ statement on a finite union is equivalent to the conjunction of
+a.e.\ statements on each member, then restrict to $S$.
+\end{proof}
+
+\begin{theorem}
+\label{thm:lintegralOn_le_sum_lintegralOn_of_finite_cover}
+\lean{DeGiorgi.lintegralOn_le_sum_lintegralOn_of_finite_cover}
+\leanok
+For a non-negative measurable $f$, $\int_S f \le \sum_{i \in T} \int_{U_i} f$
+whenever $S \subseteq \bigcup_{i \in T} U_i$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+
+Bound from above by the integral over the union, then apply countable
+sub-additivity (here finite) of the integral.
+\end{proof}
+
+\section{Foundations and shared prelude}
+
+\begin{remark}[\leanname{Common}, \leanname{Foundations}]
+The files \leanname{DeGiorgi.Common} and \leanname{DeGiorgi.Foundations}
+serve as the shared prelude for the development. They open the namespaces
+\texttt{MeasureTheory}, \texttt{Metric}, \texttt{Set}, and \texttt{Filter},
+together with the scoped notations for $\R_{\ge 0}^\infty$, $\R_{\ge 0}$,
+$\mathrm{Topology}$, and \texttt{InnerProductSpace}, so that subsequent
+files can keep their imports minimal. No mathematical content beyond
+namespace setup is introduced.
+\end{remark}
+
+
+%% ========================================================================

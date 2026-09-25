@@ -1,0 +1,29 @@
+% Print-only macros.
+\newcommand{\lean}[1]{}
+\newcommand{\discussion}[1]{}
+\newcommand{\leanok}{}
+\newcommand{\mathlibok}{}
+\newcommand{\notready}{}
+\ExplSyntaxOn
+\NewDocumentCommand{\uses}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\NewDocumentCommand{\proves}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\ExplSyntaxOff
+
+\newcommand{\fint}{\mathop{\mathchoice%
+  {\,\rlap{$\displaystyle-$}\!\int}%
+  {\,\rlap{$\textstyle-$}\!\int}%
+  {\,\rlap{$\scriptstyle-$}\!\int}%
+  {\,\rlap{$\scriptscriptstyle-$}\!\int}}\nolimits}
+
+% Lean names in running text, breakable at underscores
+\newcommand{\leanname}[1]{%
+  \begingroup
+  \textnormal{\small\texttt{%
+    \let\oldunderscore\_%
+    \def\_{\oldunderscore\discretionary{}{}{}}%
+    \seqsplit{#1}}}%
+  \endgroup}

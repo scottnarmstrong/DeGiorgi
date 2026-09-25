@@ -1,0 +1,1127 @@
+\chapter{Sobolev Spaces and Weak Derivatives}\label{sec:sobolev}
+%% ========================================================================
+
+% Section 2: Sobolev Spaces and Weak Derivatives
+% Translation of:
+%   DeGiorgi/SobolevSpace.lean
+%   DeGiorgi/SobolevSpace/WeakDerivatives.lean
+%   DeGiorgi/SobolevSpace/Witnesses.lean
+%   DeGiorgi/SobolevSpace/Approximation.lean
+%   DeGiorgi/SobolevSpace/PositivePartPrelude.lean
+%   DeGiorgi/WholeSpaceSobolev.lean
+
+Throughout this section we fix a positive integer $d$ and write $E = \R^d$ (in
+the Lean formalization, $E$ is the Euclidean space of dimension $d$, with the
+canonical orthonormal basis $(e_i)_{i=1}^d$). All open sets $\Omega \subseteq E$
+are equipped with Lebesgue measure. For a smooth scalar test function $\varphi
+\in C_c^\infty(E)$, $i \in \{1,\ldots,d\}$ and $x \in E$ we abbreviate the
+$i$-th partial derivative by $\partial_i \varphi(x) = (D\varphi(x))(e_i)$.
+
+\section{Weak partial derivatives and weak gradients}
+
+\begin{definition}
+\label{def:HasWeakPartialDeriv}
+\lean{DeGiorgi.HasWeakPartialDeriv}
+\leanok
+Let $\Omega \subseteq E$ be a set, $i \in \{1,\ldots,d\}$, and $f, g : E \to \R$.
+We say that $g$ is the \emph{weak $i$-th partial derivative of $f$ on $\Omega$},
+written $\partial_i^w f = g$ on $\Omega$, if for every test function
+$\varphi \in C^\infty(E,\R)$ with compact support and $\supp \varphi \subseteq
+\Omega$ we have
+\begin{equation*}
+  \int_\Omega f(x) \, \partial_i \varphi(x) \, dx
+    = - \int_\Omega g(x) \, \varphi(x) \, dx.
+\end{equation*}
+\end{definition}
+
+\begin{definition}
+\label{def:HasWeakGrad}
+\lean{DeGiorgi.HasWeakGrad, DeGiorgi.HasWeakDiv}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+A vector field $G : E \to E$ is a \emph{weak gradient} of $f$ on $\Omega$,
+written $\nabla^w f = G$, if each component $G_i$ is the weak $i$-th partial
+derivative of $f$ on $\Omega$.
+
+A scalar function $g : E \to \R$ is a \emph{weak divergence} of a vector field
+$F : E \to E$ on $\Omega$ if for every $\varphi \in C_c^\infty$ with $\supp
+\varphi \subseteq \Omega$
+\begin{equation*}
+  \int_\Omega \sum_{i=1}^d F_i(x) \, \partial_i \varphi(x) \, dx
+    = - \int_\Omega g(x)\, \varphi(x)\, dx.
+\end{equation*}
+\end{definition}
+
+\begin{lemma}[Uniqueness]
+\label{lem:weak_partial_unique}
+\lean{DeGiorgi.HasWeakPartialDeriv.ae_eq}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega \subseteq E$ be open, $i \in \{1,\ldots,d\}$ and $f, g_1, g_2 :
+E \to \R$ with $g_1$ and $g_2$ locally integrable on $\Omega$. If both $g_1$
+and $g_2$ are weak $i$-th partial derivatives of $f$ on $\Omega$, then
+$g_1 = g_2$ almost everywhere on $\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+It suffices to show that $g_1 - g_2 = 0$ a.e.\ on $\Omega$. The function $g_1 -
+g_2$ is locally integrable on $\Omega$, and for any $\varphi \in C_c^\infty(E)$
+with $\supp \varphi \subseteq \Omega$ we have, subtracting the two test
+identities,
+\begin{equation*}
+  \int_\Omega g_1(x)\,\varphi(x)\,dx = \int_\Omega g_2(x)\,\varphi(x)\,dx,
+\end{equation*}
+so $\int_\Omega (g_1 - g_2)(x)\,\varphi(x)\,dx = 0$. Since $\varphi$ vanishes
+outside its support which lies in $\Omega$, this is the same as integrating over
+the whole space $E$. By the standard fact that a locally integrable function
+whose integral against every smooth compactly supported test function vanishes
+is zero almost everywhere (\leanname{IsOpen.ae\_eq\_zero\_of\_integral\_contDiff\_smul\_eq\_zero}),
+we conclude $g_1 = g_2$ a.e.\ on $\Omega$.
+\end{proof}
+
+\begin{lemma}[Classical $\Rightarrow$ weak derivative]
+\label{lem:weak_of_contDiff}
+\lean{DeGiorgi.HasWeakPartialDeriv.of_contDiff}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega \subseteq E$ be open and $f \in C^1(E,\R)$. Then $\partial_i f$ is
+the weak $i$-th partial derivative of $f$ on $\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Take any $\varphi \in C_c^\infty(E)$ with $\supp\varphi \subseteq \Omega$. Both
+$f \cdot \partial_i \varphi$ and $\partial_i f \cdot \varphi$ vanish outside
+$\supp\varphi \subseteq \Omega$, so the corresponding integrals on $\Omega$ and
+on $E$ coincide. The classical integration-by-parts formula
+(\leanname{integral\_mul\_fderiv\_eq\_neg\_fderiv\_mul\_of\_integrable}) for
+differentiable functions with compactly supported product gives
+\begin{equation*}
+  \int_E f(x)\,\partial_i \varphi(x)\,dx
+    = - \int_E (\partial_i f)(x)\,\varphi(x)\,dx,
+\end{equation*}
+which is the weak-derivative identity on $\Omega$.
+\end{proof}
+
+\begin{lemma}[Product rule against a smooth factor]
+\label{lem:weak_product_rule}
+\lean{DeGiorgi.HasWeakPartialDeriv.mul_smooth}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega \subseteq E$ be open, $i \in \{1,\ldots,d\}$, and let $f, g, \eta :
+E \to \R$ with $\eta \in C^\infty$, $f$ and $g$ locally integrable on $\Omega$,
+and $g$ a weak $i$-th partial derivative of $f$ on $\Omega$. Then
+\begin{equation*}
+  x \mapsto \eta(x)\,g(x) + (\partial_i \eta(x))\,f(x)
+\end{equation*}
+is the weak $i$-th partial derivative of $\eta f$ on $\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Fix a test function $\varphi \in C_c^\infty(E)$ with $\supp\varphi \subseteq
+\Omega$. Then $\eta \varphi$ is also smooth, compactly supported, with support
+contained in $\Omega$. Applying the weak-derivative identity for $f$ to the test
+function $\eta \varphi$ and using the smooth product rule
+$\partial_i(\eta\varphi) = \eta\,\partial_i\varphi + \varphi\,\partial_i\eta$
+gives
+\begin{equation*}
+  \int_\Omega f(x)\bigl(\eta(x)\,\partial_i\varphi(x) + \varphi(x)\,\partial_i\eta(x)\bigr)\,dx
+    = -\int_\Omega g(x)\,\eta(x)\,\varphi(x)\,dx.
+\end{equation*}
+The local integrability of $f$ and $g$, together with continuity of $\eta$,
+$\partial_i\eta$, $\varphi$, $\partial_i\varphi$ and compactness of supports,
+ensures that all integrals are absolutely convergent and may be split. Splitting
+the left-hand side and rearranging yields
+\begin{align*}
+  \int_\Omega \eta(x)\,f(x)\,\partial_i\varphi(x)\,dx
+  &= -\int_\Omega g(x)\,\eta(x)\,\varphi(x)\,dx
+     - \int_\Omega f(x)\,\varphi(x)\,\partial_i\eta(x)\,dx \\
+  &= -\int_\Omega \bigl(\eta(x)g(x) + (\partial_i\eta(x))f(x)\bigr)\,\varphi(x)\,dx,
+\end{align*}
+which is the desired weak-derivative identity for $\eta f$.
+\end{proof}
+
+\begin{lemma}[Restriction to a sub-open set]
+\label{lem:weak_restrict}
+\lean{DeGiorgi.HasWeakPartialDeriv.restrict}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega' \subseteq \Omega \subseteq E$ with $\Omega'$ open. If $g$ is the
+weak $i$-th partial derivative of $f$ on $\Omega$, then it is also the weak
+$i$-th partial derivative of $f$ on $\Omega'$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Let $\varphi \in C_c^\infty(E)$ with $\supp\varphi \subseteq \Omega'$. Then a
+fortiori $\supp\varphi \subseteq \Omega$, so applying the hypothesis on
+$\Omega$ gives the integral identity over $\Omega$. Outside $\Omega'$ the test
+function $\varphi$ and the field $\partial_i\varphi$ both vanish (the latter
+because $\varphi$ is locally constant equal to zero), so the integrals over
+$\Omega$ and $\Omega'$ of $f\,\partial_i\varphi$ and $g\,\varphi$ agree. The
+result follows.
+\end{proof}
+
+\begin{lemma}[$L^p$-closure of weak partial derivatives]
+\label{lem:weak_lp_closure}
+\lean{DeGiorgi.HasWeakPartialDeriv.of_eLpNormApprox_p}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $\Omega \subseteq E$ be open and $1 < p < \infty$. Suppose $f, g \in
+\Lp{p}(\Omega)$ and there are sequences $(\psi_n)$ and $(g_{\psi_n})$ such that:
+\begin{itemize}
+  \item $g_{\psi_n}$ is the weak $i$-th partial derivative of $\psi_n$ on
+        $\Omega$ for every $n$;
+  \item $\psi_n - f$ and $g_{\psi_n} - g$ lie in $\Lp{p}(\Omega)$ and tend to
+        $0$ in $\Lp{p}(\Omega)$ as $n \to \infty$.
+\end{itemize}
+Then $g$ is the weak $i$-th partial derivative of $f$ on $\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Fix $\varphi \in C_c^\infty(E)$ with $\supp\varphi \subseteq \Omega$. Let $q$
+denote the H{\"o}lder conjugate of $p$, so that $1 < q < \infty$ and $1/p + 1/q
+= 1$. Both $\varphi$ and $\partial_i\varphi$ are continuous, compactly
+supported, and hence belong to $\Lp{q}(\Omega)$.
+
+By H{\"o}lder's inequality on $(\Omega, dx)$,
+\begin{align*}
+  \left| \int_\Omega \partial_i\varphi(x) (\psi_n(x) - f(x))\,dx \right|
+  &\le \|\partial_i\varphi\|_{\Lp{q}(\Omega)}\,\|\psi_n - f\|_{\Lp{p}(\Omega)},\\
+  \left| \int_\Omega \varphi(x) (g_{\psi_n}(x) - g(x))\,dx \right|
+  &\le \|\varphi\|_{\Lp{q}(\Omega)}\,\|g_{\psi_n} - g\|_{\Lp{p}(\Omega)},
+\end{align*}
+both of which tend to zero by hypothesis. Hence
+\begin{align*}
+  \int_\Omega \psi_n(x)\,\partial_i\varphi(x)\,dx
+    &\;\to\; \int_\Omega f(x)\,\partial_i\varphi(x)\,dx, \\
+  \int_\Omega g_{\psi_n}(x)\,\varphi(x)\,dx
+    &\;\to\; \int_\Omega g(x)\,\varphi(x)\,dx.
+\end{align*}
+By assumption, for every $n$
+\begin{equation*}
+  \int_\Omega \psi_n(x)\,\partial_i\varphi(x)\,dx
+    = -\int_\Omega g_{\psi_n}(x)\,\varphi(x)\,dx,
+\end{equation*}
+and passing to the limit yields
+\begin{equation*}
+  \int_\Omega f(x)\,\partial_i\varphi(x)\,dx
+    = -\int_\Omega g(x)\,\varphi(x)\,dx,
+\end{equation*}
+which is the weak-derivative identity for $f$ and $g$.
+\end{proof}
+
+\section{Sobolev membership and weak-gradient witnesses}
+
+\begin{definition}
+\label{def:MemW1p}
+\lean{DeGiorgi.MemW1p}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+Let $p \in [1,\infty]$, $\Omega \subseteq E$ a set, and $f : E \to \R$. We say
+that $f \in \Wkp{1}{p}(\Omega)$ if $f \in \Lp{p}(\Omega)$ and for every $i \in
+\{1,\ldots,d\}$ there exists $g_i \in \Lp{p}(\Omega)$ such that $g_i$ is the
+weak $i$-th partial derivative of $f$ on $\Omega$.
+\end{definition}
+
+\begin{definition}
+\label{def:MemW1pWitness}
+\lean{DeGiorgi.MemW1pWitness}
+\leanok
+\uses{def:HasWeakGrad}
+A \emph{$\Wkp{1}{p}$-witness} for $f$ on $\Omega$ is a tuple consisting of a
+proof that $f \in \Lp{p}(\Omega)$, a vector field $G : E \to E$ (the weak
+gradient field) such that each component $x \mapsto G_i(x)$ lies in
+$\Lp{p}(\Omega)$, together with a proof that $G$ is a weak gradient of $f$ on
+$\Omega$ (Definition~\ref{def:HasWeakGrad}).
+\end{definition}
+
+The Hilbert-space case $p = 2$ is also denoted $H^1(\Omega) := W^{1,2}(\Omega)$
+in the formalization (\leanname{DeGiorgi.MemH1}).
+
+\begin{definition}
+\label{def:MemW01p}
+\lean{DeGiorgi.MemW01p}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness}
+We say that $f \in \Wop{p}(\Omega)$ if $f \in \Wkp{1}{p}(\Omega)$ and there
+exist a $\Wkp{1}{p}$-witness $(G)$ for $f$ on $\Omega$ and a sequence
+$(\varphi_n)_{n\in\N}$ of smooth compactly supported functions with
+$\supp\varphi_n \subseteq \Omega$ such that
+\begin{equation*}
+  \|\varphi_n - f\|_{\Lp{p}(\Omega)} \to 0
+  \quad\text{and}\quad
+  \|\partial_i \varphi_n - G_i\|_{\Lp{p}(\Omega)} \to 0
+  \;\text{ for every } i.
+\end{equation*}
+We write $H_0^1(\Omega) := W_0^{1,2}(\Omega)$ (\leanname{DeGiorgi.MemH01}).
+\end{definition}
+
+\begin{remark}[Existence of an explicit witness; \leanname{DeGiorgi.MemW1p.someWitness}]
+Given $f \in W^{1,p}(\Omega)$, axiom of choice produces a witness as in
+Definition~\ref{def:MemW1pWitness}: choose for each coordinate $i$ a function
+$g_i$ as in Definition~\ref{def:MemW1p}, and assemble them into the vector
+field $G(x) := (g_1(x),\ldots,g_d(x))$.
+\end{remark}
+
+\begin{lemma}[Forgetting the witness]
+\label{lem:forgetting-witness}
+\lean{DeGiorgi.MemW1pWitness.memW1p, DeGiorgi.MemW01p.memW1p}
+\leanok
+\uses{def:MemW1p, def:MemW1pWitness, def:MemW01p}
+(\leanname{DeGiorgi.MemW1pWitness.memW1p},
+\leanname{DeGiorgi.MemW01p.memW1p})\\
+Every witness gives rise to membership: a $\Wkp{1}{p}$-witness yields
+$f \in W^{1,p}(\Omega)$, and an element of $\Wop{p}(\Omega)$ is in particular
+in $\Wkp{1}{p}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Direct from the definitions: take $g_i := G_i$.
+\end{proof}
+
+\begin{lemma}[Sum of witnesses]
+\label{lem:witness_add}
+\lean{DeGiorgi.MemW1pWitness.add}
+\leanok
+\uses{def:MemW1pWitness}
+For $u, v \in H^1(\Omega)$ with witnesses $G_u$ and $G_v$, the function $u + v$
+admits the witness $G_u + G_v$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Membership of $u+v$ in $\Lp{2}(\Omega)$ and of $G_u + G_v$ in $\Lp{2}(\Omega)$
+in each coordinate follows from $\Lp{2}$ being a vector space. To verify the
+weak-gradient identity, take $\varphi \in C_c^\infty(E)$ with $\supp\varphi
+\subseteq \Omega$. The witnesses $G_u$ and $G_v$ give
+\begin{align*}
+  \int_\Omega u(x)\,\partial_i\varphi(x)\,dx
+    &= -\int_\Omega (G_u)_i(x)\,\varphi(x)\,dx, \\
+  \int_\Omega v(x)\,\partial_i\varphi(x)\,dx
+    &= -\int_\Omega (G_v)_i(x)\,\varphi(x)\,dx.
+\end{align*}
+Adding these identities, using local integrability and the linearity of the
+integral, yields the weak-gradient identity for $u + v$ with weak gradient
+$G_u + G_v$.
+\end{proof}
+
+\begin{lemma}[Restriction of witnesses]
+\label{lem:MemW1pWitness_restrict}
+\lean{DeGiorgi.MemW1pWitness.restrict}
+\leanok
+\uses{def:MemW1pWitness}
+Let $\Omega' \subseteq \Omega$ with $\Omega'$ open. Any
+$\Wkp{1}{p}$-witness on $\Omega$ restricts to a $\Wkp{1}{p}$-witness on
+$\Omega'$, with the same gradient field.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_restrict}
+
+$\Lp{p}$ membership is monotone in the measure (here the volume measure
+restricted to a smaller set), and Lemma~\ref{lem:weak_restrict} gives the weak
+gradient identity on $\Omega'$.
+\end{proof}
+
+\begin{lemma}[Scalar multiple of a witness]
+\label{lem:MemW1pWitness_smul}
+\lean{DeGiorgi.MemW1pWitness.smul}
+\leanok
+\uses{def:MemW1pWitness}
+For $u \in H^1(\Omega)$ with witness $G$ and $c \in \R$, the function $cu$
+admits the witness $cG$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+The $\Lp{2}$ memberships are immediate. For the test-function identity, fix
+$\varphi$ as before; using linearity and the witness for $u$,
+\begin{equation*}
+  \int_\Omega (cu)(x)\partial_i\varphi(x)\,dx
+    = c\int_\Omega u(x)\partial_i\varphi(x)\,dx
+    = -c\int_\Omega G_i(x)\varphi(x)\,dx
+    = -\int_\Omega (cG)_i(x)\varphi(x)\,dx. \qedhere
+\end{equation*}
+\end{proof}
+
+\begin{proposition}[Multiplying by a bounded smooth scalar]
+\label{prop:witness_mul_smooth_bounded}
+\lean{DeGiorgi.MemW1pWitness.mul_smooth_bounded_p}
+\leanok
+\uses{def:MemW1pWitness}
+Let $1 \le p \le \infty$, $\Omega$ open, $u$ a function with $\Wkp{1}{p}$-witness
+$G$ on $\Omega$, and $\eta \in C^\infty(E)$ satisfying
+$|\eta(x)| \le C_0$ and $\|D\eta(x)\| \le C_1$ for all $x$ and constants
+$C_0, C_1 \ge 0$. Then $\eta u$ admits the $\Wkp{1}{p}$-witness whose gradient
+field is
+\begin{equation*}
+  x \mapsto \eta(x)\,G(x) + \bigl(\partial_1\eta(x)\,u(x),\ldots,\partial_d\eta(x)\,u(x)\bigr).
+\end{equation*}
+\end{proposition}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_product_rule}
+
+The $\Lp{p}$ bound on $\eta u$ follows from the pointwise inequality
+$|\eta(x)u(x)| \le C_0 |u(x)|$ and $u \in \Lp{p}(\Omega)$. For each component
+of the displayed gradient field:
+\begin{itemize}
+  \item $|\eta(x)G_i(x)| \le C_0 |G_i(x)|$, and $G_i \in \Lp{p}(\Omega)$;
+  \item $|\partial_i\eta(x)\,u(x)| \le \|D\eta(x)\|\,|u(x)| \le C_1 |u(x)|$,
+        and $u \in \Lp{p}(\Omega)$.
+\end{itemize}
+By Minkowski, the sum lies in $\Lp{p}(\Omega)$. The weak-gradient identity is
+the product rule (Lemma~\ref{lem:weak_product_rule}) applied componentwise to
+the weak partial derivative $G_i$ of $u$ and the smooth factor $\eta$.
+\end{proof}
+
+\begin{lemma}[Smooth compactly supported functions are $\Wkp{1}{p}$]
+\label{lem:witness_smooth_cpt}
+\lean{DeGiorgi.MemW1pWitness.of_contDiff_hasCompactSupport}
+\leanok
+\uses{def:MemW1pWitness}
+(\leanname{DeGiorgi.MemW1pWitness.of\_contDiff\_hasCompactSupport})\\
+Let $f \in C^\infty_c(E,\R)$. Then $f$ admits a canonical $\Wkp{1}{p}$-witness
+on the whole space $E$, with weak gradient $\nabla^w f = \nabla f$ given by the
+classical gradient field.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_of_contDiff}
+
+Smooth compactly supported functions are integrable to any power, so $f \in
+\Lp{p}(E)$ and likewise each classical partial derivative. By
+Lemma~\ref{lem:weak_of_contDiff} the classical partial derivatives are weak
+partial derivatives.
+\end{proof}
+
+\begin{lemma}[Norm of weak gradient lies in $\Lp{p}$]
+\label{lem:weak_grad_norm_memLp}
+\lean{DeGiorgi.MemW1pWitness.weakGrad_memLp, DeGiorgi.MemW1pWitness.weakGrad_norm_memLp}
+\leanok
+\uses{def:MemW1pWitness}
+Let $G$ be the weak gradient field of a $\Wkp{1}{p}$-witness on $\Omega$. Then
+$G \in \Lp{p}(\Omega; E)$, and in particular $\|G(\cdot)\| \in \Lp{p}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Each component $G_i$ lies in $\Lp{p}(\Omega)$ by definition of a witness. For
+finite-dimensional Euclidean targets the $\Lp{p}$ membership of a vector field
+is equivalent to the $\Lp{p}$ membership of each component
+(\leanname{MemLp.of\_eval\_piLp}), so $G \in \Lp{p}(\Omega; E)$. Taking norms
+preserves $\Lp{p}$ membership.
+\end{proof}
+
+\begin{proposition}[$H_0^1$ is a vector space]
+\label{prop:H01_vector_space}
+\lean{DeGiorgi.MemW01p.add, DeGiorgi.MemW01p.smul, DeGiorgi.MemW01p.sub}
+\leanok
+\uses{def:MemW01p}
+The space $H_0^1(\Omega)$ is closed under addition, scalar multiplication, and
+subtraction.
+\end{proposition}
+
+\begin{proof}
+\leanok
+\uses{lem:witness_add, lem:MemW1pWitness_smul}
+
+For addition: Lemma~\ref{lem:witness_add} provides a witness for the sum.
+Approximating sequences add componentwise; by the triangle inequality for
+$\Lp{2}$ on differences,
+\begin{equation*}
+  \|\varphi_n^u + \varphi_n^v - (u+v)\|_{\Lp{2}(\Omega)}
+  \le \|\varphi_n^u - u\|_{\Lp{2}(\Omega)} + \|\varphi_n^v - v\|_{\Lp{2}(\Omega)}
+  \;\to\; 0,
+\end{equation*}
+and similarly for the gradients (using the linearity of the classical
+derivative on smooth functions).
+
+For scalar multiplication by $c$: rescale the approximating sequence by $c$ and
+use the homogeneity of the $\Lp{2}$ norm,
+$\|c\varphi_n - c u\|_{\Lp{2}} = |c|\,\|\varphi_n - u\|_{\Lp{2}}$.
+
+Subtraction follows by writing $u - v = u + (-1)v$.
+\end{proof}
+
+\begin{lemma}[Smooth compactly supported $\Rightarrow$ $\Wop{p}$]
+\label{lem:memW01p_of_smooth_cpt}
+\lean{DeGiorgi.memW01p_of_contDiff_hasCompactSupport, DeGiorgi.memW01p_of_contDiff_hasCompactSupport_subset}
+\leanok
+\uses{def:MemW01p}
+If $f \in C_c^\infty(E)$ then $f \in \Wop{p}(E)$. More generally, if $\Omega
+\subseteq E$ is open and $f \in C_c^\infty(E)$ with $\supp f \subseteq \Omega$,
+then $f \in \Wop{p}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_of_contDiff, def:MemW1pWitness, lem:witness_smooth_cpt}
+
+Take the constant approximating sequence $\varphi_n := f$. The $\Lp{p}$
+differences are identically zero, so trivially converge to $0$, and
+Lemma~\ref{lem:witness_smooth_cpt} provides the witness.
+\end{proof}
+
+\section{Cutoffs and zero-extension}
+
+\begin{lemma}[Smooth cutoff between a compact set and an open neighborhood]
+\label{lem:smooth_cutoff}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.exists\_smooth\_cutoff}.)}\par
+Let $K \subseteq \Omega \subseteq E$ with $K$ compact and $\Omega$ open. Then
+there exists $\eta \in C^\infty(E)$ with compact support such that
+$0 \le \eta \le 1$, $\eta = 1$ on $K$, and $\supp\eta \subseteq \Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Since $K$ is compact and contained in the open set $\Omega$, there exists
+$\delta > 0$ such that the closed $\delta$-thickening of $K$ is contained in
+$\Omega$. The classical existence of a smooth bump (in Lean,
+\leanname{exists\_contMDiff\_support\_eq\_eq\_one\_iff}) yields a smooth $\eta$
+with $\eta(x) = 1$ on $K$, support equal to the open $\delta$-thickening of $K$,
+and range in $[0,1]$. Its support is then contained in the closed
+$\delta$-thickening of $K$ and hence in $\Omega$, and it is automatically
+compactly supported.
+\end{proof}
+
+\begin{lemma}[Vanishing outside the support]
+\label{lem:zero_outside_tsupport}
+\lean{DeGiorgi.zero_outside_of_tsupport_subset, DeGiorgi.fderiv_apply_zero_outside_of_tsupport_subset}
+\leanok
+If $\supp f \subseteq \Omega$ and $x \notin \Omega$, then $f(x) = 0$. If
+furthermore $f \in C^\infty$ then $\partial_i f(x) = 0$ as well.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+If $f(x) \ne 0$ then $x$ lies in the support of $f$, hence in $\Omega$,
+contradicting $x \notin \Omega$. The same argument applied to $\partial_i f$
+(whose support is contained in that of $f$) handles the second statement.
+\end{proof}
+
+\begin{theorem}[Zero-extension of a $\Wop{p}$ function]
+\label{thm:zero_extend}
+\lean{DeGiorgi.zeroExtend_memW1pWitness_p}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p}
+Let $\Omega \subseteq E$ be open, $1 < p < \infty$, and $v \in \Wop{p}(\Omega)$
+with $\Wkp{1}{p}$-witness $G_v$; assume in addition that $v \in W_0^{1,p}(\Omega)$. Define $\tilde v := \mathbf{1}_\Omega \cdot v$
+on $E$ and let $\tilde G$ be the vector field whose components are
+$\mathbf{1}_\Omega \cdot (G_v)_i$. Then $\tilde G$ is a $\Wkp{1}{p}$-witness
+for $\tilde v$ on the whole space $E$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_partial_unique, lem:weak_of_contDiff, lem:weak_lp_closure, lem:zero_outside_tsupport}
+
+The function $v$ admits an approximating sequence $(\varphi_n)$ of smooth
+compactly supported test functions with $\supp\varphi_n \subseteq \Omega$, and
+$\varphi_n \to v$, $\partial_i\varphi_n \to (G_v)_i$ in $\Lp{p}(\Omega)$. By
+Lemma~\ref{lem:weak_partial_unique} the gradient field $G_v$ obtained from the
+arbitrary witness coincides almost everywhere on $\Omega$ with the one from the
+$\Wop{p}$ data.
+
+The $\Lp{p}$ membership of $\tilde v$ on $E$ is equivalent to the $\Lp{p}$
+membership of $v$ on $\Omega$, via
+\leanname{MeasureTheory.memLp\_indicator\_iff\_restrict}, and similarly for each
+component of $\tilde G$.
+
+To check that $\tilde G$ is a weak gradient on $E$, we apply
+Lemma~\ref{lem:weak_lp_closure} (closure of weak partial derivatives in
+$\Lp{p}$, on $\Omega = E$) with the same approximating sequence
+$(\varphi_n)$ and the classical gradients $\partial_i\varphi_n$. The
+key observations are:
+\begin{itemize}
+  \item Outside $\Omega$ both $\varphi_n$ and $\partial_i\varphi_n$ vanish (by
+        Lemma~\ref{lem:zero_outside_tsupport}); hence
+        $\varphi_n - \tilde v = \mathbf{1}_\Omega(\varphi_n - v)$ and
+        $\partial_i\varphi_n - \tilde G_i =
+         \mathbf{1}_\Omega(\partial_i\varphi_n - (G_v)_i)$ as functions on $E$.
+  \item The $\Lp{p}$-norm of an indicator of a measurable set equals the
+        $\Lp{p}$-norm computed on the restricted measure
+        (\leanname{MeasureTheory.eLpNorm\_indicator\_eq\_eLpNorm\_restrict}),
+        so the convergence on $\Omega$ implies convergence on $E$.
+\end{itemize}
+The hypotheses of Lemma~\ref{lem:weak_lp_closure} are then satisfied, and
+$\tilde G_i$ is the weak $i$-th partial derivative of $\tilde v$ on $E$.
+\end{proof}
+
+\section{Convolution smoothing}
+
+For $n \in \N$, define a $C^\infty$ bump function on $E$ centered at $0$ with
+inner radius $r_{\text{in}}^{(n)} := \frac{1}{2(n+1)}$ and outer radius
+$r_{\text{out}}^{(n)} := \frac{1}{n+1}$ (\leanname{DeGiorgi.shrinkingBump} (private)).
+We denote the corresponding mass-one normalized bump by $\rho_n :=
+(\text{shrinkingBump}_n).\text{normed}$, so $\int_E \rho_n = 1$, $\rho_n \ge 0$,
+and $\supp \rho_n \subseteq \Bz{r_{\text{out}}^{(n)}}$. The radii satisfy
+\begin{equation*}
+  r_{\text{out}}^{(n)} = \frac{1}{n+1} \;\to\; 0
+  \quad\text{as } n \to \infty
+\end{equation*}
+(\leanname{DeGiorgi.tendsto\_shrinkingBump\_rOut} (private)).
+
+\begin{lemma}[Support of a convolution]
+\label{lem:tsupport_conv}
+\leanok
+\noindent\textit{(Formalized as private declarations \leanname{DeGiorgi.tsupport\_convolution\_subset\_cthickening}, \leanname{DeGiorgi.tsupport\_normed\_convolution\_subset\_cthickening}.)}\par
+If $\supp \kappa \subseteq \overline{\Bz{r}}$ and $u$ has compact support, then
+\begin{equation*}
+  \supp(\kappa * u) \;\subseteq\; \{x \in E : \dist(x, \supp u) \le r\}.
+\end{equation*}
+In particular, $\supp(\rho_n * u) \subseteq \{x : \dist(x,\supp u) \le
+r_{\text{out}}^{(n)}\}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Pointwise, $(\kappa * u)(x) = \int \kappa(y) u(x - y)\,dy$ vanishes unless
+there exists $y \in \supp\kappa$ and $z \in \supp u$ with $x = y + z$, hence
+$\dist(x, z) = \|y\| \le r$. Closing under the topology, the closure is
+contained in the closed $r$-thickening, which is closed.
+\end{proof}
+
+\begin{proposition}[$\Lp{p}$-contraction of normed convolution]
+\label{prop:Lp_contraction_conv}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.eLpNorm\_normedConvolution\_le}.)}\par
+Let $\rho \in C_c^\infty(E)$ with $\rho \ge 0$ and $\int_E \rho = 1$, and let
+$1 \le p < \infty$. Then for every $f \in \Lp{p}(E)$,
+\begin{equation*}
+  \|\rho * f\|_{\Lp{p}(E)} \le \|f\|_{\Lp{p}(E)}.
+\end{equation*}
+\end{proposition}
+
+\begin{proof}
+\leanok
+
+Define the probability measure $\nu$ on $E$ by $d\nu = \rho\,d\,\mathrm{vol}$,
+which is a probability measure since $\rho \ge 0$ and $\int \rho = 1$. For each
+$x \in E$,
+\begin{equation*}
+  (\rho * f)(x) = \int_E f(x - y)\,d\nu(y).
+\end{equation*}
+By the integral form of Jensen's inequality applied to the convex function
+$t \mapsto t^p$ on $[0,\infty)$ (\leanname{ConvexOn.map\_integral\_le}),
+\begin{equation*}
+  |(\rho * f)(x)|^p
+    \le \left(\int_E |f(x-y)|\,d\nu(y)\right)^p
+    \le \int_E |f(x-y)|^p \,d\nu(y)
+    = (\rho * |f|^p)(x).
+\end{equation*}
+Integrating in $x$ and using Fubini together with $\int \rho = 1$,
+\begin{equation*}
+  \int_E |(\rho * f)(x)|^p\,dx \le \int_E (\rho * |f|^p)(x)\,dx
+    = \left(\int_E \rho\right)\left(\int_E |f|^p\right)
+    = \|f\|_{\Lp{p}}^p.
+\end{equation*}
+Taking $p$-th roots gives the claim.
+\end{proof}
+
+\begin{corollary}[Convolution is linear on differences]
+\label{cor:conv_sub}
+\leanok
+\noindent\textit{(Formalized as private declarations \leanname{DeGiorgi.normedConvolution\_sub\_eq}, \leanname{DeGiorgi.eLpNorm\_normedConvolution\_sub\_le}.)}\par
+Under the assumptions of Proposition~\ref{prop:Lp_contraction_conv} we also
+have, for $f, g \in \Lp{p}(E)$,
+\begin{equation*}
+  \|\rho * f - \rho * g\|_{\Lp{p}(E)} = \|\rho * (f - g)\|_{\Lp{p}(E)}
+   \le \|f - g\|_{\Lp{p}(E)}.
+\end{equation*}
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{prop:Lp_contraction_conv}
+
+Linearity of $f \mapsto \rho * f$ on locally integrable functions yields the
+equality, after which Proposition~\ref{prop:Lp_contraction_conv} applies to
+$f - g$.
+\end{proof}
+
+\begin{lemma}[Convolution by a shrinking bump approximates a continuous function]
+\label{lem:conv_approx_cont}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.tendsto\_eLpNorm\_normedConvolution\_sub\_of\_continuous}.)}\par
+Let $g \in C_c(E)$ and $1 \le p < \infty$. Then
+\begin{equation*}
+  \|\rho_n * g - g\|_{\Lp{p}(E)} \;\to\; 0 \quad\text{as } n \to \infty.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:zero_outside_tsupport, lem:tsupport_conv}
+
+Choose $S := \{x : \dist(x, \supp g) \le 1\}$ and $T := \{x : \dist(x, \supp g)
+\le 2\}$, both compact, with $S \subseteq T$. The function $g$ is uniformly
+continuous on the compact set $T$. Fix $\varepsilon > 0$ and let $\varepsilon_0
+:= \varepsilon / (\mathrm{vol}(S)^{1/p} + 1)$. By uniform continuity, there
+exists $\delta_0 > 0$ such that $|g(y) - g(x)| < \varepsilon_0$ whenever
+$x, y \in T$ with $\dist(x, y) < \delta_0$. Set $\delta := \min(\delta_0, 1)$.
+
+For $n$ large enough that $r_{\text{out}}^{(n)} < \delta$, we have $\supp(\rho_n
+* g) \subseteq S$ (Lemma~\ref{lem:tsupport_conv}, since
+$r_{\text{out}}^{(n)} \le 1$). Pointwise, for $x \in S$,
+\begin{equation*}
+  |(\rho_n * g)(x) - g(x)|
+    = \left|\int_E \rho_n(y) (g(x - y) - g(x))\,dy\right|
+    \le \varepsilon_0,
+\end{equation*}
+since $\rho_n$ is supported in $\Bz{r_{\text{out}}^{(n)}} \subseteq \Bz{\delta}$
+and both $x, x - y \in T$ for $y \in \supp\rho_n$. For $x \notin S$ both
+$(\rho_n * g)(x)$ and $g(x)$ vanish.
+
+The bound $\|\rho_n * g - g\|_{\Lp{p}(E)} \le \varepsilon_0
+\,\mathrm{vol}(S)^{1/p}$ then follows from
+\leanname{eLpNorm\_sub\_le\_of\_dist\_bdd}, and the choice of $\varepsilon_0$
+gives this is less than $\varepsilon$.
+\end{proof}
+
+\begin{theorem}[Convolution by a shrinking bump approximates an $\Lp{p}$ function]
+\label{thm:conv_approx_Lp}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.tendsto\_eLpNorm\_normedConvolution\_sub}.)}\par
+Let $1 \le p < \infty$ and $f \in \Lp{p}(E)$. Then
+\begin{equation*}
+  \|\rho_n * f - f\|_{\Lp{p}(E)} \;\to\; 0 \quad\text{as } n \to \infty.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{cor:conv_sub, lem:conv_approx_cont}
+
+By density of smooth compactly supported functions in $\Lp{p}$ (Mathlib's
+\leanname{MemLp.exist\_eLpNorm\_sub\_le}), for any $\varepsilon > 0$ there
+exists $g \in C_c^\infty(E)$ with $\|f - g\|_{\Lp{p}} < \varepsilon/3$. Then by
+the triangle inequality
+\begin{equation*}
+  \|\rho_n * f - f\|_{\Lp{p}} \le
+  \|\rho_n * f - \rho_n * g\|_{\Lp{p}} + \|\rho_n * g - g\|_{\Lp{p}} +
+  \|g - f\|_{\Lp{p}}.
+\end{equation*}
+By Corollary~\ref{cor:conv_sub} the first term is at most $\|f - g\|_{\Lp{p}} <
+\varepsilon/3$. By Lemma~\ref{lem:conv_approx_cont} the middle term tends to
+$0$, so for $n$ large it is less than $\varepsilon/3$. The last term is also
+less than $\varepsilon/3$. Hence $\|\rho_n * f - f\|_{\Lp{p}} < \varepsilon$
+for all sufficiently large $n$, proving convergence to zero.
+\end{proof}
+
+\section{Uniqueness of the weak gradient and global smooth approximation}
+
+\begin{theorem}[Uniqueness of the weak gradient]
+\label{thm:weak_grad_unique}
+\lean{DeGiorgi.MemW1pWitness.ae_eq_p, DeGiorgi.MemW1pWitness.ae_eq}
+\leanok
+\uses{def:MemW1pWitness}
+Let $\Omega \subseteq E$ be open, $1 \le p < \infty$, and $f$ a function with
+two $\Wkp{1}{p}$-witnesses on $\Omega$ giving rise to weak gradient fields
+$G_1, G_2$. Then $G_1 = G_2$ a.e.\ on $\Omega$. The same holds for $H^1$
+witnesses ($p = 2$).
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:weak_partial_unique}
+
+Apply Lemma~\ref{lem:weak_partial_unique} componentwise to $(G_1)_i$ and
+$(G_2)_i$, then assemble: a.e.\ all components agree, so the vectors
+themselves agree a.e.
+\end{proof}
+
+\begin{lemma}[Convolution differentiates against the weak partial derivative]
+\label{lem:conv_fderiv_weak_partial}
+\leanok
+\uses{def:HasWeakPartialDeriv}
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.convolution\_fderiv\_eq\_convolution\_weakPartial\_univ}.)}\par
+Let $u \in L^1_{loc}(E)$ and let $g$ be the weak $i$-th partial derivative of
+$u$ on $E$. Then for every $\varphi \in C_c^\infty(E)$ and every $x \in E$,
+\begin{equation*}
+  \bigl((\partial_i\varphi) * u\bigr)(x) = (\varphi * g)(x).
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+For fixed $x$, define the test function $\psi(t) := \varphi(x - t)$, which is
+smooth and compactly supported. A direct computation shows
+$(\partial_i \psi)(t) = -(\partial_i\varphi)(x - t)$ (chain rule with the
+sign-flipping translation). The weak-derivative identity for $u$ tested against
+$\psi$ then reads
+\begin{equation*}
+  \int_E u(t)\,(\partial_i\psi)(t)\,dt = -\int_E g(t)\,\psi(t)\,dt,
+\end{equation*}
+i.e.,
+\begin{equation*}
+  -\int_E u(t)\,(\partial_i\varphi)(x - t)\,dt = -\int_E g(t)\,\varphi(x - t)\,dt.
+\end{equation*}
+Cancelling the minus signs and rewriting both sides as convolutions yields the
+claim.
+\end{proof}
+
+\begin{theorem}[Smooth compactly supported approximation on $E$ for compactly
+supported $\Wkp{1}{p}$ functions]
+\label{thm:smooth_approx_univ}
+\lean{DeGiorgi.exists_smooth_compactSupport_W1p_approx_univ}
+\leanok
+\uses{def:MemW1pWitness}
+Let $1 < p < \infty$, and let $u : E \to \R$ be compactly supported with a
+$\Wkp{1}{p}$-witness on $E$ with weak gradient $G$. Then there exists a sequence
+$(\varphi_n)$ of smooth compactly supported functions on $E$ with
+\begin{align*}
+  \supp \varphi_n &\subseteq \{x : \dist(x, \supp u) \le r_{\text{out}}^{(n)}\}, \\
+  \|\varphi_n - u\|_{\Lp{p}(E)} &\to 0, \\
+  \|\partial_i\varphi_n - G_i\|_{\Lp{p}(E)} &\to 0 \quad\text{for every } i.
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:zero_outside_tsupport, lem:tsupport_conv, thm:conv_approx_Lp, lem:conv_fderiv_weak_partial}
+
+Define $\varphi_n := \rho_n * u$. Since $u$ is compactly supported and $\rho_n
+\in C_c^\infty(E)$, $\varphi_n$ is smooth and has support contained in the
+$r_{\text{out}}^{(n)}$-thickening of $\supp u$ (Lemma~\ref{lem:tsupport_conv}).
+The $\Lp{p}$ approximation $\varphi_n \to u$ is exactly
+Theorem~\ref{thm:conv_approx_Lp} applied to $u$.
+
+For the gradients, the classical fact
+\begin{equation*}
+  \partial_i (\rho_n * u) = (\partial_i \rho_n) * u
+\end{equation*}
+(Mathlib's
+\leanname{HasCompactSupport.hasFDerivAt\_convolution\_left})
+combined with Lemma~\ref{lem:conv_fderiv_weak_partial} (with $u$ on the right
+and the smooth $\rho_n$ on the left) yields
+\begin{equation*}
+  \partial_i \varphi_n = (\partial_i\rho_n) * u = \rho_n * G_i,
+\end{equation*}
+since $G_i$ is the weak partial derivative of $u$ on $E$. Applying
+Theorem~\ref{thm:conv_approx_Lp} to $G_i \in \Lp{p}(E)$ then gives
+$\partial_i\varphi_n - G_i = \rho_n * G_i - G_i \to 0$ in $\Lp{p}(E)$.
+\end{proof}
+
+\begin{theorem}[Smooth approximation for a witness supported in a compact subset]
+\label{thm:smooth_approx_local}
+\lean{DeGiorgi.exists_smooth_W1p_approx_of_supportedWitness}
+\leanok
+\uses{def:MemW1pWitness}
+Let $\Omega$ be open, $1 < p < \infty$, and let $u$ have a $\Wkp{1}{p}$-witness
+on $\Omega$ with gradient field $G$. Suppose $K \subseteq \Omega$ is compact
+with $\supp u \subseteq K$ and $\supp G_i \subseteq K$ for every $i$. Then
+there exists a sequence $(\varphi_n)$ of smooth compactly supported functions
+with $\supp\varphi_n \subseteq \Omega$ such that
+\begin{align*}
+  \|\varphi_n - u\|_{\Lp{p}(\Omega)} &\to 0, \\
+  \|\partial_i\varphi_n - G_i\|_{\Lp{p}(\Omega)} &\to 0 \quad\text{for every } i.
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:smooth_cutoff, lem:zero_outside_tsupport, thm:smooth_approx_univ}
+
+Choose $\delta > 0$ so that the closed $\delta$-thickening $K' := \{x :
+\dist(x,K) \le \delta\}$ is contained in $\Omega$
+(\leanname{IsCompact.exists\_cthickening\_subset\_open}), and a smooth cutoff
+$\chi$ as in Lemma~\ref{lem:smooth_cutoff} satisfying $\chi = 1$ on $K'$ and
+$\supp \chi \subseteq \Omega$.
+
+We promote the local witness on $\Omega$ to a witness on the whole space $E$
+with the same gradient field. The $\Lp{p}$-membership extends to all of $E$
+because $u$ and each $G_i$ vanish outside $K \subseteq \Omega$
+(Lemma~\ref{lem:zero_outside_tsupport}). To verify the weak-gradient identity
+on $E$, take any test function $\varphi \in C_c^\infty(E)$ and consider $\psi
+:= \chi \varphi$. Then $\psi \in C_c^\infty$ and $\supp \psi \subseteq \Omega$,
+so the witness on $\Omega$ gives
+\begin{equation*}
+  \int_\Omega u(x)\,\partial_i\psi(x)\,dx = -\int_\Omega G_i(x)\,\psi(x)\,dx.
+\end{equation*}
+On $K$ we have $\chi = 1$ and $\partial_i\chi = 0$ (because $\chi$ is constant
+equal to $1$ on the larger neighborhood $K'$ of $K$); since $u$ and $G_i$ are
+both supported in $K$, this gives pointwise on $E$
+\begin{equation*}
+  u(x)\,\partial_i\psi(x) = u(x)\,\partial_i\varphi(x), \qquad
+  G_i(x)\,\psi(x) = G_i(x)\,\varphi(x),
+\end{equation*}
+and the integral identity transfers from $\psi$ to $\varphi$.
+
+Now apply Theorem~\ref{thm:smooth_approx_univ} on the whole space to get a
+sequence $(\widetilde\varphi_m)$ with
+\begin{equation*}
+  \supp \widetilde\varphi_m \subseteq \{x : \dist(x, \supp u) \le r_{\text{out}}^{(m)}\}.
+\end{equation*}
+For $m$ large enough that $r_{\text{out}}^{(m)} \le \delta$, this support is
+contained in $K' \subseteq \Omega$. Setting $\varphi_n :=
+\widetilde\varphi_{n+N}$ for an appropriate $N$ furnishes the desired sequence:
+the support condition holds for every $n$, and $\Lp{p}(\Omega)$-convergence
+follows from $\Lp{p}(E)$-convergence by monotonicity of the $\Lp{p}$-norm in
+the underlying measure (\leanname{eLpNorm\_mono\_measure}).
+\end{proof}
+
+\begin{theorem}[Localization: compactly supported $\Wkp{1}{p}$ implies $\Wop{p}$]
+\label{thm:memW01p_of_compactly_supported}
+\lean{DeGiorgi.memW01p_of_memW1p_of_tsupport_subset}
+\leanok
+\uses{def:MemW1p, def:MemW01p}
+Let $\Omega \subseteq E$ be open, $1 < p < \infty$, and $u \in W^{1,p}(\Omega)$
+with compact support and $\supp u \subseteq \Omega$. Then $u \in \Wop{p}(\Omega)$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:MemW1pWitness, prop:witness_mul_smooth_bounded, lem:smooth_cutoff, thm:smooth_approx_local}
+
+Choose any $\Wkp{1}{p}$-witness for $u$ on $\Omega$, with gradient field $G$.
+Pick $\delta > 0$ such that the closed $\delta$-thickening of $\supp u$ is
+contained in $\Omega$, and let $K$ be that thickening. Apply
+Lemma~\ref{lem:smooth_cutoff} to obtain a smooth cutoff $\eta$ equal to $1$ on
+$K$ with $\supp \eta \subseteq \Omega$. Since $\eta$ is smooth and compactly
+supported, both $|\eta|$ and $\|D\eta\|$ are bounded by some constants $C_0 :=
+1$ and $C_1 \ge 0$ (the latter using continuity of $D\eta$ on its compact
+support, \leanname{HasCompactSupport.exists\_bound\_of\_continuousOn}).
+
+By Proposition~\ref{prop:witness_mul_smooth_bounded} the function $v := \eta u$
+admits a $\Wkp{1}{p}$-witness. Since $\eta = 1$ on a neighborhood of $\supp u$
+and $u = 0$ outside $\supp u$, we have $v = u$ pointwise. Moreover,
+$\supp v \subseteq \supp \eta$ (a compact subset of $\Omega$), and the same is
+true for each component of the new gradient, by
+\leanname{DeGiorgi.tsupport\_mul\_smooth\_bounded\_p\_weakGrad\_component\_subset}
+(private).
+
+We are now in the situation of Theorem~\ref{thm:smooth_approx_local} with $K :=
+\supp\eta$. The resulting smooth approximating sequence shows $u = v$ belongs
+to $\Wop{p}(\Omega)$.
+\end{proof}
+
+\section{Whole-space Sobolev inequality}
+
+\begin{definition}[Sobolev constant]
+\label{def:C_gns}
+\lean{DeGiorgi.C_gns}
+\leanok
+For $d \in \N_{\ge 1}$ and $p \in \R$, define
+\begin{equation*}
+  C_{\mathrm{gns}}(d, p) :=
+  \mathrm{SNormLESNormFDerivOfEqConst_{\R}}\bigl(\mathrm{vol}_{\R^d}, p\bigr),
+\end{equation*}
+the constant supplied by Mathlib's general $W^{1,p} \hookrightarrow L^{p^*}$
+embedding. By construction, $C_{\mathrm{gns}}(d,p) \ge 0$
+(\leanname{DeGiorgi.C\_gns\_nonneg}).
+\end{definition}
+
+\begin{lemma}[Sobolev exponent]
+\label{lem:sobolev_exp}
+\leanok
+\noindent\textit{(Formalized as private declarations \leanname{DeGiorgi.sobolev\_exp\_pos}, \leanname{DeGiorgi.sobolev\_exponent\_relation}.)}\par
+Let $1 \le p < d$. Then $\frac{dp}{d - p} > 0$, and
+\begin{equation*}
+  \left(\frac{dp}{d - p}\right)^{-1} = \frac{1}{p} - \frac{1}{d}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+Both numerator $dp$ and denominator $d - p$ are positive (since $d \ge 1$ and
+$p < d$). The exponent identity follows by direct algebraic manipulation
+$\frac{d - p}{dp} = \frac{1}{p} - \frac{1}{d}$.
+\end{proof}
+
+\begin{theorem}[Sobolev inequality for smooth compactly supported functions]
+\label{thm:sobolev_smooth}
+\lean{DeGiorgi.sobolev_smooth}
+\leanok
+\uses{def:C_gns}
+Let $1 \le p < d$, $u \in C_c^1(E)$. Then
+\begin{equation*}
+  \|u\|_{L^{p^*}(E)} \le C_{\mathrm{gns}}(d, p)\,\|Du\|_{L^p(E)},
+  \qquad p^* = \frac{dp}{d-p}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:sobolev_exp}
+
+This is a direct application of Mathlib's general result
+\leanname{MeasureTheory.eLpNorm\_le\_eLpNorm\_fderiv\_of\_eq} with the exponent
+relation supplied by Lemma~\ref{lem:sobolev_exp} (rewritten in terms of
+$\mathrm{Real.toNNReal}$ to match the Mathlib API).
+\end{proof}
+
+\begin{lemma}[Operator norm of the differential equals partials norm]
+\label{lem:norm_fderiv}
+\leanok
+\noindent\textit{(Formalized as private declaration \leanname{DeGiorgi.norm\_fderiv\_eq\_norm\_partials}.)}\par
+For any $f : E \to \R$ with derivative $Df(x)$ at $x$,
+\begin{equation*}
+  \|Df(x)\|
+   = \left(\sum_{i=1}^d |\partial_i f(x)|^2\right)^{1/2}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+By Riesz representation in the Hilbert space $E$, $Df(x)$ corresponds to a
+unique $v \in E$ with $Df(x) = \langle v, \cdot\rangle$, and $\|Df(x)\| = \|v\|$.
+Evaluating at the standard basis vector $e_i$ gives $v_i = Df(x)(e_i) =
+\partial_i f(x)$, so $\|v\|^2 = \sum_i |\partial_i f(x)|^2$.
+\end{proof}
+
+\begin{theorem}[Sobolev inequality from approximating sequences]
+\label{thm:sobolev_of_approx}
+\lean{DeGiorgi.sobolev_of_approx}
+\leanok
+\uses{def:C_gns}
+Let $1 \le p < d$, $u : E \to \R$ a.e.\ strongly measurable, and $G : E \to E$
+a vector field whose components are a.e.\ strongly measurable. Suppose there
+is a sequence $(\varphi_n)$ of smooth compactly supported functions on $E$
+with
+\begin{equation*}
+  \|\varphi_n - u\|_{\Lp{p}(E)} \to 0, \qquad
+  \|\partial_i\varphi_n - G_i\|_{\Lp{p}(E)} \to 0 \;\text{ for every } i.
+\end{equation*}
+Then
+\begin{equation*}
+  \|u\|_{L^{p^*}(E)} \le C_{\mathrm{gns}}(d,p)\,\|\,\|G(\cdot)\|\,\|_{\Lp{p}(E)},
+  \qquad p^* = \frac{dp}{d-p}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:sobolev_smooth, lem:norm_fderiv}
+
+Apply Theorem~\ref{thm:sobolev_smooth} to each $\varphi_n$:
+\begin{equation*}
+  \|\varphi_n\|_{L^{p^*}} \le C_{\mathrm{gns}}(d,p)\,\|D\varphi_n\|_{L^p}.
+\end{equation*}
+Define $\Phi_n(x) := (\partial_1\varphi_n(x),\ldots,\partial_d\varphi_n(x))$,
+the vector of classical partial derivatives. By Lemma~\ref{lem:norm_fderiv},
+$\|D\varphi_n(x)\| = \|\Phi_n(x)\|$, hence $\|D\varphi_n\|_{L^p} = \|\,\|\Phi_n\|\,\|_{L^p}$.
+
+By the triangle inequality applied componentwise (and bounding the Euclidean
+norm of a vector by the sum of the norms of its components, see
+\leanname{DeGiorgi.gradVec\_eLpNorm\_le\_sum} (private)),
+\begin{equation*}
+  \|\Phi_n - G\|_{L^p(E; E)}
+   \le \sum_{i=1}^d \|\partial_i\varphi_n - G_i\|_{\Lp{p}(E)} \;\to\; 0.
+\end{equation*}
+Hence $\|\,\|\Phi_n\|\,\|_{L^p} \to \|\,\|G\|\,\|_{L^p}$, by reverse triangle
+inequality $|\,\|\Phi_n(x)\| - \|G(x)\|\,| \le \|\Phi_n(x) - G(x)\|$.
+
+Convergence in $L^p$ implies convergence in measure
+(\leanname{tendstoInMeasure\_of\_tendsto\_eLpNorm}), so by passing to a
+subsequence we may assume $\varphi_{\sigma(n)} \to u$ a.e. By Fatou's lemma
+applied to $L^{p^*}$ (\leanname{Lp.eLpNorm\_lim\_le\_liminf\_eLpNorm}),
+\begin{equation*}
+  \|u\|_{L^{p^*}}
+   \le \liminf_{n\to\infty} \|\varphi_{\sigma(n)}\|_{L^{p^*}}
+   \le \liminf_{n\to\infty} C_{\mathrm{gns}}(d,p)\,\|\,\|\Phi_{\sigma(n)}\|\,\|_{L^p}.
+\end{equation*}
+The right-hand side $\liminf$ is bounded above by $C_{\mathrm{gns}}(d,p)\,\|
+\,\|G\|\,\|_{L^p}$, since $\|\,\|\Phi_{\sigma(n)}\|\,\|_{L^p} \le \|\,\|G\|\,\|_{L^p}
++ \|\Phi_{\sigma(n)} - G\|_{L^p}$ and the second term tends to zero, using
+\leanname{ENNReal.liminf\_add\_of\_right\_tendsto\_zero}. Combining yields the
+claim.
+\end{proof}
+
+\begin{corollary}[Sobolev inequality on $\Wop{p}(E)$]
+\label{cor:sobolev_W01p}
+\lean{DeGiorgi.sobolev_of_memW01p_univ}
+\leanok
+\uses{def:MemW1pWitness, def:MemW01p, def:C_gns}
+Let $1 \le p < d$ and $u \in \Wop{p}(E)$. Then there exists a
+$\Wkp{1}{p}$-witness for $u$ on $E$ such that
+\begin{equation*}
+  \|u\|_{L^{p^*}(E)} \le C_{\mathrm{gns}}(d,p)\,\|\,\|G(\cdot)\|\,\|_{\Lp{p}(E)},
+  \qquad p^* = \frac{dp}{d - p},
+\end{equation*}
+where $G$ is the weak gradient field carried by the witness.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:sobolev_of_approx}
+
+By Definition~\ref{def:MemW01p}, $u \in \Wop{p}(E)$ comes equipped with a
+$\Wkp{1}{p}$-witness on $E$ and an approximating sequence $(\varphi_n)$ of
+smooth compactly supported functions converging to $u$ and whose classical
+gradients converge to the weak gradient $G$ in $\Lp{p}$. The hypotheses of
+Theorem~\ref{thm:sobolev_of_approx} are satisfied, and its conclusion is
+exactly the desired inequality.
+\end{proof}
+
+\section{Positive-part prelude}
+
+\begin{lemma}[Indicator truncation preserves $L^2$]
+\label{lem:indicator_component_memLp}
+\lean{DeGiorgi.indicator_component_memLp}
+\leanok
+Let $\Omega \subseteq E$, $\sigma : E \to \R$ be a.e.\ measurable on $\Omega$
+and $g \in \Lp{2}(\Omega)$. Then the function
+\begin{equation*}
+  x \mapsto \mathbf{1}_{\{\sigma > 0\}}(x)\,g(x)
+\end{equation*}
+also lies in $\Lp{2}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+
+The set $\{\sigma > 0\}$ is measurable since $\sigma$ is a.e.\ measurable, so
+the indicator multiplication preserves a.e.\ strong measurability. Pointwise,
+$|\mathbf{1}_{\{\sigma > 0\}}(x)\,g(x)| \le |g(x)|$, and squaring, integrating
+and applying the $\Lp{2}$ membership of $g$ gives the conclusion.
+\end{proof}
+
+\begin{lemma}[Truncated weak-gradient component in $L^2$]
+\label{lem:posPartGrad}
+\lean{DeGiorgi.posPartGrad_component_memLp}
+\leanok
+\uses{def:MemW1pWitness}
+Let $u \in H^1(\Omega)$ with $H^1$-witness gradient field $G$. For each
+$i \in \{1,\ldots,d\}$, the function
+\begin{equation*}
+  x \mapsto \mathbf{1}_{\{u > 0\}}(x)\,G_i(x)
+\end{equation*}
+belongs to $\Lp{2}(\Omega)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:indicator_component_memLp}
+
+Apply Lemma~\ref{lem:indicator_component_memLp} with $\sigma := u$ and $g :=
+G_i$, both of which lie in the relevant $\Lp{2}$ spaces (the second by the
+witness assumption).
+\end{proof}
+
+
+%% ========================================================================
