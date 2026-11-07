@@ -56,6 +56,12 @@ theorem C_MoserAnchor_le_C_Moser :
   · simp [C_Moser, hd]
   · simp [C_Moser, hd]
 
+theorem moser_geometric_le_C_Moser (hd : 2 < (d : ℝ)) :
+    ((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
+        4 ^ (∑' n : ℕ, (n : ℝ) * moserDecayRatio d ^ n) ≤ C_Moser d := by
+  rw [C_Moser, dif_pos hd]
+  exact le_max_right _ _
+
 theorem one_le_C_Moser : 1 ≤ C_Moser d := by
   exact (one_le_C_MoserAnchor (d := d)).trans (C_MoserAnchor_le_C_Moser (d := d))
 

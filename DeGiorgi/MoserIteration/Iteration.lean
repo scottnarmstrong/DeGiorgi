@@ -542,12 +542,7 @@ theorem moser_geometric_majorant
         C_Moser d * A.1.Λ ^ ((d : ℝ) / 2) * r ^ (d : ℝ) := by
     have hC_base :
         B ^ ((d : ℝ) / 2) * 4 ^ (∑' i : ℕ, (i : ℝ) * q ^ i) ≤ C_Moser d := by
-      dsimp [B, q]
-      rw [C_Moser, dif_pos hd]
-      exact
-        le_max_right (C_MoserAnchor d)
-          (((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
-            4 ^ (∑' n : ℕ, (n : ℝ) * moserDecayRatio d ^ n))
+      apply moser_geometric_le_C_Moser hd
     have hfactor_nonneg : 0 ≤ A.1.Λ ^ ((d : ℝ) / 2) * r ^ (d : ℝ) := by
       exact mul_nonneg (Real.rpow_nonneg A.1.Λ_nonneg _) (Real.rpow_nonneg hr_nonneg _)
     simpa [mul_assoc, mul_left_comm, mul_comm] using

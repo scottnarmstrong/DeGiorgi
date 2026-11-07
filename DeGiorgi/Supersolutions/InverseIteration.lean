@@ -358,18 +358,7 @@ theorem supersolution_geometric_majorant_inv
             4 ^ (∑' i : ℕ, (i : ℝ) * q ^ i) := by
       exact mul_le_mul_of_nonneg_right hK₀_pow_le_big
         (Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 4) _)
-    have hmax :
-        ((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
-            4 ^ (∑' i : ℕ, (i : ℝ) * q ^ i) ≤
-          C_Moser d := by
-      dsimp [C_Moser, q]
-      split_ifs with hlt
-      · exact
-          le_max_right (C_MoserAnchor d)
-            (((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
-              4 ^ (∑' i : ℕ, (i : ℝ) * moserDecayRatio d ^ i))
-      · exact False.elim (hlt hd)
-    exact hbase.trans hmax
+    exact hbase.trans (moser_geometric_le_C_Moser hd)
   have hCweak_eq :
       C_Moser d * (moserChi d ^ 2) ^ (∑' i : ℕ, (i : ℝ) * q ^ i) =
         C_weakHarnack0 d := by
