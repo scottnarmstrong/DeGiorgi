@@ -195,14 +195,7 @@ theorem superStepConstFwd_le
             mul_le_mul_of_nonneg_left hprod_le hq.le
         _ = q := mul_one q
     have hp_i_lt_one : moserExponentSeq d p₀ i < 1 := lt_of_le_of_lt hp_i_le_q hq1
-    have hgap_eq : C_MoserAnchor d / (moserRadius i - moserRadius (i + 1)) ^ 2 =
-        C_MoserAnchor d * (4 : ℝ) ^ (i + 2) := by
-      rw [moserRadius_gap]
-      have hsq : (((1 / 2 : ℝ) ^ (i + 2)) ^ 2) = (1 / 4 : ℝ) ^ (i + 2) := by
-        rw [← pow_mul, show (i + 2) * 2 = 2 * (i + 2) by ring, pow_mul]; norm_num
-      rw [hsq, div_eq_mul_inv,
-        show (((1 / 4 : ℝ) ^ (i + 2))⁻¹) = (4 : ℝ) ^ (i + 2) by
-          rw [show (1 / 4 : ℝ) = (4 : ℝ)⁻¹ by norm_num, inv_pow]; norm_num]
+    have hgap_eq := div_moserRadius_gap_sq (C_MoserAnchor d) i
     have hpow4 : (4 : ℝ) ^ (i + 2) = 16 * 4 ^ i := by
       rw [pow_add]
       ring

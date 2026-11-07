@@ -154,16 +154,7 @@ theorem moser_step_majorant_le
   have hgap_eq :
       C_MoserAnchor d / (moserRadius n - moserRadius (n + 1)) ^ 2 =
         C_MoserAnchor d * (4 : ℝ) ^ (n + 2) := by
-    rw [moserRadius_gap]
-    have hsq : (((1 / 2 : ℝ) ^ (n + 2)) ^ 2) = (1 / 4 : ℝ) ^ (n + 2) := by
-      rw [← pow_mul]
-      rw [show (n + 2) * 2 = 2 * (n + 2) by ring]
-      rw [pow_mul]
-      norm_num
-    rw [hsq, div_eq_mul_inv]
-    rw [show (((1 / 4 : ℝ) ^ (n + 2))⁻¹) = (4 : ℝ) ^ (n + 2) by
-      rw [show (1 / 4 : ℝ) = (4 : ℝ)⁻¹ by norm_num, inv_pow]
-      norm_num]
+      apply div_moserRadius_gap_sq
   have hpow4 : (4 : ℝ) ^ (n + 2) = (4 : ℝ) ^ n * 16 := by
     rw [pow_add]
     norm_num
