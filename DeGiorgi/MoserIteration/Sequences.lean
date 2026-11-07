@@ -85,6 +85,11 @@ theorem moserRadius_gap (n : ℕ) :
   field_simp
   ring_nf
 
+theorem div_moserRadius_gap_sq (c : ℝ) (n : ℕ) :
+    c / (moserRadius n - moserRadius (n + 1)) ^ 2 = c * 4 ^ (n + 2) := by
+  rw [moserRadius_gap, ← pow_mul, mul_comm, pow_mul, div_eq_mul_inv, ← inv_pow]
+  norm_num
+
 theorem moserRadius_succ_lt (n : ℕ) :
     moserRadius (n + 1) < moserRadius n := by
   have hgap : 0 < moserRadius n - moserRadius (n + 1) := by

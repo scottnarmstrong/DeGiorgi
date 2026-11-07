@@ -151,14 +151,7 @@ theorem superStepConstInv_le
     · nlinarith [A.1.Λ_nonneg, sq_nonneg (moserExponentSeq d p₀ i / (1 + moserExponentSeq d p₀ i))]
   · -- Main bound
     have hp_i := moserExponentSeq_pos (d := d) hd hp₀ i
-    have hgap_eq : C_MoserAnchor d / (moserRadius i - moserRadius (i + 1)) ^ 2 =
-        C_MoserAnchor d * (4 : ℝ) ^ (i + 2) := by
-      rw [moserRadius_gap]
-      have hsq : (((1 / 2 : ℝ) ^ (i + 2)) ^ 2) = (1 / 4 : ℝ) ^ (i + 2) := by
-        rw [← pow_mul, show (i + 2) * 2 = 2 * (i + 2) by ring, pow_mul]; norm_num
-      rw [hsq, div_eq_mul_inv,
-        show (((1 / 4 : ℝ) ^ (i + 2))⁻¹) = (4 : ℝ) ^ (i + 2) by
-          rw [show (1 / 4 : ℝ) = (4 : ℝ)⁻¹ by norm_num, inv_pow]; norm_num]
+    have hgap_eq := div_moserRadius_gap_sq (C_MoserAnchor d) i
     have hpow4 : (4 : ℝ) ^ (i + 2) = 16 * 4 ^ i := by rw [pow_add]; ring
     -- pₙ/(1+pₙ) ≤ pₙ, so Λ(pₙ/(1+pₙ))² ≤ Λpₙ²
     have hratio_le : (moserExponentSeq d p₀ i / (1 + moserExponentSeq d p₀ i)) ^ 2 ≤
@@ -358,18 +351,7 @@ theorem supersolution_geometric_majorant_inv
             4 ^ (∑' i : ℕ, (i : ℝ) * q ^ i) := by
       exact mul_le_mul_of_nonneg_right hK₀_pow_le_big
         (Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 4) _)
-    have hmax :
-        ((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
-            4 ^ (∑' i : ℕ, (i : ℝ) * q ^ i) ≤
-          C_Moser d := by
-      dsimp [C_Moser, q]
-      split_ifs with hlt
-      · exact
-          le_max_right (C_MoserAnchor d)
-            (((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
-              4 ^ (∑' i : ℕ, (i : ℝ) * moserDecayRatio d ^ i))
-      · exact False.elim (hlt hd)
-    exact hbase.trans hmax
+    exact hbase.trans (moser_geometric_le_C_Moser hd)
   have hCweak_eq :
       C_Moser d * (moserChi d ^ 2) ^ (∑' i : ℕ, (i : ℝ) * q ^ i) =
         C_weakHarnack0 d := by

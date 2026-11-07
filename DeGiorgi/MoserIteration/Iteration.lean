@@ -154,16 +154,7 @@ theorem moser_step_majorant_le
   have hgap_eq :
       C_MoserAnchor d / (moserRadius n - moserRadius (n + 1)) ^ 2 =
         C_MoserAnchor d * (4 : ℝ) ^ (n + 2) := by
-    rw [moserRadius_gap]
-    have hsq : (((1 / 2 : ℝ) ^ (n + 2)) ^ 2) = (1 / 4 : ℝ) ^ (n + 2) := by
-      rw [← pow_mul]
-      rw [show (n + 2) * 2 = 2 * (n + 2) by ring]
-      rw [pow_mul]
-      norm_num
-    rw [hsq, div_eq_mul_inv]
-    rw [show (((1 / 4 : ℝ) ^ (n + 2))⁻¹) = (4 : ℝ) ^ (n + 2) by
-      rw [show (1 / 4 : ℝ) = (4 : ℝ)⁻¹ by norm_num, inv_pow]
-      norm_num]
+      apply div_moserRadius_gap_sq
   have hpow4 : (4 : ℝ) ^ (n + 2) = (4 : ℝ) ^ n * 16 := by
     rw [pow_add]
     norm_num
@@ -542,12 +533,7 @@ theorem moser_geometric_majorant
         C_Moser d * A.1.Λ ^ ((d : ℝ) / 2) * r ^ (d : ℝ) := by
     have hC_base :
         B ^ ((d : ℝ) / 2) * 4 ^ (∑' i : ℕ, (i : ℝ) * q ^ i) ≤ C_Moser d := by
-      dsimp [B, q]
-      rw [C_Moser, dif_pos hd]
-      exact
-        le_max_right (C_MoserAnchor d)
-          (((32 : ℝ) * C_MoserAnchor d) ^ ((d : ℝ) / 2) *
-            4 ^ (∑' n : ℕ, (n : ℝ) * moserDecayRatio d ^ n))
+      apply moser_geometric_le_C_Moser hd
     have hfactor_nonneg : 0 ≤ A.1.Λ ^ ((d : ℝ) / 2) * r ^ (d : ℝ) := by
       exact mul_nonneg (Real.rpow_nonneg A.1.Λ_nonneg _) (Real.rpow_nonneg hr_nonneg _)
     simpa [mul_assoc, mul_left_comm, mul_comm] using
